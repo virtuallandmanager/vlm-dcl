@@ -21,7 +21,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MetaverseUnknower/dcl-vlm"
+    "url": "git+https://github.com/Livication-Creative-Technology/dcl-vlm"
   },
   "files": [
     "dist"
