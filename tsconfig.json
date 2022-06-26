@@ -1,0 +1,17 @@
+{
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "dist"
+  ],
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "removeComments": true,
+    "declaration": true,
+    "declarationDir": ".",
+    "outDir": "dist"
+  },
+  "extends": "./node_modules/decentraland-ecs/types/tsconfig.json"
+}
