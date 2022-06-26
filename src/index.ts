@@ -1,0 +1,1 @@
+export { connectCMS } from "./connect";
