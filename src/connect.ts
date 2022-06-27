@@ -1,8 +1,8 @@
 // dcl utils
+// import * as utils from "@dcl/ecs-scene-utils";
 import { isPreviewMode } from "@decentraland/EnvironmentAPI";
 import { getUserAccount } from "@decentraland/EthereumController";
 import { getParcel } from "@decentraland/ParcelIdentity";
-import { Interval } from "@dcl/ecs-scene-utils";
 // vlm files and functions
 import { initScene } from "./init";
 import { startAnalytics } from "./analytics";
@@ -22,18 +22,18 @@ export const connectCMS = async () => {
 
   // isPreview = false
 
-  let socket = new WebSocket("" + (isPreview ? "ws://localhost:3000/" : "wss://api.dcl-vlm.io/wss/") + `?scene=${baseParcel}`);
+  let socket = new WebSocket("" + (isPreview ? "ws://localhost:3000/wss" : "wss://api.dcl-vlm.io/wss/") + `?scene=${baseParcel}`);
   socket.onopen = (ev) => {
     log("connected to web socket");
     socket.send(JSON.stringify({ action: "init" }));
 
     let socketdelay = new Entity();
     engine.addEntity(socketdelay);
-    socketdelay.addComponent(
-      new Interval(10000, () => {
-        socket.send(JSON.stringify({ command: "ping" }));
-      })
-    );
+    // socketdelay.addComponent(
+    //   new utils.Interval(10000, () => {
+    //     socket.send(JSON.stringify({ command: "ping" }));
+    //   })
+    // );
   };
 
   socket.onopen = (ev) => {
@@ -115,5 +115,3 @@ const removeEntity = (message: any) => {
       break;
   }
 };
-
-
