@@ -1,9 +1,13 @@
+import { Delay } from "@dcl/ecs-scene-utils";
 import { setClickEvent } from "./helpers/clickEvent";
 import { getEntityByName, getId } from "./helpers/entity";
+import { TEntityInstance } from "./types/Entity";
+import { TImage } from "./types/Image";
 
-export const cmsImages: any = {};
+export let cmsImages: any = {};
 
 export function initImages(imageTextures: Array<any>) {
+  log("creating image textures", imageTextures);
   imageTextures.forEach((image: any, i: number) => {
     createImage(image);
   });
@@ -12,6 +16,7 @@ export function initImages(imageTextures: Array<any>) {
 export function createImage(image: any) {
   const imageId = getId(image);
   createOrUpdateMaterial(image);
+
   image.instances.forEach((instance: any, ii: number) => {
     const instanceId = getId(instance);
     if ((cmsImages[imageId] && cmsImages[imageId][instanceId]) || instance.customRendering || image.customRendering) {
@@ -43,9 +48,6 @@ export function createImageInstance(image: any, instance: any) {
   }
 
   setImageProperties(image, instance);
-
-  // hud.attachToEntity(cmsImages[imageId][instanceId]);
-
   setClickEvent(cmsImages, image, instance);
 }
 
@@ -97,7 +99,7 @@ export function createOrUpdateMaterial(image: any) {
     cmsImages[imageId].material.texture = cmsImages[imageId].texture;
   } else {
     cmsImages[imageId].material = new Material();
-    cmsImages[imageId].texture = new Texture(image.imageLink);
+    cmsImages[imageId].texture = new Texture("" + image.imageLink);
     cmsImages[imageId].material.albedoTexture = cmsImages[imageId].texture;
     cmsImages[imageId].material.emissiveTexture = cmsImages[imageId].texture;
     cmsImages[imageId].material.emissiveIntensity = image.emission || 1.2;
@@ -154,15 +156,16 @@ export function setImageProperties(image: any, instance: any) {
   }
 }
 
-export function removeImage(property: string, id: string) {
-  switch (property) {
-    case "image":
-      engine.removeEntity(cmsImages[id]);
-      break;
-    case "imageInstance":
-      const instanceIndex = cmsImages.findIndex((image: any) => image.instances && image.instances[id]);
-      engine.removeEntity(cmsImages[instanceIndex][id]);
-      break;
-    default:
-  }
+export function removeImage(image: TImage) {
+  const imageId = getId(image);
+  cmsImages[imageId].instances.forEach((instance: any, ii: number) => {
+    engine.removeEntity(instance);
+  });
+}
+
+export function removeImageInstance(image: TImage, instance: TEntityInstance) {
+  const imageId = getId(image),
+    instanceId = getId(instance);
+
+  engine.removeEntity(cmsImages[imageId][instanceId]);
 }

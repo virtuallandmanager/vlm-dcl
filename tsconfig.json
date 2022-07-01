@@ -9,5 +9,10 @@
     "declarationDir": ".",
     "outDir": "dist"
   },
+  "paths": {
+    "@dcl/ecs-scene-utils": ["node_modules/@dcl/ecs-scene-utils/dist/index.d.ts", "node_modules\\@dcl\\ecs-scene-utils\\dist\\index.d.ts"],
+    "@dcl/npc-scene-utils": ["node_modules/@dcl/npc-scene-utils/dist/index.d.ts", "node_modules\\@dcl\\npc-scene-utils\\dist\\index.d.ts"],
+    "dcl-video-system": ["../dcl-video-system/dist/index.d.ts", "..\\dcl-video-system\\dist\\index.d.ts"]
+  },
   "extends": "./node_modules/decentraland-ecs/types/tsconfig.json"
 }
