@@ -13,6 +13,7 @@ export default {
   output: [
     {
       file: packageJson.main,
+      sourcemap: true,
       format: 'amd',
       amd: {
         id: packageJson.name

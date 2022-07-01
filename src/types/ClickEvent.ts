@@ -1,5 +1,12 @@
-import { EClickEventType } from "../enums/EClickEventType";
-import { TTransform } from "./TTransform";
+import { TTransform } from "./Transform";
+
+export enum EClickEventType {
+  none,
+  externalLink,
+  sound,
+  moveTo,
+  teleportTo
+}
 
 export type TClickEvent = {
   type: EClickEventType;

@@ -1,24 +1,44 @@
+import * as utils from '@dcl/ecs-scene-utils'
 import { isPreviewMode } from "@decentraland/EnvironmentAPI";
 import { getUserData } from "@decentraland/Identity";
 import { getParcel } from "@decentraland/ParcelIdentity";
 import { signedFetch } from "@decentraland/SignedFetch";
+import { user } from './helpers/user';
 
-export function startAnalytics() {
+
+export function initAnalytics() {
   onPlayerConnectedObservable.add((player) => {
-    recordEvent("player_connected", player);
+    // log("player entered: ", player.userId)
+    if(player.userId == user){
+    let delay = new Entity()
+    delay.addComponent(new utils.Delay(5000,()=>{
+      recordEvent("player_connected", player);
+      engine.removeEntity(delay)
+    }))
+    engine.addEntity(delay)
+  }
   });
 
   onPlayerDisconnectedObservable.add((player) => {
-    recordEvent("player_disconnected", player);
+    // log("player left: ", player.userId)
+    if(player.userId == user){
+      recordEvent("player_disconnected", player);
+    }
   });
 
   onEnterSceneObservable.add((player) => {
+    log("player entered scene: ", player.userId);
+    if(player.userId == user){
     recordEvent("player_entered_scene", player);
+    }
   });
 
   // shows player left scene
   onLeaveSceneObservable.add((player) => {
+    // log("player left scene: ", player.userId)
+    if(player.userId == user){
     recordEvent("player_left_scene", player);
+    }
   });
 
   // // idle
@@ -30,8 +50,16 @@ export function startAnalytics() {
 
   // player animation
   onPlayerExpressionObservable.add(({ expressionId }) => {
+    // log("Expression: ", expressionId)
+    
     recordEvent("player_expression", expressionId);
   });
+
+  // // fetch player data
+  // getUserData().then((data) => {
+  //   // log(data)
+  //   recordEvent("user_data", data)
+  // })
 }
 
 export async function recordEvent(eventType: any, metadata: any) {
