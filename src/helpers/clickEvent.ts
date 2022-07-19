@@ -16,10 +16,10 @@ export const setClickEvent = (storage: TEntityStorage, entity: TEntity, instance
       instanceId = getId(instance);
   
     switch (entity.clickEvent.type) {
-      case EClickEventType.none: //no click event
+      case EClickEventType.NONE: //no click event
       storage[imageId][instanceId].removeComponent(OnPointerDown);
         return;
-      case EClickEventType.externalLink: //external link
+      case EClickEventType.EXTERNAL: //external link
         pointerDownEvent = new OnPointerDown(
           () => {
             openExternalURL(entity.clickEvent.externalLink);
@@ -27,7 +27,7 @@ export const setClickEvent = (storage: TEntityStorage, entity: TEntity, instance
           { showFeedback, hoverText }
         );
         break;
-      case EClickEventType.sound: //play a sound
+      case EClickEventType.SOUND: //play a sound
         const clip = new AudioClip(entity.clickEvent.sound);
         const source = new AudioSource(clip);
         pointerDownEvent = new OnPointerDown(
@@ -37,7 +37,7 @@ export const setClickEvent = (storage: TEntityStorage, entity: TEntity, instance
           { showFeedback, hoverText }
         );
         break;
-      case EClickEventType.moveTo: // move player
+      case EClickEventType.MOVE: // move player
         pointerDownEvent = new OnPointerDown(
           () => {
             movePlayerTo(entity.clickEvent.moveTo.position, entity.clickEvent.moveTo.cameraTarget);
@@ -45,7 +45,7 @@ export const setClickEvent = (storage: TEntityStorage, entity: TEntity, instance
           { showFeedback, hoverText }
         );
         break;
-      case EClickEventType.teleportTo: // teleport player
+      case EClickEventType.TELEPORT: // teleport player
         pointerDownEvent = new OnPointerDown(
           () => {
             teleportTo(entity.clickEvent.teleportTo.join(','));

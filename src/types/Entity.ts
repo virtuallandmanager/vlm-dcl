@@ -10,13 +10,13 @@ export type TEntity = {
   
   export type TEntityInstance = {
     id: string;
-    customId: string;
     name: string;
     show: boolean;
-    parent: string;
     position: TTransform;
     scale: TTransform;
     rotation: TTransform;
-    clickEvent: TClickEvent;
+    parent?: string;
+    customId?: string;
+    clickEvent?: TClickEvent;
   };
   
