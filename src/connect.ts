@@ -27,7 +27,7 @@ export const connectCMS = async () => {
   log("user is", user);
   let isPreview = await isPreviewMode();
 
-  const useLocal = true;
+  const useLocal = false;
   const useStaging = false;
 
   let baseUrl = "wss://api.dcl-vlm.io/wss/";
