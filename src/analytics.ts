@@ -65,29 +65,26 @@ export function initAnalytics() {
 export async function recordEvent(eventType: any, metadata: any) {
   log("recording event", eventType);
   // getting parcel info
-  executeTask(async () => {
+  // executeTask(async () => {
     const parcel = await getParcel();
-    // log('parcels: ', parcel.land.sceneJsonData.scene.parcels)
+    log('parcels: ', parcel.land.sceneJsonData.scene.parcels)
     const parcels = parcel.land.sceneJsonData.scene.parcels;
 
-    // log('spawnpoints: ', parcel.land.sceneJsonData.spawnPoints)
+    log('spawnpoints: ', parcel.land.sceneJsonData.spawnPoints)
     const spawnpoints = parcel.land.sceneJsonData.spawnPoints;
 
-    // log('base parcel: ', parcel.land.sceneJsonData.scene.base)
+    log('base parcel: ', parcel.land.sceneJsonData.scene.base)
     const baseParcel = parcel.land.sceneJsonData.scene.base;
     const sceneJsonData = parcel.land.sceneJsonData;
 
     let ispreview = await isPreviewMode();
-    let BASE_URL = "https://analytics.dcl-vlm.io/record-event";
-    //let BASE_URL = ispreview ? "http://localhost:7999/api/tracking/record-event" : "https://lkdcl.co/api/tracking/record-event"
+    // let BASE_URL = "https://analytics.dcl-vlm.io/record-event";
+    let BASE_URL = ispreview ? "http://localhost:3001/record-event" : "https://analytics.dcl-vlm.io/record-event";
 
-    if (ispreview) {
-      return;
-    }
     getUserData().then(async (data) => {
       const player = data;
-      //let body = JSON.stringify({"tag": tag, "player": player, "data":metadata, scene: {spawnpoints, parcels, baseParcel, sceneJsonData}})
-      //log('body is', body)
+      let body = JSON.stringify({"eventType": eventType, "player": player, "data":metadata, scene: {spawnpoints, parcels, baseParcel, sceneJsonData}})
+      log('body is', body)
       let res = await signedFetch(BASE_URL, {
         method: "POST",
         headers: {
@@ -101,5 +98,5 @@ export async function recordEvent(eventType: any, metadata: any) {
       }
       log("json is", json);
     });
-  });
+  // });
 }
