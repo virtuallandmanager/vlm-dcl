@@ -193,9 +193,11 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
   updateParent: CallableFunction = (parent: string) => {
     if (parent) {
       const instanceParent = getEntityByName(parent);
+      this.remove();
       this.setParent(instanceParent);
     } else {
       this.setParent(null);
+      this.add();
     }
   };
 

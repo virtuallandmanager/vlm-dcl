@@ -10,7 +10,7 @@ export enum EVideoSourceTypes {
 export type TVideoMaterialConfig = {
   id: string;
   customId?: string;
-  parent?: string;
+  parent?: string | null;
   customRendering?: boolean;
   show: boolean;
   emission: number;
@@ -28,7 +28,7 @@ export type TVideoMaterialConfig = {
 export type TVideoInstanceConfig = {
   id: string;
   customId?: string;
-  parent?: string;
+  parent?: string | null;
   customRendering?: boolean;
   name: string;
   show: boolean;
