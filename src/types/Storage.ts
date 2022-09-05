@@ -1,10 +1,18 @@
-import { StoredEntity } from "../classes/StoredEntity";
-import { StoredVideoScreen } from "../classes/StoredVideoScreen";
+import { StoredVideoCheckSystem, StoredVideoInstance, StoredVideoMaterial } from "../classes/index";
+import { TEntityMaterialConfig } from "./Entity";
 
-export type TEntityStorage = {
-  [id: string]: StoredEntity;
+export type TEntityMaterialStorage = {
+  [id: string]: TEntityMaterialConfig;
 };
 
-export type TVideoStorage = {
-  [id: string]: StoredVideoScreen;
+export type TVideoMaterialStorage = {
+  [id: string]: StoredVideoMaterial;
+};
+
+export type TVideoInstanceStorage = {
+  [id: string]: StoredVideoInstance;
+};
+
+export type TVideoSystemStorage = {
+  [id: string]: StoredVideoCheckSystem;
 };

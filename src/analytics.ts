@@ -85,20 +85,24 @@ export async function recordEvent(eventType: any, metadata: any) {
 
   getUserData().then(async (data) => {
     const player = data;
-    let body = JSON.stringify({ eventType: eventType, player: player, data: metadata, scene: { spawnpoints, parcels, baseParcel } })
+    let body = JSON.stringify({ eventType: eventType, player: player, data: metadata, scene: { spawnpoints, parcels, baseParcel } });
     log("body is", body);
-    let res = await signedFetch(BASE_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body
-    });
-    let json;
-    if (res.text) {
-      json = JSON.parse(res.text);
+    try {
+      let res = await signedFetch(BASE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body
+      });
+      let json;
+      if (res.text) {
+        json = JSON.parse(res.text);
+      }
+      log("json is", json);
+    } catch (error) {
+      log(error);
     }
-    log("json is", json);
   });
   // });
 }
@@ -125,18 +129,22 @@ export async function updateConnections(players: any) {
     const player = data;
     let body = JSON.stringify({ players: players, scene: { spawnpoints, parcels, baseParcel } });
     log("body is", body);
-    let res = await signedFetch(BASE_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body
-    });
-    let json;
-    if (res.text) {
-      json = JSON.parse(res.text);
+    try {
+      let res = await signedFetch(BASE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body
+      });
+      let json;
+      if (res.text) {
+        json = JSON.parse(res.text);
+      }
+      log("json is", json);
+    } catch (error) {
+      log(error);
     }
-    log("json is", json);
   });
   // });
 }

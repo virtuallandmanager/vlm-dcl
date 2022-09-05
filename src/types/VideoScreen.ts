@@ -1,32 +1,38 @@
-import { TEntity, TEntityInstance } from "./Entity";
-import { TTransform } from "./Transform";
+import { TClickEvent } from "./ClickEvent";
 
 export enum EVideoSourceTypes {
   LIVE,
   PLAYLIST,
+  IMAGE,
   NONE
 }
 
-export type TVideoScreen = TEntity & {
-  type: EVideoSourceTypes;
-  customRendering: boolean;
-  offType: EVideoSourceTypes;
-  liveLink?: string;
-  playlist?: string[];
-  offImage?: string;
-  emission: number;
-  volume?: number;
-  noLoop?: boolean;
+export type TVideoMaterialConfig = {
   id: string;
   customId?: string;
-  instances: Array<TVideoScreenInstance>;
+  parent?: string;
+  customRendering?: boolean;
+  show: boolean;
+  emission: number;
+  liveLink?: string;
+  name: string;
+  enableLiveStream: boolean;
+  offType: EVideoSourceTypes;
+  offImage: string;
+  volume: number;
+  playlist: string[];
+  instances: TVideoInstanceConfig[];
+  clickEvent?: TClickEvent
 };
 
-export type TVideoScreenInstance = TEntityInstance & {
+export type TVideoInstanceConfig = {
   id: string;
-  customRendering: boolean;
-  customId: string;
-  position: TTransform;
-  scale: TTransform;
-  rotation: TTransform;
+  customId?: string;
+  parent?: string;
+  customRendering?: boolean;
+  name: string;
+  show: boolean;
+  position: { x: number; y: number; z: number };
+  scale: { x: number; y: number; z: number };
+  rotation: { x: number; y: number; z: number };
 };
