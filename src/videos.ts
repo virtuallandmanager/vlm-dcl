@@ -1,133 +1,107 @@
-import { StoredVideoScreen } from "./classes/StoredVideoScreen";
+import { StoredVideoCheckSystem, StoredVideoInstance, StoredVideoMaterial } from "./classes/index";
 import { getId, getEntityByName } from "./helpers/entity";
-import { TVideoStorage } from "./types/Storage";
-import { TVideoScreen, TVideoScreenInstance } from "./types/VideoScreen";
+import { videoInstances, videoMaterials, videoSystems } from "./storage";
+import { TVideoInstanceConfig, TVideoMaterialConfig } from "./types/index";
 
-export let videoSystems: TVideoStorage = {};
-
-export const initVideoScreens = (videoScreens: Array<TVideoScreen>) => {
-  videoScreens.forEach((videoScreen: TVideoScreen) => {
+export const initVideoScreens = (videoScreens: Array<TVideoMaterialConfig>) => {
+  videoScreens.forEach((videoScreen: TVideoMaterialConfig) => {
     createVideoScreen(videoScreen);
   });
 };
 
-export const createVideoScreen = (videoConfig: TVideoScreen) => {
+export const createVideoScreen = (videoConfig: TVideoMaterialConfig) => {
   if (!videoConfig.show) {
     return;
   }
 
   const videoId = getId(videoConfig);
 
-  log("creating new video screen", videoId);
+  videoMaterials[videoId] = new StoredVideoMaterial(videoConfig);
+  videoMaterials[videoId].updateTexture(videoMaterials[videoId].liveLink);
 
-  videoSystems[videoId] = new StoredVideoScreen({
-    ...videoConfig
-  });
-
-  videoConfig.instances.forEach((instance: TVideoScreenInstance) => {
-    if (!instance.customRendering && !videoConfig.customRendering) {
-      createVideoInstance(videoConfig, instance);
+  videoConfig.instances.forEach((instance: TVideoInstanceConfig) => {
+    const material = videoMaterials[videoId];
+    if (!instance.customRendering && !material.customRendering) {
+      createVideoInstance(material, instance);
     }
   });
 
+  videoSystems[videoId] = new StoredVideoCheckSystem(videoMaterials[videoId]);
 
-  videoSystems[videoId].start(videoConfig.volume);
-  videoSystems[videoId].setVolume(videoConfig.volume);
+  engine.addSystem(videoSystems[videoId]);
 };
 
-export const createVideoInstance = (videoConfig: any, instance: any) => {
-  if (!instance.show) {
+export const createVideoInstance = (material: StoredVideoMaterial, instance: TVideoInstanceConfig) => {
+  if (!material.show || !instance.show) {
     return;
   }
-  const videoId = getId(videoConfig),
-    instanceId = getId(instance),
-    videoInstance = new Entity(instance.name),
-    { position, scale, rotation } = instance;
-
-  videoInstance.addComponent(new PlaneShape());
-  videoInstance.addComponent(
-    new Transform({
-      position: new Vector3(position.x, position.y, position.z),
-      rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z),
-      scale: new Vector3(scale.x, scale.y, scale.z)
-    })
-  );
-  videoInstance.addComponent(videoSystems[videoId].material);
-
-  videoSystems[videoId][instanceId] = videoInstance;
-
-  if (videoConfig.customRendering) {
-    return;
-  } else if (videoConfig.parent) {
-    const screenParent = getEntityByName(videoConfig.parent);
-    videoInstance.setParent(screenParent);
-  } else {
-    engine.addEntity(videoInstance);
-  }
+  const videoId = getId(material);
+  videoMaterials[videoId].createInstance(instance);
 };
 
-export const updateVideoScreen = (videoConfigs: any, property: string, id: string) => {
-  const video = videoConfigs.find((videoConfig: any) => videoConfig.id == id),
-    videoId = getId(video);
+export const updateVideoScreen = (videoConfigs: TVideoMaterialConfig[], property: string, id: string) => {
+  const videoConfig: TVideoMaterialConfig | undefined = videoConfigs.find((videoConfig: TVideoMaterialConfig) => videoConfig.id == id),
+    video: StoredVideoMaterial = videoMaterials[id];
+
+  if (!videoConfig) {
+    return;
+  }
 
   switch (property) {
     case "visibility":
       if (!video.show) {
-        removeVideoScreen(videoConfigs, videoId);
+        removeVideoScreen(video.id);
       } else {
-        createVideoScreen(video);
+        new StoredVideoMaterial(videoConfig);
       }
       break;
     case "liveLink":
-      videoSystems[videoId].data.liveLink = video.liveLink;
+      video.liveLink = videoConfig.liveLink;
+      break;
+    case "playlist":
+      video.updatePlaylist(videoConfig.playlist);
       break;
     case "volume":
-      videoSystems[videoId].setVolume(video.volume);
+      video.updateVolume(videoConfig.volume);
       break;
     case "emission":
-      videoSystems[videoId].material.emissiveIntensity = video.emission;
+      video.emissiveIntensity = videoConfig.emission;
       break;
     case "offType":
-      videoSystems[videoId].data.offType = video.offType;
+      video.offType = videoConfig.offType;
       break;
     case "offImage":
-      videoSystems[videoId].data.offImage = video.offImage;
+      video.offImage = videoConfig.offImage;
+      break;
+    case "parent":
+      video.updateParent(videoConfig.parent);
       break;
   }
 };
 
-export const updateVideoInstance = (videoConfigs: any, property: string, id: string) => {
-  let instance: any;
-  const video = videoConfigs.find((videoConfig: any) => {
-      if (videoConfig.instances) {
-        instance = videoConfig.instances.find((instance: any) => getId(instance) == id);
-        return instance;
-      }
+export const updateVideoInstance = (videoConfigs: TVideoMaterialConfig[], property: string, id: string) => {
+  const materialId: string | undefined = Object.keys(videoMaterials).find((materialId: string) => {
+      return videoMaterials[materialId].instanceIds.includes(id);
     }),
-    videoId = getId(video),
+    material = materialId && videoMaterials[materialId],
+    instance = videoInstances[id],
     instanceId = getId(instance);
 
-  if (!instance) {
+  if (!material || !instance) {
     return;
   }
   const { position, scale, rotation } = instance;
 
   switch (property) {
     case "visibility":
-      if (!instance.show) {
-        removeVideoInstance(videoId, instanceId);
+      if (!material.show || !instance.show) {
+        material.removeInstance(instanceId);
       } else {
-        createVideoInstance(video, instance);
+        material.createInstance(instanceId);
       }
       break;
     case "transform":
-      videoSystems[videoId][instanceId].addComponentOrReplace(
-        new Transform({
-          position: new Vector3(position.x, position.y, position.z),
-          rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z),
-          scale: new Vector3(scale.x, scale.y, scale.z)
-        })
-      );
+      instance.updateTransform(position, scale, rotation);
       break;
     case "properties":
       if (instance.customRendering) {
@@ -141,15 +115,10 @@ export const updateVideoInstance = (videoConfigs: any, property: string, id: str
   }
 };
 
-export const removeVideoScreen = (videoConfigs: any, id: string) => {
-  videoSystems[id].stop();
-  const video = videoConfigs.find((videoConfig: any) => getId(videoConfig) == id);
-  video.instances.forEach((instance: any) => {
-    const instanceId = getId(instance);
-    engine.removeEntity(videoSystems[id][instanceId]);
-  });
+export const removeVideoScreen = (id: string) => {
+  videoMaterials[id].remove();
 };
 
-export const removeVideoInstance = (videoId: string, instanceId: string) => {
-  engine.removeEntity(videoSystems[videoId][instanceId]);
+export const removeVideoInstance = (instanceId: string) => {
+  engine.removeEntity(videoInstances[instanceId]);
 };

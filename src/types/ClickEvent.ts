@@ -4,6 +4,7 @@ export enum EClickEventType {
   NONE,
   EXTERNAL,
   SOUND,
+  STREAM,
   MOVE,
   TELEPORT
 }
@@ -15,5 +16,5 @@ export type TClickEvent = {
   externalLink?: string;
   sound?: string;
   moveTo?: { cameraTarget: TTransform; position: TTransform };
-  teleportTo?: Array<number>;
+  teleportTo?: string;
 };

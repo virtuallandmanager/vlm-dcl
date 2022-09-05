@@ -1,4 +1,3 @@
-import { TrackUserFlag } from "@dcl/npc-scene-utils";
 import { TCustomization, TCustomizationFunctions } from "./types/Customization";
 
 const customizationFunctions: TCustomizationFunctions = {
@@ -20,7 +19,7 @@ export function setCustomizations(options: TCustomizationFunctions) {
 }
 
 export function createCustomizations(customizations: TCustomization[]) {
-  customizationFunctions.create(customizations);
+  // customizationFunctions.create(customizations);
 }
 
 export function updateCustomization(customizations: TCustomization[], customizationId: string) {
@@ -33,9 +32,9 @@ export function updateCustomization(customizations: TCustomization[], customizat
   if (!customization) {
     return;
   }
-  customizationFunctions.update(customization, customizationId);
+  // customizationFunctions.update(customization, customizationId);
 }
 
 export function removeCustomization(customizationId: string) {
-  customizationFunctions.remove(customizationId);
+  // customizationFunctions.remove(customizationId);
 }

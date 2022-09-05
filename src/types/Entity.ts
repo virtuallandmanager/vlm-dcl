@@ -1,14 +1,17 @@
 import { TClickEvent } from "./ClickEvent";
 import { TTransform } from "./Transform";
 
-export type TEntity = {
+export type TEntityMaterialConfig = {
     id: string;
-    customId: string;
-    clickEvent: TClickEvent;
+    customId?: string;
+    parent?: string;
+    customRendering?: boolean;
+    clickEvent?: TClickEvent;
     show: boolean;
+    emission: number;
   };
   
-  export type TEntityInstance = {
+  export type TEntityInstanceConfig = {
     id: string;
     name: string;
     show: boolean;

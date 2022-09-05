@@ -10,16 +10,20 @@ import { createVideoScreen, removeVideoScreen, updateVideoScreen, updateVideoIns
 import { Interval } from "@dcl/ecs-scene-utils";
 import { createCustomizations, updateCustomization, removeCustomization } from "./custom";
 
-export let user:any
+export let user: any;
 export let sceneData: any = {};
+let runLocalServer = false;
+let runStagingServer = false;
 
-export const socketConnect = (reconnect?:boolean) =>{
+export const useLocal = () => {
+  runLocalServer = true;
+};
 
-}
-
+export const useStaging = () => {
+  runStagingServer = true;
+};
 
 export const connectCMS = async () => {
-  initAnalytics();
   const parcel = await getParcel();
   const baseParcel = parcel.land.sceneJsonData.scene.base;
 
@@ -27,14 +31,11 @@ export const connectCMS = async () => {
   log("user is", user);
   let isPreview = await isPreviewMode();
 
-  const useLocal = false;
-  const useStaging = false;
-
   let baseUrl = "wss://api.dcl-vlm.io/wss/";
 
-  if (useLocal && isPreview) {
+  if (runLocalServer && isPreview) {
     baseUrl = "ws://localhost:3000";
-  } else if (useStaging && isPreview) {
+  } else if (runStagingServer && isPreview) {
     baseUrl = "wss://staging-api.dcl-vlm.io/wss/";
   }
 
@@ -52,37 +53,30 @@ export const connectCMS = async () => {
     engine.addEntity(socketdelay);
     socketdelay.addComponent(
       new Interval(10000, () => {
+        log("Pinging web socket...")
         socket.send(JSON.stringify({ command: "ping" }));
       })
     );
   };
-
-  // socket.onopen = (ev) => {
-  //   log("connected to web socket");
-  //   socket.send(JSON.stringify({ action: "init" }));
-
-  //   // let socketdelay = new Entity();
-  //   // engine.addEntity(socketdelay);
-  //   // socketdelay.addComponent(
-  //   //   new utils.Interval(10000, () => {
-  //   //     socket.send(JSON.stringify({ command: "ping" }));
-  //   //   })
-  //   // );
-  // };
 
   socket.onclose = function (event) {
     log("socket closed");
   };
 
   socket.onmessage = function (event) {
+    log(`VLM-DEBUG: socket event | `, event);
     const message = JSON.parse(event.data);
+    log(`VLM-DEBUG: received message to ${message.action} ${message.entity || ""} ${message.property || ""}`);
+
+    if (!message.sceneData && !message.entityData) {
+      return;
+    }
 
     sceneData = message.sceneData;
 
-    log(`received message to ${message.action} ${message.entity || ""} ${message.property || ""}`);
     switch (message.action) {
       case "init":
-        initScene(message.sceneData);
+        initScene(message);
         break;
       case "create":
       case "add":
@@ -150,7 +144,7 @@ const updateEntity = (message: any) => {
 };
 
 const removeEntity = (message: any) => {
-  log('remove entity message', message)
+  log("remove entity message", message);
   switch (message.entity) {
     case "image":
       removeImage(message.entityData);
@@ -158,10 +152,10 @@ const removeEntity = (message: any) => {
       removeImageInstance(message.entityData, message.instanceData);
       break;
     case "video":
-      removeVideoScreen(message.sceneData.videoSystems, message.id);
+      removeVideoScreen(message.id);
       break;
     case "videoInstance":
-      removeVideoInstance(message.sceneData.videoSystems, message.id);
+      removeVideoInstance(message.id);
       break;
     case "audioStream":
       removeAudioStream(message.sceneData.audioStreams, message.property, message.id);

@@ -1,8 +1,5 @@
-import { Delay } from "@dcl/ecs-scene-utils";
-import { setClickEvent } from "./helpers/clickEvent";
 import { getEntityByName, getId } from "./helpers/entity";
-import { TEntityInstance } from "./types/Entity";
-import { TImage } from "./types/Image";
+import { TEntityInstanceConfig, TEntityMaterialConfig } from "./types/index";
 
 export let cmsImages: any = {};
 
@@ -14,9 +11,14 @@ export function initImages(imageTextures: Array<any>) {
 }
 
 export function createImage(image: any) {
+  log(`VLM-DEBUG: CREATE IMAGE | `, image);
   const imageId = getId(image);
   createOrUpdateMaterial(image);
 
+  if (!image.instances.length) {
+    return;
+  }
+  
   image.instances.forEach((instance: any, ii: number) => {
     const instanceId = getId(instance);
     if ((cmsImages[imageId] && cmsImages[imageId][instanceId]) || instance.customRendering || image.customRendering) {
@@ -27,6 +29,7 @@ export function createImage(image: any) {
 }
 
 export function createImageInstance(image: any, instance: any) {
+  log(`VLM-DEBUG: CREATE IMAGE INSTANCE | `, image, instance);
   const { position, scale, rotation } = instance,
     imageId = getId(image),
     instanceId = getId(instance);
@@ -48,7 +51,6 @@ export function createImageInstance(image: any, instance: any) {
   }
 
   setImageProperties(image, instance);
-  setClickEvent(cmsImages, image, instance);
 }
 
 export function updateImage(imageTextures: any, property: string, id: string) {
@@ -86,6 +88,7 @@ export function updateImageInstance(imageTextures: any, property: string, id: st
 }
 
 export function createOrUpdateMaterial(image: any) {
+  log(`VLM-DEBUG: CREATE IMAGE MATERIAL | ${image}`);
   const imageId = getId(image);
   let isUpdate = false;
   if (!cmsImages[imageId]) {
@@ -129,7 +132,7 @@ export function processInstanceUpdate(property: string, image: any, instance: an
       }
       break;
     case "clickEvent":
-      setClickEvent(cmsImages, image, instance);
+      
       break;
     case "transform":
       cmsImages[imageId][instanceId].addComponentOrReplace(
@@ -156,16 +159,17 @@ export function setImageProperties(image: any, instance: any) {
   }
 }
 
-export function removeImage(image: TImage) {
+export function removeImage(image: TEntityMaterialConfig) {
+  log(`VLM-DEBUG: REMOVE IMAGE | ${image}`);
   const imageId = getId(image);
   cmsImages[imageId].instances.forEach((instance: any, ii: number) => {
     engine.removeEntity(instance);
   });
 }
 
-export function removeImageInstance(image: TImage, instance: TEntityInstance) {
+export function removeImageInstance(image: TEntityMaterialConfig, instance: TEntityInstanceConfig) {
+  log(`VLM-DEBUG: REMOVE IMAGE INSTANCE | ${image} ${instance}`);
   const imageId = getId(image),
     instanceId = getId(instance);
-
   engine.removeEntity(cmsImages[imageId][instanceId]);
 }

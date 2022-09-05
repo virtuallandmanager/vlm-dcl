@@ -1,6 +1,7 @@
-import { TEntity, TEntityInstance } from "../types/Entity";
+import { StoredEntityInstance, StoredEntityMaterial } from "../classes/index";
+import { TEntityInstanceConfig, TEntityMaterialConfig } from "../types/index";
 
-export function getId(ref: TEntity | TEntityInstance) {
+export function getId(ref: TEntityMaterialConfig | TEntityInstanceConfig | StoredEntityMaterial | StoredEntityInstance) {
   return ref.customId || ref.id;
 }
 
