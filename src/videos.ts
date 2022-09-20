@@ -58,6 +58,9 @@ export const updateVideoScreen = (videoConfigs: TVideoMaterialConfig[], property
     case "liveLink":
       video.liveLink = videoConfig.liveLink;
       break;
+      case "enableLiveStream":
+      video.enableLiveStream = videoConfig.enableLiveStream;
+      break;
     case "playlist":
       video.updatePlaylist(videoConfig.playlist);
       break;
