@@ -18,8 +18,8 @@ export const initCustomizations = () => {
   });
 };
 
-export const updateCustomization = (customizationId: string) => {
-  customizationFunctions[customizationId].update();
+export const updateCustomization = (customization: TCustomization, customizationId: string) => {
+  customizationFunctions[customizationId].update(customization);
 };
 
 export const deleteCustomization = (customizationId: string) => {
