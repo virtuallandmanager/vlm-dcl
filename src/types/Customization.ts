@@ -1,7 +1,10 @@
 export type TCustomizationFunctions = {
-  create?: (customizations: TCustomization[]) => void | Promise<void>;
-  update?: (customizations: TCustomization[], customizationId: string) => void | Promise<void>;
-  remove?: (customizationId: string) => void | Promise<void>;
+  [id: string]: TCustomizationFunction;
+};
+
+export type TCustomizationFunction = {
+  init?: () => void | Promise<void>;
+  update?: (customization: TCustomization) => void | Promise<void>;
 };
 
 export enum ECustomizationType {

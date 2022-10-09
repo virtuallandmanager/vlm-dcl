@@ -1,40 +1,27 @@
-import { TCustomization, TCustomizationFunctions } from "./types/Customization";
+import { TCustomization, TCustomizationFunction, TCustomizationFunctions } from "./types/Customization";
 
-const customizationFunctions: TCustomizationFunctions = {
-  create: ([]) => {},
-  update: () => {},
-  remove: () => {}
-};
+const customizationFunctions: TCustomizationFunctions = {};
 
-export function setCustomizations(options: TCustomizationFunctions) {
-  if (options.create) {
-    customizationFunctions.create = options.create;
+export const setCustomizations = (customizationId: string, options: TCustomizationFunction) => {
+  if (options.init) {
+    customizationFunctions[customizationId].init = options.init;
   }
   if (options.update) {
-    customizationFunctions.update = options.update;
+    customizationFunctions[customizationId].update = options.update;
   }
-  if (options.remove) {
-    customizationFunctions.remove = options.remove;
-  }
-}
+  initCustomizations();
+};
 
-export function createCustomizations(customizations: TCustomization[]) {
-  // customizationFunctions.create(customizations);
-}
+export const initCustomizations = () => {
+  Object.keys(customizationFunctions).forEach((customizationFunction: any) => {
+    customizationFunctions[customizationFunction].init();
+  });
+};
 
-export function updateCustomization(customizations: TCustomization[], customizationId: string) {
-  let customization;
-  for (let i = 0; i < customizations.length, i++; ) {
-    if (customizations[i].id === customizationId) {
-      customization = customizations[i];
-    }
-  }
-  if (!customization) {
-    return;
-  }
-  // customizationFunctions.update(customization, customizationId);
-}
+export const updateCustomization = (customizationId: string) => {
+  customizationFunctions[customizationId].update();
+};
 
-export function removeCustomization(customizationId: string) {
-  // customizationFunctions.remove(customizationId);
-}
+export const deleteCustomization = (customizationId: string) => {
+  delete customizationFunctions[customizationId];
+};

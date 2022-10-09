@@ -7,32 +7,34 @@ export enum EVideoSourceTypes {
   NONE
 }
 
-export type TVideoMaterialConfig = {
+export interface TVideoMaterialConfig {
   id: string;
   customId?: string;
-  parent?: string | null;
   customRendering?: boolean;
-  show: boolean;
+  clickEvent?: TClickEvent
   emission: number;
+  enableLiveStream: boolean;
+  instances: TVideoInstanceConfig[];
   liveLink?: string;
   name: string;
-  enableLiveStream: boolean;
   offType: EVideoSourceTypes;
   offImage: string;
-  volume: number;
+  parent?: string | null;
   playlist: string[];
-  instances: TVideoInstanceConfig[];
-  clickEvent?: TClickEvent
+  show: boolean;
+  volume: number;
+  withCollisions: boolean;
 };
 
 export type TVideoInstanceConfig = {
   id: string;
   customId?: string;
-  parent?: string | null;
   customRendering?: boolean;
+  parent?: string | null;
   name: string;
-  show: boolean;
   position: { x: number; y: number; z: number };
-  scale: { x: number; y: number; z: number };
   rotation: { x: number; y: number; z: number };
+  scale: { x: number; y: number; z: number };
+  show: boolean;
+  withCollisions: boolean;
 };

@@ -1,173 +1,183 @@
 import { sdkImageFlippedDimension, sdkImagesAreFlipped, sdkImagesFace, vlmImagesFace } from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
-import { IEmission, ITexture, ITransform } from "../interfaces";
-import { imageInstances, imageMaterials } from "../storage";
+import { ITransform } from "../interfaces";
+import { nftInstances, nftConfigs } from "../storage";
 import { TImageInstanceConfig, TImageMaterialConfig } from "../types/Image";
+import { TNFTInstanceConfig, TNFTConfig } from "../types/NFT";
 import { TTransform } from "../types/Transform";
-import { StoredEntityInstance } from "./StoredEntity";
+import { StoredEntityConfig, StoredEntityInstance } from "./StoredEntity";
 
-export class StoredImageMaterial extends Material implements ITexture, IEmission {
+export class StoredNFTConfig extends StoredEntityConfig {
   id: string;
   customId?: string;
   customRendering: boolean;
-  albedoTexture: Texture;
-  alphaTexture: Texture;
-  emissiveColor = Color3.White();
-  emissiveIntensity: number;
-  emissiveTexture: Texture;
   parent?: string;
   show: boolean;
   instanceIds: string[] | any = [];
-  imageLink: string;
-  roughness: number = 1.0;
-  specularIntensity: number = 0;
-  metallic: number = 0;
+  chain: number | string;
+  contractAddress: string;
+  tokenId: number | string;
   withCollisions: boolean;
+  nftLink: string;
+  color?: Color3;
+  style: PictureFrameStyle;
   isTransparent: boolean;
 
-  constructor(_config: TImageMaterialConfig) {
-    super();
+  constructor(_config: TNFTConfig) {
+    super(_config);
+    let chain = this.getChainName(_config.chain);
+    this.nftLink = `${chain}://${_config.contractAddress}/${_config.tokenId}`;
+    if (_config.color) {
+      this.color = Color3.FromHexString(_config.color);
+    }
+    this.style = _config.style;
+
     this.id = _config.id;
     this.customId = _config.customId;
-    this.customRendering = !!_config.customRendering;
-    this.parent = _config.parent;
-    this.show = _config.show;
-    this.emissiveIntensity = _config.emission;
-    this.imageLink = _config.imageLink;
+    this.contractAddress = _config.contractAddress;
     this.withCollisions = _config.withCollisions;
-    this.isTransparent = _config.isTransparent;
-    this.updateTexture(this.imageLink);
-    imageMaterials[this.id] = this;
+    this.tokenId = _config.tokenId;
+    this.show = _config.show;
+    nftConfigs[this.id] = this;
 
     if (this.customId) {
-      imageMaterials[this.customId] = imageMaterials[this.id];
+      nftConfigs[this.customId] = nftConfigs[this.id];
     }
 
-    _config.instances.forEach((instance: TImageInstanceConfig) => {
+    _config.instances.forEach((instance: TNFTInstanceConfig) => {
       this.createInstance(instance);
     });
   }
 
+  updateNft: CallableFunction = (nftConfig: TNFTConfig) => {
+    let chain = this.getChainName(nftConfig.chain);
+    this.chain = nftConfig.chain;
+    this.contractAddress = nftConfig.contractAddress;
+    this.tokenId = nftConfig.tokenId;
+    this.nftLink = `${chain}://${nftConfig.contractAddress}/${nftConfig.tokenId}`;
+    if (nftConfig.color) {
+      this.color = Color3.FromHexString(nftConfig.color);
+    }
+    this.style = nftConfig.style;
+
+    [...this.instanceIds].forEach((instanceId: string) => {
+      const instance = nftInstances[instanceId];
+      const newShape = new NFTShape(this.nftLink, { color: this.color, style: this.style });
+      newShape.withCollisions = instance.withCollisions;
+      instance.addComponentOrReplace(newShape);
+    });
+  };
+
+  getChainName: CallableFunction = (chain) => {
+    switch (Number(chain)) {
+      case 1:
+        return "ethereum";
+      case 137:
+        return "polygon";
+      default:
+        return "ethereum";
+    }
+  };
+
   // deletes the material record AND removes the instances from the engine
   delete: CallableFunction = () => {
-    delete imageMaterials[this.id];
+    delete nftConfigs[this.id];
     [...this.instanceIds].forEach((instanceId: string) => {
       log(instanceId);
-      imageInstances[instanceId].delete();
+      nftInstances[instanceId].delete();
     });
   };
 
   // just removes the instances from the engine, keeps the material record and instance records so we can bring stuff back
   remove: CallableFunction = () => {
     [...this.instanceIds].forEach((instanceId: string) => {
-      imageInstances[instanceId].remove();
+      nftInstances[instanceId].remove();
     });
   };
 
   showAll: CallableFunction = () => {
     [...this.instanceIds].forEach((instanceId: string) => {
-      const visible = imageInstances[instanceId].show,
-        parent = imageInstances[instanceId].parent || this.parent;
+      const visible = nftInstances[instanceId].show,
+        parent = nftInstances[instanceId].parent || this.parent;
 
       if (!visible) {
         return;
       } else if (parent) {
-        imageInstances[instanceId].updateParent(parent);
+        nftInstances[instanceId].updateParent(parent);
       } else {
-        imageInstances[instanceId].add();
+        nftInstances[instanceId].add();
       }
     });
   };
 
   updateParent: CallableFunction = (parent: string) => {
     [...this.instanceIds].forEach((instanceId: string) => {
-      if (imageInstances[instanceId].parent === this.parent) {
-        imageInstances[instanceId].updateParent(parent);
+      if (nftInstances[instanceId].parent === this.parent) {
+        nftInstances[instanceId].updateParent(parent);
       }
     });
     this.parent = parent;
   };
 
   updateCustomId: CallableFunction = (customId: string) => {
-    if (this.customId && imageMaterials[this.customId]) {
-      delete imageMaterials[this.customId];
+    if (this.customId && nftConfigs[this.customId]) {
+      delete nftConfigs[this.customId];
     }
-    imageMaterials[customId] = imageMaterials[this.id];
+    nftConfigs[customId] = nftConfigs[this.id];
     this.customId = customId;
-  };
-
-  updateTexture: CallableFunction = (url?: string) => {
-    if (url) {
-      this.imageLink = url;
-    }
-
-    const texture = new Texture(this.imageLink, { hasAlpha: this.isTransparent });
-    this.albedoTexture = texture;
-    this.emissiveTexture = texture;
-    this.alphaTexture = texture;
-    if (this.isTransparent) {
-      this.transparencyMode = TransparencyMode.ALPHA_BLEND;
-    } else {
-      this.transparencyMode = TransparencyMode.OPAQUE;
-    }
-  };
-
-  updateBrightness: CallableFunction = (brightness: number) => {
-    this.emissiveIntensity = brightness;
-  };
-
-  updateTransparency: CallableFunction = (isTransparent: boolean) => {
-    this.isTransparent = isTransparent;
-    this.updateTexture();
   };
 
   createInstance: CallableFunction = (_config: TImageInstanceConfig) => {
     this.instanceIds.push(_config.id);
-    imageInstances[_config.id] = new StoredImageInstance(this, _config);
+    nftInstances[_config.id] = new StoredNFTInstance(this, _config);
     if (_config.customId) {
-      imageInstances[_config.customId] = imageInstances[_config.id];
+      nftInstances[_config.customId] = nftInstances[_config.id];
     }
-    imageInstances[_config.id].add();
+    nftInstances[_config.id].add();
   };
 
   deleteInstance: CallableFunction = (instanceId: string) => {
     this.instanceIds = this.instanceIds.filter((id: string) => id !== instanceId);
-    imageInstances[instanceId].delete();
+    nftInstances[instanceId].delete();
   };
 
   removeInstance: CallableFunction = (instanceId: string) => {
-    imageInstances[instanceId].remove();
+    nftInstances[instanceId].remove();
   };
 
   addInstance: CallableFunction = (instanceId: string) => {
-    imageInstances[instanceId].add();
+    nftInstances[instanceId].add();
   };
 }
 
-export class StoredImageInstance extends StoredEntityInstance implements ITransform {
+export class StoredNFTInstance extends StoredEntityInstance implements ITransform {
   id: string;
-  materialId: string;
+  configId: string;
   parent: string;
+  show: boolean;
   position: TTransform;
   scale: TTransform;
   rotation: TTransform;
   modifiedTransform: { position: TTransform; scale: TTransform; rotation: TTransform };
   withCollisions: boolean;
+  config: StoredNFTConfig;
 
-  constructor(_material: StoredImageMaterial, _instance: TImageInstanceConfig) {
-    super(_material, _instance);
+  constructor(_config: StoredNFTConfig, _instance: TNFTInstanceConfig) {
+    let color = _config.color;
+    let style = _config.style;
+    const shape = new NFTShape(_config.nftLink, { color, style });
+    super(_config, _instance);
     this.id = _instance.id;
     this.customId = _instance.customId;
     this.parent = _instance.parent;
+    this.config = _config;
     this.position = _instance.position;
     this.scale = _instance.scale;
     this.rotation = _instance.rotation;
-    this.materialId = _material.id;
+    this.configId = _config.id;
     this.show = _instance.show;
-    const shape = new PlaneShape();
-    shape.withCollisions = typeof _instance.withCollisions === "boolean" ? _instance.withCollisions : _material.withCollisions;
+    _config.withCollisions = typeof _instance.withCollisions === "boolean" ? _instance.withCollisions : _config.withCollisions;
     this.addComponent(shape);
-    this.addComponent(_material);
     this.updateTransform(this.position, this.scale, this.rotation);
 
     if (this.parent && this.show) {
@@ -182,9 +192,9 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
   };
 
   delete: CallableFunction = () => {
-    delete imageInstances[this.id];
+    delete nftInstances[this.id];
     if (this.customId) {
-      delete imageInstances[this.customId];
+      delete nftInstances[this.customId];
     }
     engine.removeEntity(this);
   };
@@ -204,18 +214,14 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
   };
 
   updateCustomId: CallableFunction = (customId: string) => {
-    if (this.customId && imageInstances[this.customId]) {
-      delete imageInstances[this.customId];
+    if (this.customId && nftInstances[this.customId]) {
+      delete nftInstances[this.customId];
     }
-    imageInstances[customId] = imageInstances[this.id];
+    nftInstances[customId] = nftInstances[this.id];
     this.customId = customId;
   };
 
-  updateTransform: CallableFunction = (newPosition?: TTransform, newScale?: TTransform, newRotation?: TTransform) => {
-    this.applyCustomTransforms(newPosition, newScale, newRotation);
-
-    const { position, scale, rotation } = this.modifiedTransform;
-
+  updateTransform: CallableFunction = (position?: TTransform, scale?: TTransform, rotation?: TTransform) => {
     this.addComponentOrReplace(
       new Transform({
         position: new Vector3(position.x, position.y, position.z),
@@ -225,11 +231,12 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     );
   };
 
-  updateCollider: CallableFunction = (instanceConfig: TImageInstanceConfig) => {
-    this.withCollisions = instanceConfig.withCollisions;
-    const shape = new PlaneShape();
-    shape.withCollisions = this.withCollisions;
-    this.addComponentOrReplace(shape);
+  updateCollider: CallableFunction = (withCollisions: boolean) => {
+    this.withCollisions = withCollisions;
+    const newShape = new NFTShape(this.config.nftLink, { color: this.config.color, style: this.config.style });
+    newShape.withCollisions = this.withCollisions;
+    nftConfigs[this.configId].withCollisions = this.withCollisions;
+    this.addComponentOrReplace(newShape);
   };
 
   applyCustomTransforms: CallableFunction = (originalPosition: TTransform, originalScale: TTransform, originalRotation: TTransform) => {

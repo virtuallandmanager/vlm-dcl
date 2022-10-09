@@ -17,5 +17,4 @@ export interface ITransform {
 
 export interface IEmission {
   emissiveIntensity: number;
-  updateBrightness: CallableFunction;
 }

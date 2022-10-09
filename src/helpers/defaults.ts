@@ -12,6 +12,7 @@ export const sdkVideosAreFlipped = false;
 export const sdkImagesAreFlipped = true;
 export const sdkVideoFlippedDimension = null;
 export const sdkImageFlippedDimension = 'x';
+export const parcelSize = 16;
 
 // VLM DEFAULTS
 export const vlmVideosFace = Directions.SOUTH;
