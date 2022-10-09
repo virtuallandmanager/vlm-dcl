@@ -8,7 +8,7 @@ import {
   vlmImagesFace,
   vlmVideosFace
 } from "../helpers/defaults";
-import { getEntityByName, getId } from "../helpers/entity";
+import { getEntityByName } from "../helpers/entity";
 import { IEmission, IPlayer, IPlaylist, ITexture, IVolume, ITransform } from "../interfaces/index";
 import { videoInstances, videoMaterials, videoSystems } from "../storage";
 import { EVideoSourceTypes, TClickEvent, TTransform, TVideoInstanceConfig, TVideoMaterialConfig } from "../types/index";
@@ -19,7 +19,7 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
   parent?: string;
   show: boolean;
   customRendering: boolean;
-  instanceIds: string[] = [];
+  instanceIds: string[] | any = [];
   textureMode: EVideoSourceTypes;
   roughness = 1.0;
   specularIntensity = 0;
@@ -35,13 +35,14 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
   playlistIndex: number = 0;
   enableLiveStream?: boolean;
   clickEvent?: TClickEvent;
+  withCollisions: boolean;
   public emissiveIntensity: number;
   public offType: EVideoSourceTypes;
   public offImage?: string;
 
   constructor(_config: TVideoMaterialConfig) {
     super(_config);
-    this.id = getId(_config);
+    this.id = _config.id;
     this.parent = _config.parent;
     this.show = _config.show;
     this.enableLiveStream = _config.enableLiveStream;
@@ -52,9 +53,14 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     this.emissiveIntensity = _config.emission;
     this.volume = _config.volume;
     this.playlist = _config.playlist;
+    this.withCollisions = _config.withCollisions;
     this.textureMode = this.enableLiveStream ? EVideoSourceTypes.LIVE : this.offType;
     this.updateTexture(this.liveLink);
     videoMaterials[this.id] = this;
+
+    if (this.customId) {
+      videoMaterials[this.customId] = videoMaterials[this.id];
+    }
     new StoredVideoCheckSystem(this);
 
     _config.instances.forEach((instance: TVideoInstanceConfig) => {
@@ -63,49 +69,78 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
   }
 
   remove: CallableFunction = () => {
-    engine.removeSystem(videoSystems[this.id]);
-    delete videoMaterials[this.id];
-    delete videoSystems[this.id];
     [...this.instanceIds].forEach((instanceId: string) => {
       log(instanceId);
-      this.removeInstance(instanceId);
+      videoInstances[instanceId].remove();
     });
   };
 
-  hideAll: CallableFunction = () => {
+  delete: CallableFunction = () => {
+    engine.removeSystem(videoSystems[this.id]);
+    delete videoSystems[this.id];
+    delete videoMaterials[this.id];
     [...this.instanceIds].forEach((instanceId: string) => {
-      videoInstances[instanceId].remove();
+      log("deleting " + instanceId);
+      videoInstances[instanceId].delete();
     });
   };
 
   showAll: CallableFunction = () => {
     [...this.instanceIds].forEach((instanceId: string) => {
-      videoInstances[instanceId].add();
+      const visible = videoInstances[instanceId].show,
+        parent = videoInstances[instanceId].parent || this.parent;
+
+      if (!visible) {
+        return;
+      } else if (parent) {
+        videoInstances[instanceId].updateParent(parent);
+      } else {
+        videoInstances[instanceId].add();
+      }
     });
   };
 
   createInstance: CallableFunction = (_config: TVideoInstanceConfig) => {
-    const instanceId: string = getId(_config);
-    this.instanceIds.push(instanceId);
-    videoInstances[instanceId] = new StoredVideoInstance(this, _config);
-    videoInstances[instanceId].add();
+    this.instanceIds.push(_config.id);
+    videoInstances[_config.id] = new StoredVideoInstance(this, _config);
+    if (_config.customId) {
+      videoInstances[_config.customId] = videoInstances[_config.id];
+    }
   };
 
   removeInstance: CallableFunction = (instanceId: string) => {
-    const localIdIndex: number = this.instanceIds.findIndex((id: string) => id == instanceId);
-
-    this.instanceIds.splice(localIdIndex, 1);
     videoInstances[instanceId].remove();
-    delete videoInstances[instanceId];
+  };
+
+  deleteInstance: CallableFunction = (instanceId: string) => {
+    this.instanceIds = this.instanceIds.filter((id: string) => id !== instanceId);
+    videoInstances[instanceId].delete();
+  };
+
+  addInstance: CallableFunction = (instanceId: string) => {
+    videoInstances[instanceId].add();
   };
 
   updateParent: CallableFunction = (parent: string) => {
-    this.parent = parent;
     [...this.instanceIds].forEach((instanceId: string) => {
-      if (!videoInstances[instanceId].parent) {
+      if (videoInstances[instanceId].parent === this.parent) {
         videoInstances[instanceId].updateParent(parent);
       }
     });
+    this.parent = parent;
+  };
+
+  updateCustomId: CallableFunction = (customId: string) => {
+    if (this.customId && videoMaterials[this.customId]) {
+      delete videoMaterials[this.customId];
+    }
+    videoMaterials[customId] = videoMaterials[this.id];
+    this.customId = customId;
+  };
+
+  updateOffImage: CallableFunction = (offImage: string) => {
+    this.offImage = offImage;
+    this.updateTexture(this.offImage);
   };
 
   updateTexture: CallableFunction = (url: string) => {
@@ -140,10 +175,12 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
 
   updateVolume: CallableFunction = (volume: number) => {
     this.volume = volume;
+    const position = this.videoTexture!.position;
     this.videoTexture!.volume = volume;
+    this.videoTexture!.seekTime(position);
   };
 
-  updatePlaylist: CallableFunction = (playlist: string[]) => {
+  updatePlaylist: CallableFunction = (playlist: string[] | any) => {
     const currentlyPlayingVideo = this.playlist[this.playlistIndex];
     // Currently playing video is in newly updated playlist
     this.playlist = playlist;
@@ -201,16 +238,19 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
   scale: TTransform;
   rotation: TTransform;
   modifiedTransform: { position: TTransform; scale: TTransform; rotation: TTransform };
+  withCollisions: boolean;
 
   constructor(_material: StoredVideoMaterial, _instance: TVideoInstanceConfig) {
     super(_material, _instance);
-    this.id = getId(_instance);
-    this.parent = _instance.parent;
+    this.id = _instance.id;
+    this.parent = _instance.parent || _material.parent;
     this.position = _instance.position;
     this.scale = _instance.scale;
     this.rotation = _instance.rotation;
     this.materialId = _material.id;
-    this.addComponent(new PlaneShape());
+    const shape = new PlaneShape();
+    shape.withCollisions = _instance.withCollisions;
+    this.addComponent(shape);
     this.addComponent(_material);
     this.updateTransform(this.position, this.scale, this.rotation);
 
@@ -222,7 +262,20 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
   }
 
   add: CallableFunction = () => {
-    engine.addEntity(this);
+    const parent = this.parent || videoMaterials[this.materialId].parent;
+    if (parent) {
+      this.updateParent(parent);
+    } else {
+      engine.addEntity(this);
+    }
+  };
+
+  delete: CallableFunction = () => {
+    delete videoInstances[this.id];
+    if (this.customId) {
+      delete videoInstances[this.customId];
+    }
+    this.remove();
   };
 
   remove: CallableFunction = () => {
@@ -231,13 +284,21 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
 
   updateParent: CallableFunction = (parent: string) => {
     if (parent) {
+      this.parent = parent;
       const instanceParent = getEntityByName(parent);
-      this.remove();
       this.setParent(instanceParent);
     } else {
       this.setParent(null);
-      this.add();
+      // this.add();
     }
+  };
+
+  updateCustomId: CallableFunction = (customId: string) => {
+    if (this.customId && videoInstances[this.customId]) {
+      delete videoInstances[this.customId];
+    }
+    videoInstances[customId] = videoInstances[this.id];
+    this.customId = customId;
   };
 
   updateTransform: CallableFunction = (newPosition?: TTransform, newScale?: TTransform, newRotation?: TTransform) => {
@@ -252,6 +313,13 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
         rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z)
       })
     );
+  };
+
+  updateCollider: CallableFunction = (withCollisions: boolean) => {
+    this.withCollisions = withCollisions;
+    const shape = new PlaneShape();
+    shape.withCollisions = this.withCollisions;
+    this.addComponentOrReplace(shape);
   };
 
   textureModeIs: CallableFunction = (mode: EVideoSourceTypes) => {
@@ -301,7 +369,7 @@ export class StoredVideoCheckSystem implements ISystem {
 
   constructor(_storedVideoMaterial: StoredVideoMaterial) {
     this.video = videoMaterials[_storedVideoMaterial.id];
-    this.id = getId(_storedVideoMaterial);
+    this.id = _storedVideoMaterial.id;
     videoSystems[_storedVideoMaterial.id] = this;
     engine.addSystem(videoSystems[_storedVideoMaterial.id]);
   }
@@ -329,17 +397,19 @@ export class StoredVideoCheckSystem implements ISystem {
       return;
     }
 
-    if (this.video.offType === EVideoSourceTypes.NONE && !this.instancesHidden) {
+    if (this.video.enableLiveStream && this.streamLive) {
+      // If live stream is enabled and is live, skip the block for removing the video when "NONE" is the off type
+    } else if (this.video.offType === EVideoSourceTypes.NONE && !this.instancesHidden) {
       // If off type is NONE, stop everything and hide instances.
       this.video.stop();
-      this.video.hideAll();
+      this.video.remove();
       this.instancesHidden = true;
       return;
     } else if (this.video.offType === EVideoSourceTypes.NONE) {
       return;
     } else if (this.instancesHidden) {
-      this.video.showAll();
       this.instancesHidden = false;
+      this.video.showAll();
       return;
     }
 
@@ -349,6 +419,7 @@ export class StoredVideoCheckSystem implements ISystem {
 
     if (this.video.enableLiveStream && this.streamLive && this.video.textureMode !== EVideoSourceTypes.LIVE) {
       this.video.startLive();
+      return;
     }
 
     if (this.video.offType !== EVideoSourceTypes.IMAGE) {
@@ -356,7 +427,7 @@ export class StoredVideoCheckSystem implements ISystem {
     } else if (this.video.textureMode == EVideoSourceTypes.IMAGE) {
       // Off type is image, and texture is an image. Do nothing else.
       return;
-    } else if (this.video.offImage) {
+    } else if ((!this.video.enableLiveStream || !this.streamLive) && this.video.offImage) {
       this.video.showImage();
       return;
     }

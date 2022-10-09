@@ -1,8 +1,29 @@
-import { StoredVideoCheckSystem, StoredVideoInstance, StoredVideoMaterial } from "../classes/index";
-import { TEntityMaterialConfig } from "./Entity";
+import {
+  StoredEntityInstance,
+  StoredEntityMaterial,
+  StoredImageInstance,
+  StoredImageMaterial,
+  StoredNFTInstance,
+  StoredNFTConfig,
+  StoredVideoCheckSystem,
+  StoredVideoInstance,
+  StoredVideoMaterial
+} from "../classes/index";
 
 export type TEntityMaterialStorage = {
-  [id: string]: TEntityMaterialConfig;
+  [id: string]: StoredEntityMaterial;
+};
+
+export type TEntityInstanceStorage = {
+  [id: string]: StoredEntityInstance;
+};
+
+export type TImageMaterialStorage = {
+  [id: string]: StoredImageMaterial;
+};
+
+export type TImageInstanceStorage = {
+  [id: string]: StoredImageInstance;
 };
 
 export type TVideoMaterialStorage = {
@@ -16,3 +37,13 @@ export type TVideoInstanceStorage = {
 export type TVideoSystemStorage = {
   [id: string]: StoredVideoCheckSystem;
 };
+
+export type TNFTConfigStorage = {
+  [id: string]: StoredNFTConfig;
+};
+
+
+export type TNFTInstanceStorage = {
+  [id: string]: StoredNFTInstance;
+};
+

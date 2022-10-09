@@ -1,5 +1,7 @@
 export * from "./Storage"
 export * from "./VideoScreen"
 export * from "./Entity"
+export * from "./Image"
+export * from "./NFT"
 export * from "./Transform"
 export * from "./ClickEvent"

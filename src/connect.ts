@@ -1,19 +1,17 @@
 import { isPreviewMode } from "@decentraland/EnvironmentAPI";
-import { getUserAccount } from "@decentraland/EthereumController";
 import { getParcel } from "@decentraland/ParcelIdentity";
-import { initAnalytics } from "./analytics";
-import { createAudioStream, removeAudioStream, updateAudioStream } from "./audio";
-import { createDialog, removeDialog, updateDialog } from "./dialogs";
-import { createImage, updateImage, updateImageInstance, removeImage, createImageInstance, removeImageInstance } from "./images";
+import { createAudioStream, deleteAudioStream, updateAudioStream } from "./audio";
+import { createDialog, deleteDialog, updateDialog } from "./dialogs";
+import { createImage, updateImage, updateImageInstance, createImageInstance, deleteImage, deleteImageInstance } from "./images";
 import { initScene } from "./init";
-import { createVideoScreen, removeVideoScreen, updateVideoScreen, updateVideoInstance, createVideoInstance, removeVideoInstance } from "./videos";
-import { Interval } from "@dcl/ecs-scene-utils";
-import { createCustomizations, updateCustomization, removeCustomization } from "./custom";
+import { createVideoScreen, updateVideoScreen, updateVideoInstance, createVideoInstance, deleteVideoScreen, deleteVideoInstance } from "./videos";
+import { updateCustomization, deleteCustomization } from "./custom";
+import { createNft, createNftInstance, deleteNft, deleteNftInstance, updateNft, updateNftInstance } from "./nfts";
+import { Interval } from "./components/interval";
+import { updateSceneData } from "./sceneData";
 
-export let user: any;
-export let sceneData: any = {};
-let runLocalServer = false;
-let runStagingServer = false;
+export let runLocalServer = false;
+export let runStagingServer = false;
 
 export const useLocal = () => {
   runLocalServer = true;
@@ -27,8 +25,6 @@ export const connectCMS = async () => {
   const parcel = await getParcel();
   const baseParcel = parcel.land.sceneJsonData.scene.base;
 
-  user = await getUserAccount();
-  log("user is", user);
   let isPreview = await isPreviewMode();
 
   let baseUrl = "wss://api.dcl-vlm.io/wss/";
@@ -53,17 +49,17 @@ export const connectCMS = async () => {
     engine.addEntity(socketdelay);
     socketdelay.addComponent(
       new Interval(10000, () => {
-        log("Pinging web socket...")
+        log("Pinging web socket...");
         socket.send(JSON.stringify({ command: "ping" }));
       })
     );
   };
 
-  socket.onclose = function (event) {
+  socket.onclose = (event) => {
     log("socket closed");
   };
 
-  socket.onmessage = function (event) {
+  socket.onmessage = (event) => {
     log(`VLM-DEBUG: socket event | `, event);
     const message = JSON.parse(event.data);
     log(`VLM-DEBUG: received message to ${message.action} ${message.entity || ""} ${message.property || ""}`);
@@ -72,7 +68,7 @@ export const connectCMS = async () => {
       return;
     }
 
-    sceneData = message.sceneData;
+    updateSceneData(message.sceneData);
 
     switch (message.action) {
       case "init":
@@ -86,7 +82,8 @@ export const connectCMS = async () => {
         updateEntity(message);
         break;
       case "remove":
-        removeEntity(message);
+      case "delete":
+        deleteEntity(message);
         break;
     }
   };
@@ -99,6 +96,12 @@ const createEntity = (message: any) => {
     case "imageInstance":
       createImageInstance(message.entityData, message.instanceData);
       break;
+    case "nft":
+      createNft(message.entityData);
+      break;
+    case "nftInstance":
+      createNftInstance(message.entityData, message.instanceData);
+      break;
     case "video":
       createVideoScreen(message.entityData);
       break;
@@ -106,13 +109,10 @@ const createEntity = (message: any) => {
       createVideoInstance(message.entityData, message.instanceData);
       break;
     case "audioStream":
-      createAudioStream(message.sceneData.audioStreams);
+      createAudioStream(message.entityData);
       break;
     case "dialog":
-      createDialog(message.sceneData.dialogs);
-      break;
-    case "customization":
-      createCustomizations(message.sceneData.customizations);
+      createDialog(message.entityData);
       break;
   }
 };
@@ -120,51 +120,64 @@ const createEntity = (message: any) => {
 const updateEntity = (message: any) => {
   switch (message.entity) {
     case "image":
-      updateImage(message.sceneData.imageTextures, message.property, message.id);
+      updateImage(message.entityData, message.property, message.id);
       break;
     case "imageInstance":
-      updateImageInstance(message.sceneData.imageTextures, message.property, message.id);
+      updateImageInstance(message.instanceData, message.property, message.id);
+      break;
+    case "nft":
+      updateNft(message.entityData, message.property, message.id);
+      break;
+    case "nftInstance":
+      updateNftInstance(message.instanceData, message.property, message.id);
       break;
     case "video":
-      updateVideoScreen(message.sceneData.videoSystems, message.property, message.id);
+      updateVideoScreen(message.entityData, message.property, message.id);
       break;
     case "videoInstance":
-      updateVideoInstance(message.sceneData.videoSystems, message.property, message.id);
+      updateVideoInstance(message.instanceData, message.property, message.id);
       break;
     case "audioStream":
-      updateAudioStream(message.sceneData.audioStreams, message.property, message.id);
+      updateAudioStream(message.entityData, message.property, message.id);
       break;
     case "dialog":
-      updateDialog(message.sceneData.dialogs, message.property, message.id);
+      updateDialog(message.entityData, message.property, message.id);
       break;
     case "customization":
-      updateCustomization(message.sceneData.customizations, message.id);
+      updateCustomization(message.customizationData, message.id);
       break;
   }
 };
 
-const removeEntity = (message: any) => {
+const deleteEntity = (message: any) => {
   log("remove entity message", message);
   switch (message.entity) {
     case "image":
-      removeImage(message.entityData);
+      deleteImage(message.id);
+      break;
     case "imageInstance":
-      removeImageInstance(message.entityData, message.instanceData);
+      deleteImageInstance(message.id);
+      break;
+    case "nft":
+      deleteNft(message.id);
+      break;
+    case "nftInstance":
+      deleteNftInstance(message.id);
       break;
     case "video":
-      removeVideoScreen(message.id);
+      deleteVideoScreen(message.id);
       break;
     case "videoInstance":
-      removeVideoInstance(message.id);
+      deleteVideoInstance(message.id);
       break;
     case "audioStream":
-      removeAudioStream(message.sceneData.audioStreams, message.property, message.id);
+      deleteAudioStream(message.id);
       break;
     case "dialog":
-      removeDialog(message.sceneData.dialogs, message.property, message.id);
+      deleteDialog(message.id);
       break;
     case "customization":
-      removeCustomization(message.id);
+      deleteCustomization(message.id);
       break;
   }
 };

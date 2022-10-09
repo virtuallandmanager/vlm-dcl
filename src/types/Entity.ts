@@ -2,24 +2,24 @@ import { TClickEvent } from "./ClickEvent";
 import { TTransform } from "./Transform";
 
 export type TEntityMaterialConfig = {
-    id: string;
-    customId?: string;
-    parent?: string;
-    customRendering?: boolean;
-    clickEvent?: TClickEvent;
-    show: boolean;
-    emission: number;
-  };
-  
-  export type TEntityInstanceConfig = {
-    id: string;
-    name: string;
-    show: boolean;
-    position: TTransform;
-    scale: TTransform;
-    rotation: TTransform;
-    parent?: string;
-    customId?: string;
-    clickEvent?: TClickEvent;
-  };
-  
+  id?: string;
+  customId?: string;
+  customRendering?: boolean;
+  clickEvent?: TClickEvent;
+  emission?: number;
+  parent?: string;
+  show?: boolean;
+};
+
+export type TEntityInstanceConfig = {
+  id: string;
+  customId?: string;
+  clickEvent?: TClickEvent;
+  hasCollider?: boolean;
+  name: string;
+  parent?: string;
+  position: TTransform;
+  rotation: TTransform;
+  scale: TTransform;
+  show: boolean;
+};

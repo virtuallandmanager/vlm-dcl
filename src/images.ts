@@ -1,175 +1,117 @@
-import { getEntityByName, getId } from "./helpers/entity";
-import { TEntityInstanceConfig, TEntityMaterialConfig } from "./types/index";
+import { StoredImageMaterial } from "./classes/index";
+import { imageInstances, imageMaterials } from "./storage";
+import { TImageInstanceConfig, TImageMaterialConfig } from "./types/index";
 
-export let cmsImages: any = {};
-
-export function initImages(imageTextures: Array<any>) {
-  log("creating image textures", imageTextures);
-  imageTextures.forEach((image: any, i: number) => {
-    createImage(image);
+export const initImages = (imageScreens: Array<TImageMaterialConfig>) => {
+  imageScreens.forEach((imageScreen: TImageMaterialConfig) => {
+    createImage(imageScreen);
   });
-}
+};
 
-export function createImage(image: any) {
-  log(`VLM-DEBUG: CREATE IMAGE | `, image);
-  const imageId = getId(image);
-  createOrUpdateMaterial(image);
-
-  if (!image.instances.length) {
+export const createImage = (imageConfig: TImageMaterialConfig) => {
+  if (!imageConfig.show) {
     return;
   }
-  
-  image.instances.forEach((instance: any, ii: number) => {
-    const instanceId = getId(instance);
-    if ((cmsImages[imageId] && cmsImages[imageId][instanceId]) || instance.customRendering || image.customRendering) {
-      return;
-    }
-    createImageInstance(image, instance);
-  });
-}
+  new StoredImageMaterial(imageConfig);
+};
 
-export function createImageInstance(image: any, instance: any) {
-  log(`VLM-DEBUG: CREATE IMAGE INSTANCE | `, image, instance);
-  const { position, scale, rotation } = instance,
-    imageId = getId(image),
-    instanceId = getId(instance);
-
-  cmsImages[imageId][instanceId] = new Entity(image.name + " " + instance.name);
-  cmsImages[imageId][instanceId].addComponent(new PlaneShape());
-  cmsImages[imageId][instanceId].addComponent(
-    new Transform({
-      position: new Vector3(position.x, position.y, position.z),
-      rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z - 180),
-      scale: new Vector3(scale.x, scale.y, scale.z)
-    })
-  );
-
-  cmsImages[imageId][instanceId].addComponent(cmsImages[imageId].material);
-
-  if (!image.show || !instance.show) {
+export const createImageInstance = (material: TImageMaterialConfig, instance: TImageInstanceConfig) => {
+  if (!material.show || !instance.show) {
     return;
   }
+  const imageId = material.id;
+  imageMaterials[imageId].createInstance(instance);
+};
 
-  setImageProperties(image, instance);
-}
+export const updateImage = (imageConfig: TImageMaterialConfig | any, property: string, id: string) => {
+  const image: StoredImageMaterial = imageMaterials[imageConfig.id];
 
-export function updateImage(imageTextures: any, property: string, id: string) {
-  log("checking image");
-  const image = imageTextures.find((imageTexture: any) => getId(imageTexture) == id);
-  switch (property) {
-    case "link":
-      createOrUpdateMaterial(image);
-  }
-  image.instances.forEach((instance: any, ii: number) => {
-    if (instance.customRendering || image.customRendering) {
-      return;
-    }
-    processInstanceUpdate(property, image, instance);
-  });
-  log("cmsImage image updated: ", image);
-}
-
-export function updateImageInstance(imageTextures: any, property: string, id: string) {
-  let instance: any;
-  const image = imageTextures.find((image: any) => {
-    if (image.instances) {
-      instance = image.instances.find((instance: any) => getId(instance) == id);
-      return instance;
-    }
-  });
-
-  if (!instance) {
+  if (!imageConfig || (!image && !imageConfig.show)) {
     return;
+  } else if (!image && imageConfig.show) {
+    new StoredImageMaterial(imageConfig);
   }
 
-  processInstanceUpdate(property, image, instance);
-
-  log("cmsImage instance updated: ", instance);
-}
-
-export function createOrUpdateMaterial(image: any) {
-  log(`VLM-DEBUG: CREATE IMAGE MATERIAL | ${image}`);
-  const imageId = getId(image);
-  let isUpdate = false;
-  if (!cmsImages[imageId]) {
-    cmsImages[imageId] = {};
-  } else {
-    isUpdate = true;
-  }
-  if (image.isTransparent) {
-    cmsImages[imageId].material = new BasicMaterial();
-    cmsImages[imageId].texture = new Texture(image.imageLink);
-    cmsImages[imageId].material.texture = cmsImages[imageId].texture;
-  } else {
-    cmsImages[imageId].material = new Material();
-    cmsImages[imageId].texture = new Texture("" + image.imageLink);
-    cmsImages[imageId].material.albedoTexture = cmsImages[imageId].texture;
-    cmsImages[imageId].material.emissiveTexture = cmsImages[imageId].texture;
-    cmsImages[imageId].material.emissiveIntensity = image.emission || 1.2;
-    cmsImages[imageId].material.emissiveColor = Color3.White();
-    cmsImages[imageId].material.roughness = 0.6;
-  }
-  if (isUpdate) {
-    image.instances.forEach((instance: any) => {
-      const instanceId = getId(instance);
-      cmsImages[imageId][instanceId].addComponentOrReplace(cmsImages[imageId].material);
-    });
-  }
-}
-
-export function processInstanceUpdate(property: string, image: any, instance: any) {
-  const imageId = getId(image),
-    instanceId = getId(instance);
   switch (property) {
     case "visibility":
-      if (!image.show || !instance.show) {
-        engine.removeEntity(cmsImages[imageId][instanceId]);
-        return;
-      } else if (instance.parent || image.parent) {
-        cmsImages[imageId][instanceId].setParent(getEntityByName(instance.parent || image.parent));
-      } else {
-        engine.addEntity(cmsImages[imageId][instanceId]);
+      if (!imageConfig.show) {
+        removeImage(imageConfig.id);
+      } else if (image) {
+        addImage(imageConfig.id);
       }
       break;
-    case "clickEvent":
-      
+    case "imageLink":
+      image.updateTexture(imageConfig.imageLink);
+      break;
+    case "emission":
+      image.emissiveIntensity = imageConfig.emission;
+      break;
+    case "transparency":
+      image.updateTransparency(imageConfig.isTransparent);
+      break;
+    case "parent":
+      image.updateParent(imageConfig.parent);
+      break;
+    case "customId":
+      image.updateCustomId(imageConfig.customId);
+      break;
+  }
+};
+
+export const updateImageInstance = (instanceConfig: TImageInstanceConfig, property: string, id: string) => {
+  const instance = imageInstances[id],
+    materialId = instance.materialId,
+    material = imageMaterials[materialId];
+
+  if (!material) {
+    return;
+  } else if (!instance && instanceConfig.show) {
+    material.createInstance(instanceConfig);
+  }
+
+  const { position, scale, rotation } = instanceConfig;
+
+  switch (property) {
+    case "visibility":
+      if (!material.show || !instanceConfig.show) {
+        material.removeInstance(instanceConfig.id);
+      } else if (instance && instanceConfig.show) {
+        material.addInstance(instanceConfig.id);
+      }
       break;
     case "transform":
-      cmsImages[imageId][instanceId].addComponentOrReplace(
-        new Transform({
-          position: new Vector3(instance.position.x, instance.position.y, instance.position.z),
-          rotation: Quaternion.Euler(instance.rotation.x, instance.rotation.y, instance.rotation.z - 180),
-          scale: new Vector3(instance.scale.x, instance.scale.y, instance.scale.z)
-        })
-      );
+      instance.updateTransform(position, scale, rotation);
       break;
-    case "properties":
-      setImageProperties(image, instance);
+    case "collider":
+      instance.updateCollider(instanceConfig);
+      break;
+    case "parent":
+      instance.updateParent(instanceConfig.parent);
+      break;
+    case "customId":
+      instance.updateCustomId(instanceConfig.customId);
+      break;
   }
-}
+};
 
-export function setImageProperties(image: any, instance: any) {
-  const imageId = getId(image),
-    instanceId = getId(instance);
+export const addImage = (id: string) => {
+  imageMaterials[id].showAll();
+};
 
-  if (instance.parent || image.parent) {
-    cmsImages[imageId][instanceId].setParent(getEntityByName(instance.parent || image.parent));
-  } else {
-    engine.addEntity(cmsImages[imageId][instanceId]);
-  }
-}
+export const deleteImage = (id: string) => {
+  imageMaterials[id].delete();
+};
 
-export function removeImage(image: TEntityMaterialConfig) {
-  log(`VLM-DEBUG: REMOVE IMAGE | ${image}`);
-  const imageId = getId(image);
-  cmsImages[imageId].instances.forEach((instance: any, ii: number) => {
-    engine.removeEntity(instance);
-  });
-}
+export const removeImage = (id: string) => {
+  imageMaterials[id].remove();
+};
 
-export function removeImageInstance(image: TEntityMaterialConfig, instance: TEntityInstanceConfig) {
-  log(`VLM-DEBUG: REMOVE IMAGE INSTANCE | ${image} ${instance}`);
-  const imageId = getId(image),
-    instanceId = getId(instance);
-  engine.removeEntity(cmsImages[imageId][instanceId]);
-}
+export const removeImageInstance = (instanceId: string) => {
+  const materialId = imageInstances[instanceId].materialId;
+  imageMaterials[materialId].removeInstance(instanceId);
+};
+
+export const deleteImageInstance = (instanceId: string) => {
+  const materialId = imageInstances[instanceId].materialId;
+  imageMaterials[materialId].deleteInstance(instanceId);
+};

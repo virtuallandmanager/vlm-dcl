@@ -40,16 +40,11 @@
     "yarn": "please use npm"
   },
   "dependencies": {
-    "@dcl/ecs-scene-utils": "^1.7.5",
-    "@dcl/npc-scene-utils": "^1.4.0",
     "decentraland": "^3.11.0",
-    "decentraland-ecs": "^6.11.2",
-    "lodash-es": "^4.17.21"
+    "decentraland-ecs": "^6.11.2"
   },
   "bundledDependencies": [
     "decentraland",
-    "decentraland-ecs",
-    "@dcl/ecs-scene-utils",
-    "@dcl/npc-scene-utils"
+    "decentraland-ecs"
   ]
 }
