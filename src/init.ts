@@ -13,8 +13,8 @@ export const initScene = (message: any) => {
     initModeration();
   }
   if (message.features.entityPlacement) {
-    initImages(message.sceneData.images);
-    initVideoScreens(message.sceneData.videoScreens);
+    initImages(message.sceneData.images || message.sceneData.imageTextures);
+    initVideoScreens(message.sceneData.videoScreens || message.sceneData.videoSystems);
     initNfts(message.sceneData.nfts);
   }
   // TODO: Implement dialog feature
