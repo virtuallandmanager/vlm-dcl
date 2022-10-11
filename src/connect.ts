@@ -9,6 +9,7 @@ import { updateCustomization, deleteCustomization } from "./custom";
 import { createNft, createNftInstance, deleteNft, deleteNftInstance, updateNft, updateNftInstance } from "./nfts";
 import { Interval } from "./components/interval";
 import { updateSceneData } from "./sceneData";
+import { updateModeration } from "./moderation";
 
 export let runLocalServer = false;
 export let runStagingServer = false;
@@ -75,13 +76,11 @@ export const connectCMS = async () => {
         initScene(message);
         break;
       case "create":
-      case "add":
         createEntity(message);
         break;
       case "update":
         updateEntity(message);
         break;
-      case "remove":
       case "delete":
         deleteEntity(message);
         break;
@@ -142,6 +141,9 @@ const updateEntity = (message: any) => {
       break;
     case "dialog":
       updateDialog(message.entityData, message.property, message.id);
+      break;
+    case "moderation":
+      updateModeration();
       break;
     case "customization":
       updateCustomization(message.customizationData, message.id);

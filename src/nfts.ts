@@ -3,6 +3,9 @@ import { nftInstances, nftConfigs } from "./storage";
 import { TNFTInstanceConfig, TNFTConfig } from "./types/index";
 
 export const initNfts = (nftScreens: Array<TNFTConfig>) => {
+  if (!nftScreens) {
+    return;
+  }
   nftScreens.forEach((nftScreen: TNFTConfig) => {
     createNft(nftScreen);
   });
