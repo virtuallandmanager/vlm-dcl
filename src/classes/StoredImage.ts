@@ -32,7 +32,7 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
     this.customRendering = !!_config.customRendering;
     this.parent = _config.parent;
     this.show = _config.show;
-    this.emissiveIntensity = _config.emission;
+    this.emissiveIntensity = _config.emission || 1;
     this.imageLink = _config.imageLink;
     this.withCollisions = _config.withCollisions;
     this.isTransparent = _config.isTransparent;

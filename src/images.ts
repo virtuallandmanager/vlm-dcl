@@ -3,6 +3,9 @@ import { imageInstances, imageMaterials } from "./storage";
 import { TImageInstanceConfig, TImageMaterialConfig } from "./types/index";
 
 export const initImages = (imageScreens: Array<TImageMaterialConfig>) => {
+  if (!imageScreens) {
+    return;
+  }
   imageScreens.forEach((imageScreen: TImageMaterialConfig) => {
     createImage(imageScreen);
   });
@@ -46,13 +49,9 @@ export const updateImage = (imageConfig: TImageMaterialConfig | any, property: s
     case "emission":
       image.emissiveIntensity = imageConfig.emission;
       break;
-    case "transparency":
+    case "properties":
       image.updateTransparency(imageConfig.isTransparent);
-      break;
-    case "parent":
       image.updateParent(imageConfig.parent);
-      break;
-    case "customId":
       image.updateCustomId(imageConfig.customId);
       break;
   }
@@ -82,13 +81,9 @@ export const updateImageInstance = (instanceConfig: TImageInstanceConfig, proper
     case "transform":
       instance.updateTransform(position, scale, rotation);
       break;
-    case "collider":
+    case "properties":
       instance.updateCollider(instanceConfig);
-      break;
-    case "parent":
       instance.updateParent(instanceConfig.parent);
-      break;
-    case "customId":
       instance.updateCustomId(instanceConfig.customId);
       break;
   }

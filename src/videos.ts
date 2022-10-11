@@ -1,9 +1,11 @@
-import { StoredVideoCheckSystem, StoredVideoInstance, StoredVideoMaterial } from "./classes/index";
+import { StoredVideoCheckSystem, StoredVideoMaterial } from "./classes";
 import { videoInstances, videoMaterials, videoSystems } from "./storage";
-import { TVideoInstanceConfig, TVideoMaterialConfig } from "./types/index";
-import { findItem } from "./utils";
+import { TVideoInstanceConfig, TVideoMaterialConfig } from "./types";
 
 export const initVideoScreens = (videoScreens: Array<TVideoMaterialConfig>) => {
+  if (!videoScreens) {
+    return;
+  }
   videoScreens.forEach((videoScreen: TVideoMaterialConfig) => {
     createVideoScreen(videoScreen);
   });
@@ -16,17 +18,8 @@ export const createVideoScreen = (videoConfig: TVideoMaterialConfig) => {
 
   const videoId = videoConfig.id;
 
-  videoMaterials[videoId] = new StoredVideoMaterial(videoConfig);
-  videoMaterials[videoId].updateTexture(videoMaterials[videoId].liveLink);
-
-  videoConfig.instances.forEach((instance: TVideoInstanceConfig) => {
-    const material = videoMaterials[videoId];
-    if (!instance.customRendering && !material.customRendering) {
-      createVideoInstance(material, instance);
-    }
-  });
-
-  videoSystems[videoId] = new StoredVideoCheckSystem(videoMaterials[videoId]);
+  new StoredVideoMaterial(videoConfig);
+  new StoredVideoCheckSystem(videoMaterials[videoId]);
 
   engine.addSystem(videoSystems[videoId]);
 };
@@ -77,10 +70,8 @@ export const updateVideoScreen = (videoConfig: TVideoMaterialConfig, property: s
     case "offImage":
       video.updateOffImage(videoConfig.offImage);
       break;
-    case "parent":
+    case "properties":
       video.updateParent(videoConfig.parent);
-      break;
-    case "customId":
       video.updateCustomId(videoConfig.customId);
       break;
   }

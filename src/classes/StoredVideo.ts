@@ -54,7 +54,7 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     this.volume = _config.volume;
     this.playlist = _config.playlist;
     this.withCollisions = _config.withCollisions;
-    this.textureMode = this.enableLiveStream ? EVideoSourceTypes.LIVE : this.offType;
+    this.textureMode = this.enableLiveStream ? EVideoSourceTypes.LIVE : null;
     this.updateTexture(this.liveLink);
     videoMaterials[this.id] = this;
 
@@ -256,7 +256,7 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
 
     if (this.parent) {
       this.updateParent(this.parent);
-    } else {
+    } else if (_material.offType !== EVideoSourceTypes.NONE) {
       this.add();
     }
   }
@@ -289,7 +289,6 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
       this.setParent(instanceParent);
     } else {
       this.setParent(null);
-      // this.add();
     }
   };
 
@@ -387,13 +386,13 @@ export class StoredVideoCheckSystem implements ISystem {
     }
 
     // If live streaming is enabled, first check the status of the live stream
-    if (this.video.enableLiveStream !== false) {
+    if (this.video.enableLiveStream) {
       executeTask(async () => {
         this.checkStreamStatus();
       });
     }
 
-    if (!this.initialCheckComplete) {
+    if (this.video.enableLiveStream && !this.initialCheckComplete) {
       return;
     }
 

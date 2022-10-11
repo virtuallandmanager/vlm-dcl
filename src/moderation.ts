@@ -201,7 +201,13 @@ const hasBannedWearables = () => {
 const isBannedUser = () => {
   const bannedUsers = sceneData.moderation.bannedUsers;
   bannedUser = bannedUsers.some((user: TPlayerConfig) => {
-    return userData.displayName.indexOf(user.displayName) >= 0 || userData.userId === user.walletAddress;
+    let userName = userData.displayName;
+    let hasHash;
+    if (userData.displayName.indexOf("#") >= 0) {
+      userName = userName.split("#")[0];
+      hasHash = true;
+    }
+    return userName === user.displayName || userData.displayName === user.displayName || userData.userId === user.walletAddress;
   });
   return bannedUser;
 };
@@ -214,6 +220,9 @@ const isAllowedUser = () => {
 };
 
 const banAction = () => {
+  if (!sceneData.moderation.banActions) {
+    return;
+  }
   if (includes(sceneData.moderation.banActions, EBanActions.WALL)) {
     movePlayer();
     createWalls();
@@ -302,29 +311,23 @@ const findSceneBounds = async () => {
     const parcelArr = parcel.split(","),
       x = Number(parcelArr[0]),
       z = Number(parcelArr[1]);
-    let n = z * parcelSize,
-      e = x * parcelSize,
+    let n = z * parcelSize + parcelSize,
+      e = x * parcelSize + parcelSize,
       s = z * parcelSize,
       w = x * parcelSize,
-      nr = (z - baseParcel.z) * parcelSize,
-      er = (x - baseParcel.x) * parcelSize,
+      nr = (z - baseParcel.z) * parcelSize + parcelSize,
+      er = (x - baseParcel.x) * parcelSize + parcelSize,
       sr = (z - baseParcel.z) * parcelSize,
       wr = (x - baseParcel.x) * parcelSize;
 
-    if (z > 0) {
-      n = n + parcelSize;
-      nr = nr + parcelSize;
-    } else {
-      s = s - parcelSize;
-      sr = sr - parcelSize;
+    if (z < 0) {
+      s = s + parcelSize;
+      sr = sr + parcelSize;
     }
 
-    if (x > 0) {
-      w = w - parcelSize;
-      wr = wr - parcelSize;
-    } else {
-      e = e + parcelSize;
-      er = er + parcelSize;
+    if (x < 0) {
+      w = w + parcelSize;
+      wr = wr + parcelSize;
     }
 
     const bounds = { x, z, n, e, s, w, nr, er, sr, wr };
