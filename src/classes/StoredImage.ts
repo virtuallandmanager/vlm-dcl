@@ -1,7 +1,9 @@
+import { movePlayerTo } from "@decentraland/RestrictedActions";
 import { sdkImageFlippedDimension, sdkImagesAreFlipped, sdkImagesFace, vlmImagesFace } from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
 import { IEmission, ITexture, ITransform } from "../interfaces";
 import { imageInstances, imageMaterials } from "../storage";
+import { EClickEventType, TClickEvent } from "../types";
 import { TImageInstanceConfig, TImageMaterialConfig } from "../types/Image";
 import { TTransform } from "../types/Transform";
 import { StoredEntityInstance } from "./StoredEntity";
@@ -24,6 +26,7 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
   metallic: number = 0;
   withCollisions: boolean;
   isTransparent: boolean;
+  clickEvent?: TClickEvent;
 
   constructor(_config: TImageMaterialConfig) {
     super();
@@ -121,6 +124,13 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
     this.updateTexture();
   };
 
+  updateClickEvent: CallableFunction = (clickEvent: TClickEvent) => {
+    [...this.instanceIds].forEach((instanceId: string) => {
+      imageInstances[instanceId].updateClickEvent(clickEvent);
+    });
+    this.clickEvent = clickEvent;
+  };
+
   createInstance: CallableFunction = (_config: TImageInstanceConfig) => {
     this.instanceIds.push(_config.id);
     imageInstances[_config.id] = new StoredImageInstance(this, _config);
@@ -164,11 +174,13 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     this.rotation = _instance.rotation;
     this.materialId = _material.id;
     this.show = _instance.show;
+    this.clickEvent = _instance.clickEvent || _material.clickEvent;
     const shape = new PlaneShape();
     shape.withCollisions = typeof _instance.withCollisions === "boolean" ? _instance.withCollisions : _material.withCollisions;
     this.addComponent(shape);
     this.addComponent(_material);
     this.updateTransform(this.position, this.scale, this.rotation);
+    this.updateClickEvent(_material, _instance);
 
     if (this.parent && this.show) {
       this.updateParent(this.parent);
@@ -246,5 +258,59 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     const imageRotationDegree = (vlmImagesFace - sdkImagesFace) * 90;
 
     this.modifiedTransform.rotation.y += imageRotationDegree;
+  };
+
+  updateClickEvent: CallableFunction = (clickEvent: TClickEvent) => {
+    const material = imageMaterials[this.materialId];
+
+    if (!material.clickEvent && !clickEvent) {
+      return;
+    }
+
+    let pointerDownEvent,
+      showFeedback = clickEvent.showFeedback,
+      hoverText = clickEvent.hoverText,
+      instanceId = this.id;
+
+    switch (clickEvent.type) {
+      case EClickEventType.NONE: //no click event
+        imageInstances[instanceId].removeComponent(OnPointerDown);
+        return;
+      case EClickEventType.EXTERNAL: //external link
+        pointerDownEvent = new OnPointerDown(
+          () => {
+            openExternalURL(clickEvent.externalLink);
+          },
+          { showFeedback, hoverText }
+        );
+        break;
+      case EClickEventType.SOUND: //play a sound
+        const clip = new AudioClip(clickEvent.sound);
+        const source = new AudioSource(clip);
+        pointerDownEvent = new OnPointerDown(
+          () => {
+            source.playOnce();
+          },
+          { showFeedback, hoverText }
+        );
+        break;
+      case EClickEventType.MOVE: // move player
+        pointerDownEvent = new OnPointerDown(
+          () => {
+            movePlayerTo(clickEvent.moveTo.position, clickEvent.moveTo.cameraTarget);
+          },
+          { showFeedback, hoverText }
+        );
+        break;
+      case EClickEventType.TELEPORT: // teleport player
+        pointerDownEvent = new OnPointerDown(
+          () => {
+            teleportTo(clickEvent.teleportTo);
+          },
+          { showFeedback, hoverText }
+        );
+        break;
+    }
+    imageInstances[instanceId].addComponentOrReplace(pointerDownEvent);
   };
 }

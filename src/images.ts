@@ -49,6 +49,9 @@ export const updateImage = (imageConfig: TImageMaterialConfig | any, property: s
     case "emission":
       image.emissiveIntensity = imageConfig.emission;
       break;
+    case "clickEvent":
+      image.updateClickEvent(imageConfig.clickEvent);
+      break;
     case "properties":
       image.updateTransparency(imageConfig.isTransparent);
       image.updateParent(imageConfig.parent);
@@ -80,6 +83,9 @@ export const updateImageInstance = (instanceConfig: TImageInstanceConfig, proper
       break;
     case "transform":
       instance.updateTransform(position, scale, rotation);
+      break;
+    case "clickEvent":
+      instance.updateClickEvent(instanceConfig.clickEvent);
       break;
     case "properties":
       instance.updateCollider(instanceConfig);
