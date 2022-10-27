@@ -9,6 +9,7 @@ export * from "./analytics";
 export * from "./moderation";
 export * from "./custom";
 export * from "./storage";
+export * from "./sceneData";
 export * from "./types/index";
 export * from "./interfaces/index";
 export * from "./classes/index";

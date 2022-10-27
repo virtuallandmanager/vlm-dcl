@@ -2,12 +2,12 @@ import { StoredImageMaterial } from "./classes/index";
 import { imageInstances, imageMaterials } from "./storage";
 import { TImageInstanceConfig, TImageMaterialConfig } from "./types/index";
 
-export const initImages = (imageScreens: Array<TImageMaterialConfig>) => {
-  if (!imageScreens) {
+export const initImages = (images: Array<TImageMaterialConfig>) => {
+  if (!images) {
     return;
   }
-  imageScreens.forEach((imageScreen: TImageMaterialConfig) => {
-    createImage(imageScreen);
+  images.forEach((image: TImageMaterialConfig) => {
+    createImage(image);
   });
 };
 

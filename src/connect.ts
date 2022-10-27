@@ -13,6 +13,18 @@ import { updateModeration } from "./moderation";
 
 export let runLocalServer = false;
 export let runStagingServer = false;
+let socketConnector;
+
+const reconnect = () => {
+  socketConnector = new Entity();
+  engine.addEntity(socketConnector);
+  socketConnector.addComponent(
+    new Interval(10000, () => {
+      log("Attempting to connect to websocket");
+      connectCMS();
+    })
+  );
+};
 
 export const useLocal = () => {
   runLocalServer = true;
@@ -23,69 +35,80 @@ export const useStaging = () => {
 };
 
 export const connectCMS = async () => {
-  const parcel = await getParcel();
-  const baseParcel = parcel.land.sceneJsonData.scene.base;
+  const connectPromise = new Promise(async (resolve, reject) => {
+    const parcel = await getParcel();
+    const baseParcel = parcel.land.sceneJsonData.scene.base;
 
-  let isPreview = await isPreviewMode();
+    let isPreview = await isPreviewMode();
 
-  let baseUrl = "wss://api.dcl-vlm.io/wss/";
+    let baseUrl = "wss://api.dcl-vlm.io/wss/";
 
-  if (runLocalServer && isPreview) {
-    baseUrl = "ws://localhost:3000";
-  } else if (runStagingServer && isPreview) {
-    baseUrl = "wss://staging-api.dcl-vlm.io/wss/";
-  }
+    if (runLocalServer && isPreview) {
+      baseUrl = "ws://localhost:3000";
+    } else if (runStagingServer && isPreview) {
+      baseUrl = "wss://staging-api.dcl-vlm.io/wss/";
+    }
 
-  let socket = new WebSocket(baseUrl + `?scene=${baseParcel}`);
+    let socket = await new WebSocket(baseUrl + `?scene=${baseParcel}`);
 
-  if (!socket) {
-    return;
-  }
-
-  socket.onopen = (ev) => {
-    log("connected to web socket");
-    socket.send(JSON.stringify({ action: "init" }));
-
-    let socketdelay = new Entity();
-    engine.addEntity(socketdelay);
-    socketdelay.addComponent(
-      new Interval(10000, () => {
-        log("Pinging web socket...");
-        socket.send(JSON.stringify({ command: "ping" }));
-      })
-    );
-  };
-
-  socket.onclose = (event) => {
-    log("socket closed");
-  };
-
-  socket.onmessage = (event) => {
-    log(`VLM-DEBUG: socket event | `, event);
-    const message = JSON.parse(event.data);
-    log(`VLM-DEBUG: received message to ${message.action} ${message.entity || ""} ${message.property || ""}`);
-
-    if (!message.sceneData && !message.entityData) {
+    if (!socket) {
+      reconnect();
       return;
     }
 
-    updateSceneData(message.sceneData);
+    socket.onopen = (ev) => {
+      log("connected to web socket");
+      socket.send(JSON.stringify({ action: "init" }));
 
-    switch (message.action) {
-      case "init":
-        initScene(message);
-        break;
-      case "create":
-        createEntity(message);
-        break;
-      case "update":
-        updateEntity(message);
-        break;
-      case "delete":
-        deleteEntity(message);
-        break;
-    }
-  };
+      if (socketConnector) {
+        socketConnector.removeComponent(Interval);
+      }
+
+      let socketdelay = new Entity();
+      engine.addEntity(socketdelay);
+      socketdelay.addComponent(
+        new Interval(10000, () => {
+          log("Pinging web socket...");
+          socket.send(JSON.stringify({ command: "ping" }));
+        })
+      );
+    };
+
+    socket.onclose = (event) => {
+      log("socket closed");
+      reconnect();
+    };
+
+    socket.onmessage = (event) => {
+      log(`VLM-DEBUG: socket event | `, event);
+      const message = JSON.parse(event.data);
+      log(`VLM-DEBUG: received message to ${message.action} ${message.entity || ""} ${message.property || ""}`);
+
+      if (!message.sceneData && !message.entityData) {
+        return;
+      }
+
+      updateSceneData(message.sceneData);
+
+      switch (message.action) {
+        case "init":
+          initScene(message);
+          log("Scene initialized")
+          resolve();
+          break;
+        case "create":
+          createEntity(message);
+          break;
+        case "update":
+          updateEntity(message);
+          break;
+        case "delete":
+          deleteEntity(message);
+          break;
+      }
+    };
+  });
+  return connectPromise;
 };
 
 const createEntity = (message: any) => {

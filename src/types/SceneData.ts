@@ -6,12 +6,10 @@ import { TNFTConfig } from "./NFT";
 import { TVideoMaterialConfig } from "./VideoScreen";
 
 export type TSceneData = {
-  images?: TImageMaterialConfig[];
-  imageTextures?: TImageMaterialConfig[];
-  videoScreens?: TVideoMaterialConfig[];
-  videoSystems?: TVideoMaterialConfig[];
-  nfts?: TNFTConfig[];
-  moderation?: TModerationConfig;
-  events?: TEventConfig[];
-  features?: TFeatureConfig[];
+  images: TImageMaterialConfig[];
+  videoScreens: TVideoMaterialConfig[];
+  nfts: TNFTConfig[];
+  moderation: TModerationConfig;
+  events: TEventConfig[];
+  features: TFeatureConfig[];
 };

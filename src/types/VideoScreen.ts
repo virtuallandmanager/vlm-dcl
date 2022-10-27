@@ -18,7 +18,7 @@ export interface TVideoMaterialConfig {
   liveLink?: string;
   name: string;
   offType: EVideoSourceTypes;
-  offImage: string;
+  offImageLink: string;
   parent?: string | null;
   playlist: string[];
   show: boolean;

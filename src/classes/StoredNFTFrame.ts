@@ -1,9 +1,8 @@
 import { sdkImageFlippedDimension, sdkImagesAreFlipped, sdkImagesFace, vlmImagesFace } from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
-import { ITransform } from "../interfaces";
+import { ITransform } from "../interfaces/index";
 import { nftInstances, nftConfigs } from "../storage";
-import { TImageInstanceConfig, TImageMaterialConfig } from "../types/Image";
-import { TNFTInstanceConfig, TNFTConfig } from "../types/NFT";
+import { TNFTInstanceConfig, TNFTConfig } from "../types/index";
 import { TTransform } from "../types/Transform";
 import { StoredEntityConfig, StoredEntityInstance } from "./StoredEntity";
 
@@ -127,7 +126,7 @@ export class StoredNFTConfig extends StoredEntityConfig {
     this.customId = customId;
   };
 
-  createInstance: CallableFunction = (_config: TImageInstanceConfig) => {
+  createInstance: CallableFunction = (_config: TNFTInstanceConfig) => {
     this.instanceIds.push(_config.id);
     nftInstances[_config.id] = new StoredNFTInstance(this, _config);
     if (_config.customId) {
