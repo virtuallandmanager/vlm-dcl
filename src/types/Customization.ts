@@ -1,10 +1,13 @@
-export type TCustomizationFunctions = {
-  [id: string]: TCustomizationFunction;
+export type TCustomizationConfigs = {
+  [id: string]: TCustomizationConfig;
 };
 
-export type TCustomizationFunction = {
-  init?: () => void | Promise<void>;
-  update?: (customization: TCustomization) => void | Promise<void>;
+export type TCustomizationConfig = {
+  id: string;
+  type?: ECustomizationType;
+  value?: string | boolean;
+  init?: any;
+  update: any;
 };
 
 export enum ECustomizationType {
@@ -12,9 +15,3 @@ export enum ECustomizationType {
   text,
   selector
 }
-
-export type TCustomization = {
-  id: string;
-  type: ECustomizationType;
-  value: boolean | string | number;
-};

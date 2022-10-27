@@ -1,6 +1,6 @@
-import { StoredVideoCheckSystem, StoredVideoMaterial } from "./classes";
+import { StoredVideoCheckSystem, StoredVideoMaterial } from "./classes/index";
+import { TVideoInstanceConfig, TVideoMaterialConfig } from "./types/index";
 import { videoInstances, videoMaterials, videoSystems } from "./storage";
-import { TVideoInstanceConfig, TVideoMaterialConfig } from "./types";
 
 export const initVideoScreens = (videoScreens: Array<TVideoMaterialConfig>) => {
   if (!videoScreens) {
@@ -68,7 +68,7 @@ export const updateVideoScreen = (videoConfig: TVideoMaterialConfig, property: s
       video.offType = videoConfig.offType;
       break;
     case "offImage":
-      video.updateOffImage(videoConfig.offImage);
+      video.updateOffImage(videoConfig.offImageLink);
       break;
     case "properties":
       video.updateParent(videoConfig.parent);

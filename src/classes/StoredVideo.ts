@@ -38,19 +38,20 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
   withCollisions: boolean;
   public emissiveIntensity: number;
   public offType: EVideoSourceTypes;
-  public offImage?: string;
+  public offImageLink?: string;
 
   constructor(_config: TVideoMaterialConfig) {
     super(_config);
     this.id = _config.id;
+    this.customId = _config.customId;
     this.parent = _config.parent;
     this.show = _config.show;
     this.enableLiveStream = _config.enableLiveStream;
     this.liveLink = _config.liveLink;
     this.offType = _config.offType;
-    this.offImage = _config.offImage;
+    this.offImageLink = _config.offImageLink;
     this.customRendering = !!_config.customRendering;
-    this.emissiveIntensity = _config.emission;
+    this.emissiveIntensity = _config.emission || 1;
     this.volume = _config.volume;
     this.playlist = _config.playlist;
     this.withCollisions = _config.withCollisions;
@@ -59,9 +60,14 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     videoMaterials[this.id] = this;
 
     if (this.customId) {
+      log(this.customId);
       videoMaterials[this.customId] = videoMaterials[this.id];
     }
     new StoredVideoCheckSystem(this);
+
+    if (this.customRendering) {
+      return;
+    }
 
     _config.instances.forEach((instance: TVideoInstanceConfig) => {
       this.createInstance(instance);
@@ -138,9 +144,9 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     this.customId = customId;
   };
 
-  updateOffImage: CallableFunction = (offImage: string) => {
-    this.offImage = offImage;
-    this.updateTexture(this.offImage);
+  updateOffImage: CallableFunction = (offImageLink: string) => {
+    this.offImageLink = offImageLink;
+    this.updateTexture(this.offImageLink);
   };
 
   updateTexture: CallableFunction = (url: string) => {
@@ -190,6 +196,14 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     }
   };
 
+  start: CallableFunction = () => {
+    if (this.textureMode == EVideoSourceTypes.LIVE) {
+      this.startLive();
+    } else if (this.textureMode == EVideoSourceTypes.PLAYLIST) {
+      this.startPlaylist();
+    }
+  };
+
   startLive: CallableFunction = () => {
     this.textureMode = EVideoSourceTypes.LIVE;
     this.stop();
@@ -210,7 +224,7 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
   showImage: CallableFunction = () => {
     this.textureMode = EVideoSourceTypes.IMAGE;
     this.stop();
-    this.updateTexture(this.offImage);
+    this.updateTexture(this.offImageLink);
   };
 
   playNextVideo: CallableFunction = () => {
@@ -356,22 +370,45 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
 
 export class StoredVideoCheckSystem implements ISystem {
   id: string;
+  customId?: string;
   timer: number = 0;
   dtDelay: number = 0;
   video: StoredVideoMaterial;
   videoLength: number = 0;
   videoStatus: number = 0;
   checkingStatus: boolean = false;
-  streamLive: boolean = false;
+  live: boolean = false;
+  playing: boolean = false;
   initialCheckComplete: boolean = false;
   instancesHidden: boolean = false;
+  stopped: boolean = false;
 
   constructor(_storedVideoMaterial: StoredVideoMaterial) {
     this.video = videoMaterials[_storedVideoMaterial.id];
     this.id = _storedVideoMaterial.id;
     videoSystems[_storedVideoMaterial.id] = this;
+    if (_storedVideoMaterial.customId) {
+      log("HAS CUSTOM ID: ");
+      log(JSON.stringify(this));
+      this.customId = _storedVideoMaterial.customId;
+      videoSystems[this.customId] = this;
+    }
     engine.addSystem(videoSystems[_storedVideoMaterial.id]);
+
+    if (this.video.customRendering || this.video.parent) {
+      this.stop();
+    }
   }
+
+  start: CallableFunction = () => {
+    this.video.start();
+    this.stopped = false;
+  };
+
+  stop: CallableFunction = () => {
+    this.video.stop();
+    this.stopped = true;
+  };
 
   update(dt: number) {
     if (this.dtDelay > 10) {
@@ -381,7 +418,7 @@ export class StoredVideoCheckSystem implements ISystem {
       return;
     }
 
-    if (this.checkingStatus) {
+    if (this.checkingStatus || this.stopped) {
       return;
     }
 
@@ -396,13 +433,14 @@ export class StoredVideoCheckSystem implements ISystem {
       return;
     }
 
-    if (this.video.enableLiveStream && this.streamLive) {
+    if (this.video.enableLiveStream && this.live) {
       // If live stream is enabled and is live, skip the block for removing the video when "NONE" is the off type
     } else if (this.video.offType === EVideoSourceTypes.NONE && !this.instancesHidden) {
       // If off type is NONE, stop everything and hide instances.
       this.video.stop();
       this.video.remove();
       this.instancesHidden = true;
+      this.playing = false;
       return;
     } else if (this.video.offType === EVideoSourceTypes.NONE) {
       return;
@@ -416,8 +454,9 @@ export class StoredVideoCheckSystem implements ISystem {
     // We are NOT in NONE mode beyond this point.//
     ///////////////////////////////////////////////
 
-    if (this.video.enableLiveStream && this.streamLive && this.video.textureMode !== EVideoSourceTypes.LIVE) {
+    if (this.video.enableLiveStream && this.live && this.video.textureMode !== EVideoSourceTypes.LIVE) {
       this.video.startLive();
+      this.playing = true;
       return;
     }
 
@@ -426,8 +465,9 @@ export class StoredVideoCheckSystem implements ISystem {
     } else if (this.video.textureMode == EVideoSourceTypes.IMAGE) {
       // Off type is image, and texture is an image. Do nothing else.
       return;
-    } else if ((!this.video.enableLiveStream || !this.streamLive) && this.video.offImage) {
+    } else if ((!this.video.enableLiveStream || !this.live) && this.video.offImageLink) {
       this.video.showImage();
+      this.playing = false;
       return;
     }
 
@@ -437,13 +477,14 @@ export class StoredVideoCheckSystem implements ISystem {
 
     if (this.video.textureMode !== EVideoSourceTypes.LIVE) {
       // If we ARE NOT in LIVE mode, skip this condition set
-    } else if (!this.streamLive) {
+    } else if (!this.live) {
       // We ARE in LIVE mode.
       // If stream is DOWN, skip the next steps
     } else if (!this.video.videoTexture.playing) {
       // We ARE in LIVE mode. Stream is LIVE.
       // If stream is live but not playing anything, start live video
       this.video.startLive();
+      this.playing = true;
     } else {
       // We ARE in LIVE mode. Stream is LIVE. Video is PLAYING.
       // Do nothing else.
@@ -462,6 +503,7 @@ export class StoredVideoCheckSystem implements ISystem {
     if (!this.video.videoTexture.playing) {
       // If video is not playing, start the playlist.
       this.video.startPlaylist();
+      this.playing = true;
       return;
     } else {
       onVideoEvent.add((data) => {
@@ -474,10 +516,17 @@ export class StoredVideoCheckSystem implements ISystem {
         return;
       }
 
-      log(`Video ${this.video.playlistIndex + 1} in playlist | ${Math.round((this.timer / this.videoLength) * 100)}% Played | Video Status: ${VideoStatus[this.videoStatus]}`);
+      // log(
+      //   `${this.customId} Video ${this.video.playlistIndex + 1} in playlist | ${Math.round((this.timer / this.videoLength) * 100)}% Played (${this.timer} / ${
+      //     this.videoLength
+      //   }) | Video Status: ${VideoStatus[this.videoStatus]}`
+      // );
     }
 
     if (this.videoStatus > VideoStatus.READY && this.timer >= this.videoLength) {
+      // log(`triggering next video`);
+      // log(`this.videoStatus = ${this.videoStatus} this.timer = ${this.timer} this.videoLength = ${this.videoLength}`);
+      // log(`Video ${this.video.playlistIndex + 1} in playlist | ${Math.round((this.timer / this.videoLength) * 100)}% Played | Video Status: ${VideoStatus[this.videoStatus]}`);
       this.video.playNextVideo();
     }
   }
@@ -499,11 +548,11 @@ export class StoredVideoCheckSystem implements ISystem {
   };
 
   setLiveState: CallableFunction = (liveState: boolean) => {
-    if (this.streamLive !== liveState) {
+    if (this.live !== liveState) {
       this.video.stop();
       log(`Change in live stream status! \n Stream is ${liveState ? "UP" : "DOWN"} | Stream URL: `, this.video.liveLink);
     }
-    this.streamLive = liveState;
+    this.live = liveState;
     this.checkingStatus = false;
     this.initialCheckComplete = true;
   };

@@ -1,11 +1,9 @@
 import { movePlayerTo } from "@decentraland/RestrictedActions";
 import { sdkImageFlippedDimension, sdkImagesAreFlipped, sdkImagesFace, vlmImagesFace } from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
-import { IEmission, ITexture, ITransform } from "../interfaces";
+import { IEmission, ITexture, ITransform } from "../interfaces/index";
 import { imageInstances, imageMaterials } from "../storage";
-import { EClickEventType, TClickEvent } from "../types";
-import { TImageInstanceConfig, TImageMaterialConfig } from "../types/Image";
-import { TTransform } from "../types/Transform";
+import { EClickEventType, TClickEvent, TImageInstanceConfig, TImageMaterialConfig, TTransform } from "../types/index";
 import { StoredEntityInstance } from "./StoredEntity";
 
 export class StoredImageMaterial extends Material implements ITexture, IEmission {
@@ -44,6 +42,10 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
 
     if (this.customId) {
       imageMaterials[this.customId] = imageMaterials[this.id];
+    }
+
+    if (this.customRendering) {
+      return;
     }
 
     _config.instances.forEach((instance: TImageInstanceConfig) => {
@@ -168,7 +170,8 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     super(_material, _instance);
     this.id = _instance.id;
     this.customId = _instance.customId;
-    this.parent = _instance.parent;
+    this.parent = _instance.parent || _material.parent;
+    this.customRendering = _instance.customRendering;
     this.position = _instance.position;
     this.scale = _instance.scale;
     this.rotation = _instance.rotation;
@@ -182,7 +185,7 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     this.updateTransform(this.position, this.scale, this.rotation);
     this.updateClickEvent(_material, _instance);
 
-    if (this.parent && this.show) {
+    if (this.parent && this.show && !this.customRendering) {
       this.updateParent(this.parent);
     } else if (this.show) {
       this.add();
@@ -311,6 +314,8 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
         );
         break;
     }
-    imageInstances[instanceId].addComponentOrReplace(pointerDownEvent);
+    if (pointerDownEvent) {
+      imageInstances[instanceId].addComponentOrReplace(pointerDownEvent);
+    }
   };
 }
