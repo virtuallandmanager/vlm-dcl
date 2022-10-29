@@ -10,9 +10,15 @@ import { createNft, createNftInstance, deleteNft, deleteNftInstance, updateNft, 
 import { Interval } from "./components/interval";
 import { updateSceneData } from "./sceneData";
 import { updateModeration } from "./moderation";
+import { TWebSocketMessage } from "./types/WebSocketMessage";
 
 export let runLocalServer = false;
 export let runStagingServer = false;
+export let isPreview = false;
+export let analyticsUrl = "https://analytics.dcl-vlm.io/record-event";
+export let sceneDataUrl = "wss://api.dcl-vlm.io/wss/";
+
+let initialized;
 let socketConnector;
 
 const reconnect = () => {
@@ -39,17 +45,17 @@ export const connectCMS = async () => {
     const parcel = await getParcel();
     const baseParcel = parcel.land.sceneJsonData.scene.base;
 
-    let isPreview = await isPreviewMode();
-
-    let baseUrl = "wss://api.dcl-vlm.io/wss/";
+    isPreview = await isPreviewMode();
 
     if (runLocalServer && isPreview) {
-      baseUrl = "ws://localhost:3000";
+      sceneDataUrl = "ws://localhost:3000";
+      analyticsUrl = "http://localhost:3001";
     } else if (runStagingServer && isPreview) {
-      baseUrl = "wss://staging-api.dcl-vlm.io/wss/";
+      sceneDataUrl = "wss://staging-api.dcl-vlm.io/wss/";
+      analyticsUrl = "http://staging-api.dcl-vlm.io/record-event";
     }
 
-    let socket = await new WebSocket(baseUrl + `?scene=${baseParcel}`);
+    let socket = await new WebSocket(sceneDataUrl + `?scene=${baseParcel}`);
 
     if (!socket) {
       reconnect();
@@ -80,9 +86,9 @@ export const connectCMS = async () => {
     };
 
     socket.onmessage = (event) => {
-      log(`VLM-DEBUG: socket event | `, event);
-      const message = JSON.parse(event.data);
-      log(`VLM-DEBUG: received message to ${message.action} ${message.entity || ""} ${message.property || ""}`);
+      // log(`VLM-DEBUG: socket event | `, event);
+      const message: TWebSocketMessage = JSON.parse(event.data);
+      // log(`VLM-DEBUG: received message to ${message.action} ${message.entity || ""} ${message.property || ""}`);
 
       if (!message.sceneData && !message.entityData) {
         return;
@@ -92,8 +98,11 @@ export const connectCMS = async () => {
 
       switch (message.action) {
         case "init":
-          initScene(message);
-          log("Scene initialized")
+          if (!initialized) {
+            initScene(message);
+          }
+          initialized = true;
+          log("Scene initialized");
           resolve();
           break;
         case "create":

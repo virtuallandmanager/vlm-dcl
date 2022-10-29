@@ -3,7 +3,7 @@ import { initModeration } from "./moderation";
 import { initImages } from "./images";
 import { initVideoScreens } from "./videos";
 import { initNfts } from "./nfts";
-import { initDialogs } from "./dialogs";
+// import { initDialogs } from "./dialogs";
 import { setCustomizationState } from "./custom";
 
 export const initScene = (message: any) => {
@@ -18,13 +18,8 @@ export const initScene = (message: any) => {
     initVideoScreens(message.sceneData.videoScreens || message.sceneData.videoSystems);
     initNfts(message.sceneData.nfts);
   }
-  if (message.features.customzations) {
-    initImages(message.sceneData.images || message.sceneData.imageTextures);
-    initVideoScreens(message.sceneData.videoScreens || message.sceneData.videoSystems);
-    initNfts(message.sceneData.nfts);
-  }
   if (message.features.customizations) {
-    setCustomizationState(message.sceneData.customizations)
+    setCustomizationState(message.sceneData.customizations);
   }
   // TODO: Implement dialog feature
   // if (features.dialogs) {

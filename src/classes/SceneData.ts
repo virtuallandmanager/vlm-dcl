@@ -1,4 +1,5 @@
 import { TImageMaterialConfig, TNFTConfig, TVideoMaterialConfig } from "../types";
+import { TDialogConfig } from "../types/Dialog";
 import { TEventConfig } from "../types/Event";
 import { TFeatureConfig } from "../types/Feature";
 import { TModerationConfig } from "../types/Moderation";
@@ -12,4 +13,5 @@ export class SceneData {
   moderation: TModerationConfig = {};
   events: TEventConfig[] = [];
   features: TFeatureConfig[] = [];
+  dialogs: TDialogConfig[] = [];
 }
