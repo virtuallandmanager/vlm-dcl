@@ -1,6 +1,6 @@
 // import * as ui from "@dcl/ui-scene-utils";
 import { signedFetch } from "@decentraland/SignedFetch";
-import { runLocalServer, runStagingServer } from "./connect";
+import { runLocalServer, runStagingServer } from "./environment";
 
 let API_BASE_URL = "https://api.dcl-vlm.io/nft";
 

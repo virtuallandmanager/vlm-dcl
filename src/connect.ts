@@ -11,11 +11,8 @@ import { Interval } from "./components/interval";
 import { updateSceneData } from "./sceneData";
 import { updateModeration } from "./moderation";
 import { TWebSocketMessage } from "./types/WebSocketMessage";
+import { checkPreviewMode, isPreview, runLocalServer, runStagingServer } from "./environment";
 
-export let runLocalServer = false;
-export let runStagingServer = false;
-export let isPreview = false;
-export let analyticsUrl = "https://analytics.dcl-vlm.io/record-event";
 export let sceneDataUrl = "wss://api.dcl-vlm.io/wss/";
 
 let initialized;
@@ -25,19 +22,11 @@ const reconnect = () => {
   socketConnector = new Entity();
   engine.addEntity(socketConnector);
   socketConnector.addComponent(
-    new Interval(10000, () => {
-      log("Attempting to connect to websocket");
-      connectCMS();
+    new Interval(10000, async () => {
+      log("Attempting to reconnect to websocket");
+      await connectCMS();
     })
   );
-};
-
-export const useLocal = () => {
-  runLocalServer = true;
-};
-
-export const useStaging = () => {
-  runStagingServer = true;
 };
 
 export const connectCMS = async () => {
@@ -45,14 +34,12 @@ export const connectCMS = async () => {
     const parcel = await getParcel();
     const baseParcel = parcel.land.sceneJsonData.scene.base;
 
-    isPreview = await isPreviewMode();
+    await checkPreviewMode();
 
     if (runLocalServer && isPreview) {
       sceneDataUrl = "ws://localhost:3000";
-      analyticsUrl = "http://localhost:3001";
     } else if (runStagingServer && isPreview) {
       sceneDataUrl = "wss://staging-api.dcl-vlm.io/wss/";
-      analyticsUrl = "http://staging-api.dcl-vlm.io/record-event";
     }
 
     let socket = await new WebSocket(sceneDataUrl + `?scene=${baseParcel}`);

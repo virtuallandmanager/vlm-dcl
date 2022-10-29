@@ -5,7 +5,7 @@ import { TimerSystem } from '../systems/timerSystem'
  * Execute every X milliseconds
  * @public
  */
-@Component('timerInterval')
+@Component('vlmTimerInterval')
 export class Interval implements ITimerComponent {
   elapsedTime: number
   targetTime: number
