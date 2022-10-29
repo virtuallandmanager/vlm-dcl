@@ -37,6 +37,7 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
     this.imageLink = _config.imageLink;
     this.withCollisions = _config.withCollisions;
     this.isTransparent = _config.isTransparent;
+    this.clickEvent = _config.clickEvent;
     this.updateTexture(this.imageLink);
     imageMaterials[this.id] = this;
 

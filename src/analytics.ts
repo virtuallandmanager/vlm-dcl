@@ -1,13 +1,20 @@
-import { isPreviewMode } from "@decentraland/EnvironmentAPI";
-import { getUserData } from "@decentraland/Identity";
 import { getParcel } from "@decentraland/ParcelIdentity";
 import { signedFetch } from "@decentraland/SignedFetch";
 import { getPlayersInScene } from "@decentraland/Players";
 import { Delay } from "./components/delay";
 import { getUser, userData, userWallet } from "./helpers/user";
-import { analyticsUrl, isPreview, runLocalServer, runStagingServer, useLocal } from "./connect";
+import { isPreview, runLocalServer, runStagingServer } from "./environment";
+
+export let analyticsUrl = "https://analytics.dcl-vlm.io/record-event";
 
 export const initAnalytics = () => {
+  
+  if (runLocalServer && isPreview) {
+    analyticsUrl = "http://localhost:3001";
+  } else if (runStagingServer && isPreview) {
+    analyticsUrl = "http://staging-api.dcl-vlm.io/record-event";
+  }
+
   getPlayersInScene().then((players) => {
     updateConnections(players);
   });
