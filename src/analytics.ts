@@ -5,6 +5,7 @@ import { signedFetch } from "@decentraland/SignedFetch";
 import { getPlayersInScene } from "@decentraland/Players";
 import { Delay } from "./components/delay";
 import { getUser, userData, userWallet } from "./helpers/user";
+import { analyticsUrl, isPreview, runLocalServer, runStagingServer, useLocal } from "./connect";
 
 export const initAnalytics = () => {
   getPlayersInScene().then((players) => {
@@ -65,15 +66,16 @@ export const recordEvent = async (eventType: string, metadata?: any) => {
   log("base parcel: ", parcel.land.sceneJsonData.scene.base);
   const baseParcel = parcel.land.sceneJsonData.scene.base;
 
-  let isPreview = await isPreviewMode();
-  let BASE_URL = isPreview ? "http://localhost:3001/record-event" : "https://analytics.dcl-vlm.io/record-event";
-
   await getUser();
 
   let body = JSON.stringify({ eventType, userId: userData.userId, metadata, baseParcel });
 
+  if (isPreview) {
+    return log(`Logging analytics event in development mode: ${body}`);
+  }
+
   try {
-    let res = await signedFetch(BASE_URL, {
+    let res = await signedFetch(analyticsUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -90,6 +92,7 @@ export const recordEvent = async (eventType: string, metadata?: any) => {
   }
 };
 
+//TODO: Deprecate
 export const updateConnections = async (players: any) => {
   const parcel = await getParcel();
   log("parcels: ", parcel.land.sceneJsonData.scene.parcels);
@@ -102,9 +105,7 @@ export const updateConnections = async (players: any) => {
   const baseParcel = parcel.land.sceneJsonData.scene.base;
   const sceneJsonData = parcel.land.sceneJsonData;
 
-  let ispreview = await isPreviewMode();
-  // let BASE_URL = "https://analytics.dcl-vlm.io/record-event";
-  let BASE_URL = ispreview ? "http://localhost:3001/update-connections" : "https://analytics.dcl-vlm.io/update-connections";
+  let BASE_URL = isPreview ? "http://localhost:3001/update-connections" : "https://analytics.dcl-vlm.io/update-connections";
 
   let body = JSON.stringify({ players: players, scene: { parcels, baseParcel } });
   log("body is", body);

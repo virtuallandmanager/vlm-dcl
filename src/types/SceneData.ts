@@ -1,3 +1,4 @@
+import { TDialogConfig } from "./Dialog";
 import { TEventConfig } from "./Event";
 import { TFeatureConfig } from "./Feature";
 import { TImageMaterialConfig } from "./Image";
@@ -12,4 +13,5 @@ export type TSceneData = {
   moderation: TModerationConfig;
   events: TEventConfig[];
   features: TFeatureConfig[];
+  dialogs: TDialogConfig[];
 };
