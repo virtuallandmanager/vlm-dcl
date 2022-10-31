@@ -128,15 +128,18 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
   };
 
   updateClickEvent: CallableFunction = (clickEvent: TClickEvent) => {
+    this.clickEvent = clickEvent;
     [...this.instanceIds].forEach((instanceId: string) => {
+      if (!clickEvent) {
+        return;
+      }
       imageInstances[instanceId].updateClickEvent(clickEvent);
     });
-    this.clickEvent = clickEvent;
   };
 
   createInstance: CallableFunction = (_config: TImageInstanceConfig) => {
     this.instanceIds.push(_config.id);
-    imageInstances[_config.id] = new StoredImageInstance(this, _config);
+    new StoredImageInstance(this, _config);
     if (_config.customId) {
       imageInstances[_config.customId] = imageInstances[_config.id];
     }
@@ -179,12 +182,13 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     this.materialId = _material.id;
     this.show = _instance.show;
     this.clickEvent = _instance.clickEvent || _material.clickEvent;
+    imageInstances[this.id] = this;
     const shape = new PlaneShape();
     shape.withCollisions = typeof _instance.withCollisions === "boolean" ? _instance.withCollisions : _material.withCollisions;
     this.addComponent(shape);
     this.addComponent(_material);
     this.updateTransform(this.position, this.scale, this.rotation);
-    this.updateClickEvent(_material, _instance);
+    this.updateClickEvent(this.clickEvent);
 
     if (this.parent && this.show && !this.customRendering) {
       this.updateParent(this.parent);
@@ -265,9 +269,8 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
   };
 
   updateClickEvent: CallableFunction = (clickEvent: TClickEvent) => {
-    const material = imageMaterials[this.materialId];
-
-    if (!material.clickEvent && !clickEvent) {
+    log(`click event`, clickEvent);
+    if (!clickEvent) {
       return;
     }
 
@@ -275,10 +278,17 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
       showFeedback = clickEvent.showFeedback,
       hoverText = clickEvent.hoverText,
       instanceId = this.id;
+    log(`click event: `, clickEvent, instanceId);
+
+    if (!imageInstances[instanceId]) {
+      return;
+    }
 
     switch (clickEvent.type) {
       case EClickEventType.NONE: //no click event
-        imageInstances[instanceId].removeComponent(OnPointerDown);
+        if (imageInstances[instanceId].getComponentOrNull(OnPointerDown)) {
+          imageInstances[instanceId].removeComponent(OnPointerDown);
+        }
         return;
       case EClickEventType.EXTERNAL: //external link
         pointerDownEvent = new OnPointerDown(
@@ -315,6 +325,7 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
         );
         break;
     }
+    log(`click event added: `, pointerDownEvent);
     if (pointerDownEvent) {
       imageInstances[instanceId].addComponentOrReplace(pointerDownEvent);
     }

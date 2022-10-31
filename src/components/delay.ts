@@ -1,12 +1,12 @@
 import { ITimerComponent } from './itimercomponent'
-import { TimerSystem } from '../systems/timerSystem'
+import { VLMTimerSystem } from '../systems/timerSystem'
 
 /**
  * Execute once after X milliseconds
  * @public
  */
-@Component('timerDelay')
-export class Delay implements ITimerComponent {
+@Component('vlmTimerDelay')
+export class VLMDelay implements ITimerComponent {
   elapsedTime: number
   targetTime: number
   onTargetTimeReached: (ownerEntity: IEntity) => void
@@ -18,8 +18,8 @@ export class Delay implements ITimerComponent {
    * @param onTimeReachedCallback - callback for when time is reached
    */
   constructor(millisecs: number, onTimeReachedCallback?: () => void) {
-    let instance = TimerSystem.createAndAddToEngine()
-    instance.addComponentType(Delay)
+    let instance = VLMTimerSystem.createAndAddToEngine()
+    instance.addComponentType(VLMDelay)
 
     this.elapsedTime = 0
     this.targetTime = millisecs / 1000

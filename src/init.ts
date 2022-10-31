@@ -14,8 +14,8 @@ export const initScene = (message: any) => {
     initModeration();
   }
   if (message.features.entityPlacement) {
-    initImages(message.sceneData.images || message.sceneData.imageTextures);
-    initVideoScreens(message.sceneData.videoScreens || message.sceneData.videoSystems);
+    initImages(message.sceneData.images);
+    initVideoScreens(message.sceneData.videoScreens);
     initNfts(message.sceneData.nfts);
   }
   if (message.features.customizations) {
