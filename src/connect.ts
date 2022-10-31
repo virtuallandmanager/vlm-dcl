@@ -1,16 +1,15 @@
-import { isPreviewMode } from "@decentraland/EnvironmentAPI";
 import { getParcel } from "@decentraland/ParcelIdentity";
+import { TWebSocketMessage } from "./types/WebSocketMessage";
+import { VLMInterval } from "./components/interval";
 import { createAudioStream, deleteAudioStream, updateAudioStream } from "./audio";
 import { createDialog, deleteDialog, updateDialog } from "./dialogs";
 import { createImage, updateImage, updateImageInstance, createImageInstance, deleteImage, deleteImageInstance } from "./images";
-import { initScene } from "./init";
+import { createNft, createNftInstance, deleteNft, deleteNftInstance, updateNft, updateNftInstance } from "./nfts";
 import { createVideoScreen, updateVideoScreen, updateVideoInstance, createVideoInstance, deleteVideoScreen, deleteVideoInstance } from "./videos";
 import { updateCustomization, deleteCustomization } from "./custom";
-import { createNft, createNftInstance, deleteNft, deleteNftInstance, updateNft, updateNftInstance } from "./nfts";
-import { Interval } from "./components/interval";
 import { updateSceneData } from "./sceneData";
 import { updateModeration } from "./moderation";
-import { TWebSocketMessage } from "./types/WebSocketMessage";
+import { initScene } from "./init";
 import { checkPreviewMode, isPreview, runLocalServer, runStagingServer } from "./environment";
 
 export let sceneDataUrl = "wss://api.dcl-vlm.io/wss/";
@@ -22,7 +21,7 @@ const reconnect = () => {
   socketConnector = new Entity();
   engine.addEntity(socketConnector);
   socketConnector.addComponent(
-    new Interval(10000, async () => {
+    new VLMInterval(10000, async () => {
       log("Attempting to reconnect to websocket");
       await connectCMS();
     })
@@ -54,13 +53,13 @@ export const connectCMS = async () => {
       socket.send(JSON.stringify({ action: "init" }));
 
       if (socketConnector) {
-        socketConnector.removeComponent(Interval);
+        socketConnector.removeComponent(VLMInterval);
       }
 
       let socketdelay = new Entity();
       engine.addEntity(socketdelay);
       socketdelay.addComponent(
-        new Interval(10000, () => {
+        new VLMInterval(10000, () => {
           log("Pinging web socket...");
           socket.send(JSON.stringify({ command: "ping" }));
         })

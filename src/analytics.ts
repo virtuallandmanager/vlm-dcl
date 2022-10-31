@@ -1,14 +1,14 @@
 import { getParcel } from "@decentraland/ParcelIdentity";
 import { signedFetch } from "@decentraland/SignedFetch";
 import { getPlayersInScene } from "@decentraland/Players";
-import { Delay } from "./components/delay";
+// import { Delay } from "./components/delay";
 import { getUser, userData, userWallet } from "./helpers/user";
 import { isPreview, runLocalServer, runStagingServer } from "./environment";
 
 export let analyticsUrl = "https://analytics.dcl-vlm.io/record-event";
 
 export const initAnalytics = () => {
-  
+
   if (runLocalServer && isPreview) {
     analyticsUrl = "http://localhost:3001";
   } else if (runStagingServer && isPreview) {
@@ -21,12 +21,12 @@ export const initAnalytics = () => {
 
   onPlayerConnectedObservable.add((player) => {
     let delay = new Entity();
-    delay.addComponent(
-      new Delay(5000, () => {
-        recordEvent("player_connected", player);
-        engine.removeEntity(delay);
-      })
-    );
+    // delay.addComponent(
+    //   new Delay(5000, () => {
+    //     recordEvent("player_connected", player);
+    //     engine.removeEntity(delay);
+    //   })
+    // );
     engine.addEntity(delay);
   });
 

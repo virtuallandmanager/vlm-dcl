@@ -1,13 +1,13 @@
 import { ITimerComponent } from '../components/itimercomponent'
 
-export class TimerSystem implements ISystem {
-  private static _instance: TimerSystem | null = null
+export class VLMTimerSystem implements ISystem {
+  private static _instance: VLMTimerSystem | null = null
 
   private _components: ComponentConstructor<ITimerComponent>[] = []
 
-  static createAndAddToEngine(): TimerSystem {
+  static createAndAddToEngine(): VLMTimerSystem {
     if (this._instance == null) {
-      this._instance = new TimerSystem()
+      this._instance = new VLMTimerSystem()
       engine.addSystem(this._instance)
     }
     return this._instance
@@ -29,7 +29,7 @@ export class TimerSystem implements ISystem {
   }
 
   private constructor() {
-    TimerSystem._instance = this
+    VLMTimerSystem._instance = this
   }
 
   update(dt: number) {
