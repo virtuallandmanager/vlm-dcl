@@ -68,7 +68,7 @@ export const recordEvent = async (eventType: string, metadata?: any) => {
 
   await getUser();
 
-  let body = JSON.stringify({ eventType, userId: userData.userId, metadata, baseParcel });
+  let body = JSON.stringify({ eventType, userId: userData.userId, displayName: userData.displayName, metadata, baseParcel });
 
   if (isPreview) {
     return log(`Logging analytics event in development mode: ${body}`);
