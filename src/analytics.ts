@@ -8,7 +8,6 @@ import { isPreview, runLocalServer, runStagingServer } from "./environment";
 export let analyticsUrl = "https://analytics.dcl-vlm.io/record-event";
 
 export const initAnalytics = () => {
-
   if (runLocalServer && isPreview) {
     analyticsUrl = "http://localhost:3001";
   } else if (runStagingServer && isPreview) {
@@ -68,7 +67,7 @@ export const recordEvent = async (eventType: string, metadata?: any) => {
 
   await getUser();
 
-  let body = JSON.stringify({ eventType, userId: userData.userId, displayName: userData.displayName, metadata, baseParcel });
+  let body = JSON.stringify({ eventType, userId: userData.userId, displayName: userData.displayName, hasConnectedWeb3: userData.hasConnectedWeb3, metadata, baseParcel });
 
   if (isPreview) {
     return log(`Logging analytics event in development mode: ${body}`);
