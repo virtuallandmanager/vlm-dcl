@@ -60,7 +60,6 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     videoMaterials[this.id] = this;
 
     if (this.customId) {
-      log(this.customId);
       videoMaterials[this.customId] = videoMaterials[this.id];
     }
     new StoredVideoCheckSystem(this);
@@ -76,7 +75,6 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
 
   remove: CallableFunction = () => {
     [...this.instanceIds].forEach((instanceId: string) => {
-      log(instanceId);
       videoInstances[instanceId].remove();
     });
   };
@@ -86,7 +84,6 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     delete videoSystems[this.id];
     delete videoMaterials[this.id];
     [...this.instanceIds].forEach((instanceId: string) => {
-      log("deleting " + instanceId);
       videoInstances[instanceId].delete();
     });
   };
@@ -388,8 +385,6 @@ export class StoredVideoCheckSystem implements ISystem {
     this.id = _storedVideoMaterial.id;
     videoSystems[_storedVideoMaterial.id] = this;
     if (_storedVideoMaterial.customId) {
-      log("HAS CUSTOM ID: ");
-      log(JSON.stringify(this));
       this.customId = _storedVideoMaterial.customId;
       videoSystems[this.customId] = this;
     }
@@ -515,18 +510,9 @@ export class StoredVideoCheckSystem implements ISystem {
       if (this.videoLength < 0 || this.timer < 0 || !this.videoStatus) {
         return;
       }
-
-      // log(
-      //   `${this.customId} Video ${this.video.playlistIndex + 1} in playlist | ${Math.round((this.timer / this.videoLength) * 100)}% Played (${this.timer} / ${
-      //     this.videoLength
-      //   }) | Video Status: ${VideoStatus[this.videoStatus]}`
-      // );
     }
 
     if (this.videoStatus > VideoStatus.READY && this.timer >= this.videoLength) {
-      // log(`triggering next video`);
-      // log(`this.videoStatus = ${this.videoStatus} this.timer = ${this.timer} this.videoLength = ${this.videoLength}`);
-      // log(`Video ${this.video.playlistIndex + 1} in playlist | ${Math.round((this.timer / this.videoLength) * 100)}% Played | Video Status: ${VideoStatus[this.videoStatus]}`);
       this.video.playNextVideo();
     }
   }
@@ -550,7 +536,6 @@ export class StoredVideoCheckSystem implements ISystem {
   setLiveState: CallableFunction = (liveState: boolean) => {
     if (this.live !== liveState) {
       this.video.stop();
-      log(`Change in live stream status! \n Stream is ${liveState ? "UP" : "DOWN"} | Stream URL: `, this.video.liveLink);
     }
     this.live = liveState;
     this.checkingStatus = false;

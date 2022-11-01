@@ -3,7 +3,9 @@ import { TCustomizationConfig, TCustomizationConfigs } from "./types/Customizati
 export const customizationConfigs: TCustomizationConfigs = {};
 
 export const setCustomizationState = (configs: TCustomizationConfig[]) => {
-  log(configs);
+  if (!configs) {
+    return;
+  }
   configs.forEach((config: TCustomizationConfig) => {
     customizationConfigs[config.id] = {
       id: config.id,
@@ -13,7 +15,6 @@ export const setCustomizationState = (configs: TCustomizationConfig[]) => {
       }
     };
   });
-  log(customizationConfigs);
 };
 
 export const setCustomizationFunctions = (configs: TCustomizationConfig[]) => {
@@ -48,7 +49,6 @@ export const initCustomizations = () => {
 export const updateCustomization = (customization: TCustomizationConfig, customizationId: string) => {
   customizationConfigs[customizationId].value = customization.value;
   customizationConfigs[customizationId].update(customization);
-  log(customizationConfigs);
 };
 
 export const deleteCustomization = (customizationId: string) => {

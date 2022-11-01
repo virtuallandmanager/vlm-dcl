@@ -1,4 +1,8 @@
-export const createAudioStream = (audioStreams: Array<any>) => {};
+export const createAudioStream = (audioStreams: Array<any>) => {
+  if (!audioStreams) {
+    return;
+  }
+};
 
 export const updateAudioStream = (audioStreams: Array<any>, property: string, id: string) => {};
 

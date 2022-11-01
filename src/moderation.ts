@@ -259,7 +259,7 @@ const movePlayer = () => {
   const playerPosition = Camera.instance.position;
   const playerFeetPosition = Camera.instance.feetPosition;
   const playerWorldPosition = Camera.instance.worldPosition;
-  log(`World: ${playerWorldPosition}`);
+  // log(`World: ${playerWorldPosition}`);
   if (!parcelBounds.length) {
     return;
   }
@@ -267,7 +267,7 @@ const movePlayer = () => {
     let withinNSBounds, withinEWBounds;
     withinEWBounds = parcelBound.e >= playerWorldPosition.x && parcelBound.w <= playerWorldPosition.x;
     withinNSBounds = parcelBound.n >= playerWorldPosition.z && parcelBound.s <= playerWorldPosition.z;
-    log(parcelBound.x, parcelBound.z, `EW: ${withinEWBounds}`, `NS: ${withinNSBounds}`);
+    // log(parcelBound.x, parcelBound.z, `EW: ${withinEWBounds}`, `NS: ${withinNSBounds}`);
     return withinEWBounds && withinNSBounds;
   });
 
@@ -283,12 +283,12 @@ const movePlayer = () => {
   const atSouthWall = playerPosition.z < insideParcel[0].sr + 1 && playerPosition.z > insideParcel[0].sr - 1;
   const atWestWall = playerPosition.x < insideParcel[0].wr + 1 && playerPosition.x > insideParcel[0].wr - 1;
 
-  log(`In Scene: ${inScene}`);
-  log(`At North Wall: ${atNorthWall}`);
-  log(`At East Wall: ${atEastWall}`);
-  log(`At South Wall: ${atSouthWall}`);
-  log(`At West Wall: ${atWestWall}`);
-  log({ x: playerFeetPosition.x, y: playerFeetPosition.y, z: insideParcel[0].n / insideParcel[0].z });
+  // log(`In Scene: ${inScene}`);
+  // log(`At North Wall: ${atNorthWall}`);
+  // log(`At East Wall: ${atEastWall}`);
+  // log(`At South Wall: ${atSouthWall}`);
+  // log(`At West Wall: ${atWestWall}`);
+  // log({ x: playerFeetPosition.x, y: playerFeetPosition.y, z: insideParcel[0].n / insideParcel[0].z });
 
   if (atNorthWall && !insideParcel[0].hasAdjacentNorth) {
     movePlayerTo({ x: playerFeetPosition.x, y: playerFeetPosition.y, z: insideParcel[0].nr });
