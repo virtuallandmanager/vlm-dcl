@@ -35,7 +35,7 @@ export const initAnalytics = () => {
   });
 
   onEnterSceneObservable.add((player) => {
-    log("player entered scene: ", player.userId);
+    // log("player entered scene: ", player.userId);
     if (player.userId == userWallet) {
       recordEvent("player_entered_scene", player);
     }
@@ -61,16 +61,9 @@ export const initAnalytics = () => {
 };
 
 export const recordEvent = async (eventType: string, metadata?: any) => {
-  log("recording event", eventType);
+  // log("recording event", eventType);
 
   const parcel = await getParcel();
-  log("parcels: ", parcel.land.sceneJsonData.scene.parcels);
-  const parcels = parcel.land.sceneJsonData.scene.parcels;
-
-  log("spawnpoints: ", parcel.land.sceneJsonData.spawnPoints);
-  const spawnpoints = parcel.land.sceneJsonData.spawnPoints;
-
-  log("base parcel: ", parcel.land.sceneJsonData.scene.base);
   const baseParcel = parcel.land.sceneJsonData.scene.base;
 
   await getUser();
@@ -93,7 +86,6 @@ export const recordEvent = async (eventType: string, metadata?: any) => {
     if (res.text) {
       json = JSON.parse(res.text);
     }
-    log("json is", json);
   } catch (error) {
     log(error);
   }
@@ -102,15 +94,8 @@ export const recordEvent = async (eventType: string, metadata?: any) => {
 //TODO: Deprecate
 export const updateConnections = async (players: any) => {
   const parcel = await getParcel();
-  log("parcels: ", parcel.land.sceneJsonData.scene.parcels);
   const parcels = parcel.land.sceneJsonData.scene.parcels;
-
-  log("spawnpoints: ", parcel.land.sceneJsonData.spawnPoints);
-  const spawnpoints = parcel.land.sceneJsonData.spawnPoints;
-
-  log("base parcel: ", parcel.land.sceneJsonData.scene.base);
   const baseParcel = parcel.land.sceneJsonData.scene.base;
-  const sceneJsonData = parcel.land.sceneJsonData;
 
   let BASE_URL = isPreview ? "http://localhost:3001/update-connections" : "https://analytics.dcl-vlm.io/update-connections";
 

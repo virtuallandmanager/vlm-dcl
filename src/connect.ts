@@ -88,7 +88,6 @@ export const connectCMS = async () => {
             initScene(message);
           }
           initialized = true;
-          log("Scene initialized");
           resolve();
           break;
         case "create":
