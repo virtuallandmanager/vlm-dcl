@@ -417,6 +417,9 @@ export class StoredVideoCheckSystem implements ISystem {
       return;
     }
 
+    const playListBlank = this.video.offType == EVideoSourceTypes.PLAYLIST && !this.video.playlist.filter((x) => x).length,
+      imageBlank = this.video.offType == EVideoSourceTypes.IMAGE && !this.video.offImageLink.length;
+
     // If live streaming is enabled, first check the status of the live stream
     if (this.video.enableLiveStream) {
       executeTask(async () => {
@@ -442,6 +445,11 @@ export class StoredVideoCheckSystem implements ISystem {
     } else if (this.instancesHidden) {
       this.instancesHidden = false;
       this.video.showAll();
+      return;
+    }
+
+    if (!this.video.enableLiveStream && (imageBlank || playListBlank)) {
+      this.video.offType = EVideoSourceTypes.NONE;
       return;
     }
 
