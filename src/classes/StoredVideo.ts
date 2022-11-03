@@ -417,8 +417,8 @@ export class StoredVideoCheckSystem implements ISystem {
       return;
     }
 
-    const playListBlank = this.video.offType == EVideoSourceTypes.PLAYLIST && !this.video.playlist.filter((x) => x).length,
-      imageBlank = this.video.offType == EVideoSourceTypes.IMAGE && !this.video.offImageLink.length;
+    const playListBlank = this.video.offType == EVideoSourceTypes.PLAYLIST && this.video.playlist && !this.video.playlist.filter((x) => x).length,
+      imageBlank = this.video.offType == EVideoSourceTypes.IMAGE && !this.video.offImageLink;
 
     // If live streaming is enabled, first check the status of the live stream
     if (this.video.enableLiveStream) {
