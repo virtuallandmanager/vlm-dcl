@@ -19,9 +19,6 @@ export const createVideoScreen = (videoConfig: TVideoMaterialConfig) => {
   const videoId = videoConfig.id;
 
   new StoredVideoMaterial(videoConfig);
-  new StoredVideoCheckSystem(videoMaterials[videoId]);
-
-  engine.addSystem(videoSystems[videoId]);
 };
 
 export const createVideoInstance = (material: StoredVideoMaterial, instance: TVideoInstanceConfig) => {
