@@ -122,6 +122,7 @@ const createEntity = (message: any) => {
   switch (message.entity) {
     case "image":
       createImage(message.entityData);
+      break;
     case "imageInstance":
       createImageInstance(message.entityData, message.instanceData);
       break;
