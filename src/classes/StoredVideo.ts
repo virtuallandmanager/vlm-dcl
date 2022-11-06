@@ -62,15 +62,16 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     if (this.customId) {
       videoMaterials[this.customId] = videoMaterials[this.id];
     }
-    new StoredVideoCheckSystem(this);
-
+    
     if (this.customRendering) {
       return;
     }
-
+    
     _config.instances.forEach((instance: TVideoInstanceConfig) => {
       this.createInstance(instance);
     });
+
+    new StoredVideoCheckSystem(this);
   }
 
   remove: CallableFunction = () => {
@@ -267,7 +268,7 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
 
     if (this.parent) {
       this.updateParent(this.parent);
-    } else if (_material.offType !== EVideoSourceTypes.NONE) {
+    } else {
       this.add();
     }
   }
@@ -390,8 +391,10 @@ export class StoredVideoCheckSystem implements ISystem {
     }
     engine.addSystem(videoSystems[_storedVideoMaterial.id]);
 
-    if (this.video.customRendering || this.video.parent) {
+    if (this.video.customRendering) {
       this.stop();
+    } else {
+      this.start();
     }
   }
 
@@ -431,7 +434,7 @@ export class StoredVideoCheckSystem implements ISystem {
       return;
     }
 
-    if (this.video.enableLiveStream && this.live) {
+    if (this.video.enableLiveStream && this.live && !this.instancesHidden) {
       // If live stream is enabled and is live, skip the block for removing the video when "NONE" is the off type
     } else if (this.video.offType === EVideoSourceTypes.NONE && !this.instancesHidden) {
       // If off type is NONE, stop everything and hide instances.
@@ -440,7 +443,7 @@ export class StoredVideoCheckSystem implements ISystem {
       this.instancesHidden = true;
       this.playing = false;
       return;
-    } else if (this.video.offType === EVideoSourceTypes.NONE) {
+    } else if ((!this.video.enableLiveStream || !this.live) && this.video.offType === EVideoSourceTypes.NONE) {
       return;
     } else if (this.instancesHidden) {
       this.instancesHidden = false;

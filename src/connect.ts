@@ -16,12 +16,20 @@ export let sceneDataUrl = "wss://api.dcl-vlm.io/wss/";
 
 let initialized;
 let socketConnector;
+let connecting = false;
+let connected = false;
 
 const reconnect = () => {
+  connecting = false;
+  connected = false;
   socketConnector = new Entity();
   engine.addEntity(socketConnector);
   socketConnector.addComponent(
     new VLMInterval(10000, async () => {
+      if (connecting && socketConnector.getComponentOrNull(VLMInterval)) {
+        socketConnector.removeComponent(VLMInterval);
+        return;
+      }
       log("Attempting to reconnect to websocket");
       await connectCMS();
     })
@@ -30,6 +38,7 @@ const reconnect = () => {
 
 export const connectCMS = async () => {
   const connectPromise = new Promise(async (resolve, reject) => {
+    connecting = true;
     const parcel = await getParcel();
     const baseParcel = parcel.land.sceneJsonData.scene.base;
 
@@ -60,6 +69,10 @@ export const connectCMS = async () => {
       engine.addEntity(socketdelay);
       socketdelay.addComponent(
         new VLMInterval(10000, () => {
+          if (socketdelay.getComponentOrNull(VLMInterval) && (!connected || connecting)) {
+            socketdelay.removeComponent(VLMInterval);
+            return;
+          }
           log("Pinging web socket...");
           socket.send(JSON.stringify({ command: "ping" }));
         })
