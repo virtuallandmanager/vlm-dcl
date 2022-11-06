@@ -45,7 +45,7 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
       imageMaterials[this.customId] = imageMaterials[this.id];
     }
 
-    if (this.customRendering) {
+    if (this.customRendering || _config.instances.length < 1) {
       return;
     }
 
@@ -58,7 +58,6 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
   delete: CallableFunction = () => {
     delete imageMaterials[this.id];
     [...this.instanceIds].forEach((instanceId: string) => {
-      log(instanceId);
       imageInstances[instanceId].delete();
     });
   };
@@ -269,7 +268,6 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
   };
 
   updateClickEvent: CallableFunction = (clickEvent: TClickEvent) => {
-    log(`click event`, clickEvent);
     if (!clickEvent) {
       return;
     }
@@ -278,7 +276,6 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
       showFeedback = clickEvent.showFeedback,
       hoverText = clickEvent.hoverText,
       instanceId = this.id;
-    log(`click event: `, clickEvent, instanceId);
 
     if (!imageInstances[instanceId]) {
       return;
@@ -325,7 +322,6 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
         );
         break;
     }
-    log(`click event added: `, pointerDownEvent);
     if (pointerDownEvent) {
       imageInstances[instanceId].addComponentOrReplace(pointerDownEvent);
     }
