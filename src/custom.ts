@@ -47,6 +47,9 @@ export const initCustomizations = () => {
 };
 
 export const updateCustomization = (customization: TCustomizationConfig, customizationId: string) => {
+  if (!customizationConfigs[customizationId]) {
+    customizationConfigs[customizationId] = { id: customization.id, value: customization.value, update: () => {} };
+  }
   customizationConfigs[customizationId].value = customization.value;
   customizationConfigs[customizationId].update(customization);
 };
