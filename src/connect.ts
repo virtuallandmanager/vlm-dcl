@@ -59,10 +59,13 @@ export const connectCMS = async () => {
 
     socket.onopen = (ev) => {
       log("connected to web socket");
+      connected = true;
+      connecting = false;
       socket.send(JSON.stringify({ action: "init" }));
 
       if (socketConnector) {
         socketConnector.removeComponent(VLMInterval);
+        engine.removeEntity(socketConnector);
       }
 
       let socketdelay = new Entity();
@@ -71,6 +74,7 @@ export const connectCMS = async () => {
         new VLMInterval(10000, () => {
           if (socketdelay.getComponentOrNull(VLMInterval) && (!connected || connecting)) {
             socketdelay.removeComponent(VLMInterval);
+            engine.removeEntity(socketdelay);
             return;
           }
           log("Pinging web socket...");
