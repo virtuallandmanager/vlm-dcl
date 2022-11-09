@@ -62,11 +62,11 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     if (this.customId) {
       videoMaterials[this.customId] = videoMaterials[this.id];
     }
-    
+
     if (this.customRendering) {
       return;
     }
-    
+
     _config.instances.forEach((instance: TVideoInstanceConfig) => {
       this.createInstance(instance);
     });
@@ -528,15 +528,25 @@ export class StoredVideoCheckSystem implements ISystem {
     }
   }
 
+  statusCheckDelay: number = 0;
+
   checkStreamStatus: CallableFunction = async () => {
     if (!this.video.liveLink) {
       this.setLiveState(false);
       return;
     }
 
+    if (this.statusCheckDelay >= 10) {
+      this.statusCheckDelay = 0;
+      return;
+    } else if (this.statusCheckDelay > 0) {
+      this.statusCheckDelay++;
+      return;
+    }
+
     try {
       this.checkingStatus = true;
-      let res = await fetch(this.video.liveLink);
+      let res = await fetch(this.video.liveLink, { method: "HEAD" });
       this.setLiveState(res.status < 400);
     } catch (e) {
       log("video link issue!");
