@@ -409,7 +409,7 @@ export class StoredVideoCheckSystem implements ISystem {
   };
 
   update(dt: number) {
-    if (this.dtDelay > 10) {
+    if (this.dtDelay > 20) {
       this.dtDelay = 0;
     } else {
       this.dtDelay++;
@@ -536,7 +536,7 @@ export class StoredVideoCheckSystem implements ISystem {
       return;
     }
 
-    if (this.statusCheckDelay >= 10) {
+    if (this.statusCheckDelay >= 100) {
       this.statusCheckDelay = 0;
       return;
     } else if (this.statusCheckDelay > 0) {
