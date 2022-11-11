@@ -36,6 +36,7 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
   enableLiveStream?: boolean;
   clickEvent?: TClickEvent;
   withCollisions: boolean;
+  videoClipId?: string;
   public emissiveIntensity: number;
   public offType: EVideoSourceTypes;
   public offImageLink?: string;
@@ -159,7 +160,8 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
         videoInstances[instanceId].updateTransform();
       });
     } else {
-      const texture = new VideoTexture(new VideoClip(url));
+      const videoClip = new VideoClip(url);
+      const texture = new VideoTexture(videoClip);
       this.stop();
       this.videoTexture = texture;
       this.albedoTexture = texture;
@@ -227,7 +229,7 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
 
   playNextVideo: CallableFunction = () => {
     this.playlistIndex += 1;
-    if (this.playlistIndex >= this.playlist.length) {
+    if (this.playlistIndex >= this.playlist.length - 1) {
       this.playlistIndex = 0;
     }
     this.stop();
@@ -237,6 +239,7 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
 
   stop: CallableFunction = () => {
     if (this.videoTexture) {
+      this.videoTexture.pause();
       this.videoTexture.reset();
     }
   };
@@ -380,6 +383,7 @@ export class StoredVideoCheckSystem implements ISystem {
   initialCheckComplete: boolean = false;
   instancesHidden: boolean = false;
   stopped: boolean = false;
+  observer: any;
 
   constructor(_storedVideoMaterial: StoredVideoMaterial) {
     this.video = videoMaterials[_storedVideoMaterial.id];
@@ -409,10 +413,10 @@ export class StoredVideoCheckSystem implements ISystem {
   };
 
   update(dt: number) {
-    if (this.dtDelay > 20) {
+    if (this.dtDelay > 10) {
       this.dtDelay = 0;
     } else {
-      this.dtDelay++;
+      this.dtDelay += dt;
       return;
     }
 
@@ -512,10 +516,14 @@ export class StoredVideoCheckSystem implements ISystem {
       this.playing = true;
       return;
     } else {
-      onVideoEvent.add((data) => {
-        this.videoStatus = data.videoStatus;
-        this.videoLength = Math.floor(data.totalVideoLength);
-        this.timer = Math.ceil(data.currentOffset);
+      this.observer = onVideoEvent.add((data) => {
+        log(`VLM - ${data.videoClipId}`);
+        if (data.videoClipId == this.video.videoTexture.videoClipId) {
+          this.videoStatus = data.videoStatus;
+          this.videoLength = Math.floor(data.totalVideoLength);
+          this.timer = Math.ceil(data.currentOffset);
+          log(`VLM - ${this.videoStatus} ${this.videoLength} ${this.timer}`);
+        }
       });
 
       if (this.videoLength < 0 || this.timer < 0 || !this.videoStatus) {
@@ -523,14 +531,16 @@ export class StoredVideoCheckSystem implements ISystem {
       }
     }
 
-    if (this.videoStatus > VideoStatus.READY && this.timer >= this.videoLength) {
+    if (this.video.playlist.length > 1 && this.videoStatus > VideoStatus.READY && this.timer >= this.videoLength) {
       this.video.playNextVideo();
+      this.observer.remove();
     }
   }
 
   statusCheckDelay: number = 0;
 
   checkStreamStatus: CallableFunction = async () => {
+    log("VLM - Checking stream status");
     if (!this.video.liveLink) {
       this.setLiveState(false);
       return;
@@ -548,8 +558,9 @@ export class StoredVideoCheckSystem implements ISystem {
       this.checkingStatus = true;
       let res = await fetch(this.video.liveLink, { method: "HEAD" });
       this.setLiveState(res.status < 400);
+      log(res.status);
     } catch (e) {
-      log("video link issue!");
+      log("VLM - video link issue!");
       this.setLiveState(false);
     }
   };
