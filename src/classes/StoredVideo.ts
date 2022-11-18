@@ -209,6 +209,7 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     this.stop();
     this.updateTexture(this.liveLink);
     this.videoTexture.play();
+    this.showAll();
   };
 
   startPlaylist: CallableFunction = () => {
@@ -219,12 +220,14 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
       this.videoTexture.loop = true;
     }
     this.videoTexture.play();
+    this.showAll();
   };
 
   showImage: CallableFunction = () => {
     this.textureMode = EVideoSourceTypes.IMAGE;
     this.stop();
     this.updateTexture(this.offImageLink);
+    this.showAll();
   };
 
   playNextVideo: CallableFunction = () => {
@@ -268,12 +271,6 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
     this.addComponent(shape);
     this.addComponent(_material);
     this.updateTransform(this.position, this.scale, this.rotation);
-
-    if (this.parent) {
-      this.updateParent(this.parent);
-    } else {
-      this.add();
-    }
   }
 
   add: CallableFunction = () => {
@@ -378,12 +375,13 @@ export class StoredVideoCheckSystem implements ISystem {
   videoLength: number = 0;
   videoStatus: number = 0;
   checkingStatus: boolean = false;
-  live: boolean = false;
-  playing: boolean = false;
+  live: boolean = true;
+  playing: boolean = true;
   initialCheckComplete: boolean = false;
   instancesHidden: boolean = false;
   stopped: boolean = false;
   observer: any;
+  raceConditionChecks: number[] = [];
 
   constructor(_storedVideoMaterial: StoredVideoMaterial) {
     this.video = videoMaterials[_storedVideoMaterial.id];
@@ -397,8 +395,6 @@ export class StoredVideoCheckSystem implements ISystem {
 
     if (this.video.customRendering) {
       this.stop();
-    } else {
-      this.start();
     }
   }
 
@@ -413,12 +409,17 @@ export class StoredVideoCheckSystem implements ISystem {
   };
 
   update(dt: number) {
-    if (this.dtDelay > 10) {
+    if (this.dtDelay > 30) {
       this.dtDelay = 0;
-    } else {
-      this.dtDelay += dt;
       return;
+    } else if (this.dtDelay > 0) {
+      this.dtDelay++;
+      return;
+    } else if (this.dtDelay == 0) {
+      this.dtDelay++;
     }
+
+    log(`VLM - Live Stream Enabled: ${this.video.enableLiveStream}`);
 
     if (this.checkingStatus || this.stopped) {
       return;
@@ -428,7 +429,7 @@ export class StoredVideoCheckSystem implements ISystem {
       imageBlank = this.video.offType == EVideoSourceTypes.IMAGE && !this.video.offImageLink;
 
     // If live streaming is enabled, first check the status of the live stream
-    if (this.video.enableLiveStream) {
+    if (this.video.enableLiveStream && !this.checkingStatus) {
       executeTask(async () => {
         this.checkStreamStatus();
       });
@@ -490,16 +491,24 @@ export class StoredVideoCheckSystem implements ISystem {
     } else if (!this.live) {
       // We ARE in LIVE mode.
       // If stream is DOWN, skip the next steps
+      this.playing = false;
+      return;
     } else if (!this.video.videoTexture.playing) {
       // We ARE in LIVE mode. Stream is LIVE.
       // If stream is live but not playing anything, start live video
       this.video.startLive();
       this.playing = true;
-    } else {
-      // We ARE in LIVE mode. Stream is LIVE. Video is PLAYING.
+    } else if (this.video.enableLiveStream) {
+      // We ARE in LIVE mode. Stream is LIVE. Video is PLAYING. Stream is ENABLED.
       // Do nothing else.
       return;
+    } else {
+      // We ARE in LIVE mode. Stream is LIVE. Video is PLAYING. Stream is DISABLED.
+      // Move on to switch to playlist.
+      this.video.videoTexture.playing = false
     }
+    log("VLM - we out chea!");
+    log(`VLM - ${this.video.videoTexture.playing}`);
 
     ///////////////////////////////////////////////
     // We are NOT in LIVE mode beyond this point.//
@@ -511,17 +520,19 @@ export class StoredVideoCheckSystem implements ISystem {
     ///////////////////////////////////////////////////////////
 
     if (!this.video.videoTexture.playing) {
+      log('VLM - Starting Playlist')
       // If video is not playing, start the playlist.
       this.video.startPlaylist();
       this.playing = true;
       return;
     } else {
       this.observer = onVideoEvent.add((data) => {
-        log(`VLM - ${data.videoClipId}`);
-        if (data.videoClipId == this.video.videoTexture.videoClipId) {
+        if (this.video.textureMode !== EVideoSourceTypes.LIVE && data.videoClipId == this.video.videoTexture.videoClipId) {
           this.videoStatus = data.videoStatus;
           this.videoLength = Math.floor(data.totalVideoLength);
           this.timer = Math.ceil(data.currentOffset);
+          log(`VLM - this.video.textureMode == ${EVideoSourceTypes.LIVE}`);
+          log(`VLM - ${data.videoClipId}`);
           log(`VLM - ${this.videoStatus} ${this.videoLength} ${this.timer}`);
         }
       });
@@ -541,12 +552,13 @@ export class StoredVideoCheckSystem implements ISystem {
 
   checkStreamStatus: CallableFunction = async () => {
     log("VLM - Checking stream status");
+
     if (!this.video.liveLink) {
       this.setLiveState(false);
       return;
     }
 
-    if (this.statusCheckDelay >= 100) {
+    if (this.statusCheckDelay >= 500) {
       this.statusCheckDelay = 0;
       return;
     } else if (this.statusCheckDelay > 0) {
@@ -557,8 +569,8 @@ export class StoredVideoCheckSystem implements ISystem {
     try {
       this.checkingStatus = true;
       let res = await fetch(this.video.liveLink, { method: "HEAD" });
-      this.setLiveState(res.status < 400);
-      log(res.status);
+      this.setLiveState(res.status == 200);
+      // log(res.status);
     } catch (e) {
       log("VLM - video link issue!");
       this.setLiveState(false);
@@ -570,6 +582,7 @@ export class StoredVideoCheckSystem implements ISystem {
       this.video.stop();
     }
     this.live = liveState;
+    this.playing = liveState;
     this.checkingStatus = false;
     this.initialCheckComplete = true;
   };
