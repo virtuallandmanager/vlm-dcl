@@ -56,7 +56,7 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     this.volume = _config.volume;
     this.playlist = _config.playlist;
     this.withCollisions = _config.withCollisions;
-    this.textureMode = this.enableLiveStream ? EVideoSourceTypes.LIVE : null;
+    this.textureMode = this.enableLiveStream ? EVideoSourceTypes.LIVE : this.offType;
     this.updateTexture(this.liveLink);
     videoMaterials[this.id] = this;
 
@@ -419,8 +419,6 @@ export class StoredVideoCheckSystem implements ISystem {
       this.dtDelay++;
     }
 
-    log(`VLM - Live Stream Enabled: ${this.video.enableLiveStream}`);
-
     if (this.checkingStatus || this.stopped) {
       return;
     }
@@ -481,7 +479,6 @@ export class StoredVideoCheckSystem implements ISystem {
       this.playing = false;
       return;
     }
-
     ////////////////////////////////////////////////
     // We are NOT in IMAGE mode beyond this point.//
     ////////////////////////////////////////////////
@@ -505,10 +502,8 @@ export class StoredVideoCheckSystem implements ISystem {
     } else {
       // We ARE in LIVE mode. Stream is LIVE. Video is PLAYING. Stream is DISABLED.
       // Move on to switch to playlist.
-      this.video.videoTexture.playing = false
+      this.video.videoTexture.playing = false;
     }
-    log("VLM - we out chea!");
-    log(`VLM - ${this.video.videoTexture.playing}`);
 
     ///////////////////////////////////////////////
     // We are NOT in LIVE mode beyond this point.//
@@ -520,7 +515,6 @@ export class StoredVideoCheckSystem implements ISystem {
     ///////////////////////////////////////////////////////////
 
     if (!this.video.videoTexture.playing) {
-      log('VLM - Starting Playlist')
       // If video is not playing, start the playlist.
       this.video.startPlaylist();
       this.playing = true;
@@ -570,7 +564,6 @@ export class StoredVideoCheckSystem implements ISystem {
       this.checkingStatus = true;
       let res = await fetch(this.video.liveLink, { method: "HEAD" });
       this.setLiveState(res.status == 200);
-      // log(res.status);
     } catch (e) {
       log("VLM - video link issue!");
       this.setLiveState(false);
@@ -580,6 +573,9 @@ export class StoredVideoCheckSystem implements ISystem {
   setLiveState: CallableFunction = (liveState: boolean) => {
     if (this.live !== liveState) {
       this.video.stop();
+    }
+    if (!this.live && this.video.textureMode == EVideoSourceTypes.LIVE) {
+      this.video.textureMode = this.video.offType;
     }
     this.live = liveState;
     this.playing = liveState;
