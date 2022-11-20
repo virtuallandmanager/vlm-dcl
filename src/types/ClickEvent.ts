@@ -17,4 +17,6 @@ export type TClickEvent = {
   sound?: string;
   moveTo?: { cameraTarget: TTransform; position: TTransform };
   teleportTo?: string;
+  hasTracking?: boolean;
+  trackingId?: string;
 };
