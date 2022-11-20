@@ -7,7 +7,7 @@ import { createImage, updateImage, updateImageInstance, createImageInstance, del
 import { createNft, createNftInstance, deleteNft, deleteNftInstance, updateNft, updateNftInstance } from "./nfts";
 import { createVideoScreen, updateVideoScreen, updateVideoInstance, createVideoInstance, deleteVideoScreen, deleteVideoInstance } from "./videos";
 import { updateCustomization, deleteCustomization } from "./custom";
-import { updateSceneData } from "./sceneData";
+import { updateSceneData, updateSceneFeatures } from "./sceneData";
 import { updateModeration } from "./moderation";
 import { initScene } from "./init";
 import { checkPreviewMode, isPreview, runLocalServer, runStagingServer } from "./environment";
@@ -98,6 +98,7 @@ export const connectCMS = async () => {
       }
 
       updateSceneData(message.sceneData);
+      updateSceneFeatures(message.features);
 
       switch (message.action) {
         case "init":

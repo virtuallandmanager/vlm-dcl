@@ -15,3 +15,11 @@ export type TSceneData = {
   features: TFeatureConfig[];
   dialogs: TDialogConfig[];
 };
+
+export type TSceneFeatures = {
+  analytics: boolean;
+  customizations: boolean;
+  dialogs: boolean;
+  entityPlacement: boolean;
+  moderation: boolean;
+};
