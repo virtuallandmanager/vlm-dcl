@@ -298,6 +298,14 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
           imageInstances[instanceId].removeComponent(OnPointerDown);
         }
         return;
+      case EClickEventType.TRACKING_ONLY: //tracking clicks only
+        pointerDownEvent = new OnPointerDown(
+          () => {
+            this.trackClickEvent(clickEvent, `click-event-${this.customId || this.id}`);
+          },
+          { showFeedback, hoverText }
+        );
+        break;
       case EClickEventType.EXTERNAL: //external link
         pointerDownEvent = new OnPointerDown(
           () => {

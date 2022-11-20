@@ -3,10 +3,11 @@ import { TTransform } from "./Transform";
 export enum EClickEventType {
   NONE,
   EXTERNAL,
+  TRACKING_ONLY,
   SOUND,
   STREAM,
   MOVE,
-  TELEPORT
+  TELEPORT,
 }
 
 export type TClickEvent = {
