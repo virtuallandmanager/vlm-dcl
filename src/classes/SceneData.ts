@@ -15,3 +15,11 @@ export class SceneData {
   features: TFeatureConfig[] = [];
   dialogs: TDialogConfig[] = [];
 }
+
+export class SceneFeatures {
+  analytics: boolean = false;
+  customizations: boolean = false;
+  dialogs: boolean = false;
+  entityPlacement: boolean = false;
+  moderation: boolean = false;
+}

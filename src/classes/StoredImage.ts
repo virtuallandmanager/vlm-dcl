@@ -3,6 +3,7 @@ import { recordEvent } from "../analytics";
 import { sdkImageFlippedDimension, sdkImagesAreFlipped, sdkImagesFace, vlmImagesFace } from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
 import { IEmission, ITexture, ITransform } from "../interfaces/index";
+import { sceneFeatures } from "../sceneData";
 import { imageInstances, imageMaterials } from "../storage";
 import { EClickEventType, TClickEvent, TImageInstanceConfig, TImageMaterialConfig, TTransform } from "../types/index";
 import { StoredEntityInstance } from "./StoredEntity";
@@ -272,7 +273,7 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
   trackClickEvent: CallableFunction = (clickEvent: TClickEvent, id: string) => {
     const trackingId = clickEvent.trackingId || id;
 
-    if (clickEvent.hasTracking) {
+    if (clickEvent.hasTracking && sceneFeatures.analytics) {
       recordEvent(trackingId);
     }
   };
