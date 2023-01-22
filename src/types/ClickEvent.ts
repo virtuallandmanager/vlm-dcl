@@ -16,8 +16,9 @@ export type TClickEvent = {
   hoverText: string;
   externalLink?: string;
   sound?: string;
-  moveTo?: { cameraTarget: TTransform; position: TTransform };
+  moveTo?: { cameraTarget: TTransform; position: TTransform, setCameraTarget: boolean };
   teleportTo?: string;
   hasTracking?: boolean;
   trackingId?: string;
+  synced?: boolean;
 };
