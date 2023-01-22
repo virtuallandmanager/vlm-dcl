@@ -409,7 +409,7 @@ export class StoredVideoCheckSystem implements ISystem {
   };
 
   update(dt: number) {
-    if (this.dtDelay > 30) {
+    if (this.dtDelay > 100) {
       this.dtDelay = 0;
       return;
     } else if (this.dtDelay > 0) {
@@ -525,9 +525,9 @@ export class StoredVideoCheckSystem implements ISystem {
           this.videoStatus = data.videoStatus;
           this.videoLength = Math.floor(data.totalVideoLength);
           this.timer = Math.ceil(data.currentOffset);
-          log(`VLM - this.video.textureMode == ${EVideoSourceTypes.LIVE}`);
-          log(`VLM - ${data.videoClipId}`);
-          log(`VLM - ${this.videoStatus} ${this.videoLength} ${this.timer}`);
+          // log(`VLM - this.video.textureMode == ${EVideoSourceTypes.LIVE}`);
+          // log(`VLM - ${data.videoClipId}`);
+          // log(`VLM - ${this.videoStatus} ${this.videoLength} ${this.timer}`);
         }
       });
 

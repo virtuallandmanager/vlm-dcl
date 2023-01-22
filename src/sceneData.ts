@@ -9,6 +9,9 @@ export const updateSceneData = (sceneDataConfig: TSceneData) => {
 };
 
 export const updateSceneFeatures = (sceneFeaturesConfig: TSceneFeatures) => {
+  if (!sceneFeaturesConfig) {
+    return;
+  }
   Object.keys(sceneFeaturesConfig).forEach((feature: string) => {
     sceneFeatures[feature] = sceneFeaturesConfig[feature];
   });

@@ -108,12 +108,12 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
       this.imageLink = url;
     }
 
-    const texture = new Texture(this.imageLink, { hasAlpha: this.isTransparent });
+    const texture = new Texture(this.imageLink, {hasAlpha: this.isTransparent});
     this.albedoTexture = texture;
     this.emissiveTexture = texture;
     this.alphaTexture = texture;
     if (this.isTransparent) {
-      this.transparencyMode = TransparencyMode.ALPHA_BLEND;
+      this.transparencyMode = TransparencyMode.ALPHA_TEST;
     } else {
       this.transparencyMode = TransparencyMode.OPAQUE;
     }
@@ -131,10 +131,7 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
   updateClickEvent: CallableFunction = (clickEvent: TClickEvent) => {
     this.clickEvent = clickEvent;
     [...this.instanceIds].forEach((instanceId: string) => {
-      if (!clickEvent) {
-        return;
-      }
-      imageInstances[instanceId].updateClickEvent(clickEvent);
+      imageInstances[instanceId].updateDefaultClickEvent(this.clickEvent);
     });
   };
 
@@ -179,14 +176,15 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     this.rotation = _instance.rotation;
     this.materialId = _material.id;
     this.show = _instance.show;
-    this.clickEvent = _instance.clickEvent || _material.clickEvent;
+    this.clickEvent = _instance.clickEvent;
+    this.defaultClickEvent = _material.clickEvent;
     imageInstances[this.id] = this;
     const shape = new PlaneShape();
     shape.withCollisions = typeof _instance.withCollisions === "boolean" ? _instance.withCollisions : _material.withCollisions;
     this.addComponent(shape);
     this.addComponent(_material);
     this.updateTransform(this.position, this.scale, this.rotation);
-    this.updateClickEvent(this.clickEvent);
+    this.updateDefaultClickEvent(_material.clickEvent);
 
     if (this.parent && this.show && !this.customRendering) {
       this.updateParent(this.parent);
@@ -242,8 +240,8 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
       new Transform({
         position: new Vector3(position.x, position.y, position.z),
         scale: new Vector3(scale.x, scale.y, scale.z),
-        rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z),
-      }),
+        rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z)
+      })
     );
   };
 
@@ -278,17 +276,28 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     }
   };
 
-  updateClickEvent: CallableFunction = (clickEvent: TClickEvent) => {
-    if (!clickEvent) {
-      return;
+  updateDefaultClickEvent: CallableFunction = (newDefaultClickEvent: TClickEvent) => {
+    this.defaultClickEvent = newDefaultClickEvent;
+    this.updateClickEvent();
+  };
+
+  updateClickEvent: CallableFunction = (newClickEvent?: TClickEvent) => {
+    if (typeof newClickEvent !== "undefined") {
+      this.clickEvent = newClickEvent;
     }
 
+    if (this.clickEvent && this.clickEvent.synced) {
+      this.clickEvent = this.defaultClickEvent;
+    }
+
+    const clickEvent = this.clickEvent;
+
     let pointerDownEvent,
-      showFeedback = clickEvent.showFeedback,
-      hoverText = clickEvent.hoverText,
+      showFeedback = clickEvent && clickEvent.showFeedback,
+      hoverText = clickEvent && clickEvent.hoverText,
       instanceId = this.id;
 
-    if (!imageInstances[instanceId]) {
+    if (!clickEvent || !imageInstances[instanceId]) {
       return;
     }
 
@@ -312,7 +321,7 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
             openExternalURL(clickEvent.externalLink);
             this.trackClickEvent(clickEvent, `click-event-(external-link)-${this.customId || this.id}`);
           },
-          { showFeedback, hoverText },
+          { showFeedback, hoverText }
         );
         break;
       case EClickEventType.SOUND: //play a sound
@@ -323,16 +332,16 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
             source.playOnce();
             this.trackClickEvent(clickEvent, `click-event-(sound)-${this.customId || this.id}`);
           },
-          { showFeedback, hoverText },
+          { showFeedback, hoverText }
         );
         break;
       case EClickEventType.MOVE: // move player
         pointerDownEvent = new OnPointerDown(
           () => {
-            movePlayerTo(clickEvent.moveTo.position, clickEvent.moveTo.cameraTarget);
+            movePlayerTo(clickEvent.moveTo.position, (clickEvent.moveTo.setCameraTarget ? clickEvent.moveTo.cameraTarget : null));
             this.trackClickEvent(clickEvent, `click-event-(move-player)-${this.customId || this.id}`);
           },
-          { showFeedback, hoverText },
+          { showFeedback, hoverText }
         );
         break;
       case EClickEventType.TELEPORT: // teleport player
@@ -341,7 +350,7 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
             teleportTo(clickEvent.teleportTo);
             this.trackClickEvent(clickEvent, `click-event-(teleport-player)-${this.customId || this.id}`);
           },
-          { showFeedback, hoverText },
+          { showFeedback, hoverText }
         );
         break;
     }
