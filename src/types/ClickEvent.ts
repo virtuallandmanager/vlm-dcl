@@ -1,3 +1,4 @@
+import { PositionType } from "@decentraland/RestrictedActions";
 import { TTransform } from "./Transform";
 
 export enum EClickEventType {
@@ -16,7 +17,7 @@ export type TClickEvent = {
   hoverText: string;
   externalLink?: string;
   sound?: string;
-  moveTo?: { cameraTarget: TTransform; position: TTransform, setCameraTarget: boolean };
+  moveTo?: { cameraTarget: PositionType; position: PositionType, setCameraTarget: boolean };
   teleportTo?: string;
   hasTracking?: boolean;
   trackingId?: string;

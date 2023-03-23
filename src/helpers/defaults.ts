@@ -1,19 +1,19 @@
-export enum Directions {
-    NORTH,
-    EAST,
-    SOUTH,
-    WEST
+export enum Direction {
+  NORTH,
+  EAST,
+  SOUTH,
+  WEST,
 }
 
 // SDK DEFAULTS
-export const sdkVideosFace = Directions.NORTH;
-export const sdkImagesFace = Directions.NORTH;
-export const sdkVideosAreFlipped = false;
-export const sdkImagesAreFlipped = true;
-export const sdkVideoFlippedDimension = null;
-export const sdkImageFlippedDimension = 'x';
-export const parcelSize = 16;
+export const sdkVideosFace: Direction = Direction.NORTH;
+export const sdkImagesFace: Direction = Direction.NORTH;
+export const sdkVideosAreFlipped: boolean = false;
+export const sdkImagesAreFlipped: boolean = true;
+export const sdkVideoFlippedDimension: "x" | "y" | "z" | null = null;
+export const sdkImageFlippedDimension: "x" | "y" | "z" = "x";
+export const parcelSize: number = 16;
 
 // VLM DEFAULTS
-export const vlmVideosFace = Directions.SOUTH;
-export const vlmImagesFace = Directions.SOUTH;
+export const vlmVideosFace: Direction = Direction.SOUTH;
+export const vlmImagesFace: Direction = Direction.SOUTH;

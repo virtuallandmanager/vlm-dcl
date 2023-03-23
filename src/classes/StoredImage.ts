@@ -1,22 +1,36 @@
 import { movePlayerTo } from "@decentraland/RestrictedActions";
-import { recordEvent } from "../analytics";
-import { sdkImageFlippedDimension, sdkImagesAreFlipped, sdkImagesFace, vlmImagesFace } from "../helpers/defaults";
+// import { recordEvent } from "../analytics";
+import {
+  sdkImageFlippedDimension,
+  sdkImagesAreFlipped,
+  sdkImagesFace,
+  vlmImagesFace,
+} from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
 import { IEmission, ITexture, ITransform } from "../interfaces/index";
 import { sceneFeatures } from "../sceneData";
 import { imageInstances, imageMaterials } from "../storage";
-import { EClickEventType, TClickEvent, TImageInstanceConfig, TImageMaterialConfig, TTransform } from "../types/index";
+import {
+  EClickEventType,
+  TClickEvent,
+  TImageInstanceConfig,
+  TImageMaterialConfig,
+  TTransform,
+} from "../types/index";
 import { StoredEntityInstance } from "./StoredEntity";
 
-export class StoredImageMaterial extends Material implements ITexture, IEmission {
+export class StoredImageMaterial
+  extends Material
+  implements ITexture, IEmission
+{
   id: string;
   customId?: string;
   customRendering: boolean;
-  albedoTexture: Texture;
-  alphaTexture: Texture;
+  albedoTexture: Texture = new Texture("");
+  alphaTexture: Texture = new Texture("");
   emissiveColor = Color3.White();
   emissiveIntensity: number;
-  emissiveTexture: Texture;
+  emissiveTexture: Texture = new Texture("");
   parent?: string;
   show: boolean;
   instanceIds: string[] | any = [];
@@ -108,7 +122,9 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
       this.imageLink = url;
     }
 
-    const texture = new Texture(this.imageLink, {hasAlpha: this.isTransparent});
+    const texture = new Texture(this.imageLink, {
+      hasAlpha: this.isTransparent,
+    });
     this.albedoTexture = texture;
     this.emissiveTexture = texture;
     this.alphaTexture = texture;
@@ -142,7 +158,9 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
   };
 
   deleteInstance: CallableFunction = (instanceId: string) => {
-    this.instanceIds = this.instanceIds.filter((id: string) => id !== instanceId);
+    this.instanceIds = this.instanceIds.filter(
+      (id: string) => id !== instanceId
+    );
     imageInstances[instanceId].delete();
   };
 
@@ -155,14 +173,21 @@ export class StoredImageMaterial extends Material implements ITexture, IEmission
   };
 }
 
-export class StoredImageInstance extends StoredEntityInstance implements ITransform {
+export class StoredImageInstance
+  extends StoredEntityInstance
+  implements ITransform
+{
   id: string;
   materialId: string;
-  parent: string;
+  parent?: string;
   position: TTransform;
   scale: TTransform;
   rotation: TTransform;
-  modifiedTransform: { position: TTransform; scale: TTransform; rotation: TTransform };
+  modifiedTransform: {
+    position: TTransform;
+    scale: TTransform;
+    rotation: TTransform;
+  };
   withCollisions: boolean;
 
   constructor(_material: StoredImageMaterial, _instance: TImageInstanceConfig) {
@@ -174,13 +199,19 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     this.position = _instance.position;
     this.scale = _instance.scale;
     this.rotation = _instance.rotation;
+    this.modifiedTransform = {
+      position: this.position,
+      scale: this.scale,
+      rotation: this.rotation,
+    };
     this.materialId = _material.id;
     this.show = _instance.show;
     this.clickEvent = _instance.clickEvent;
     this.defaultClickEvent = _material.clickEvent;
+    this.withCollisions = _instance.withCollisions;
     imageInstances[this.id] = this;
     const shape = new PlaneShape();
-    shape.withCollisions = typeof _instance.withCollisions === "boolean" ? _instance.withCollisions : _material.withCollisions;
+    shape.withCollisions = this.withCollisions;
     this.addComponent(shape);
     this.addComponent(_material);
     this.updateTransform(this.position, this.scale, this.rotation);
@@ -231,7 +262,11 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     this.customId = customId;
   };
 
-  updateTransform: CallableFunction = (newPosition?: TTransform, newScale?: TTransform, newRotation?: TTransform) => {
+  updateTransform: CallableFunction = (
+    newPosition?: TTransform,
+    newScale?: TTransform,
+    newRotation?: TTransform
+  ) => {
     this.applyCustomTransforms(newPosition, newScale, newRotation);
 
     const { position, scale, rotation } = this.modifiedTransform;
@@ -240,7 +275,7 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
       new Transform({
         position: new Vector3(position.x, position.y, position.z),
         scale: new Vector3(scale.x, scale.y, scale.z),
-        rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z)
+        rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z),
       })
     );
   };
@@ -252,12 +287,20 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     this.addComponentOrReplace(shape);
   };
 
-  applyCustomTransforms: CallableFunction = (originalPosition: TTransform, originalScale: TTransform, originalRotation: TTransform) => {
+  applyCustomTransforms: CallableFunction = (
+    originalPosition: TTransform,
+    originalScale: TTransform,
+    originalRotation: TTransform
+  ) => {
     this.position = originalPosition || this.position;
     this.scale = originalScale || this.scale;
     this.rotation = originalRotation || this.rotation;
 
-    this.modifiedTransform = { position: { ...this.position }, scale: { ...this.scale }, rotation: { ...this.rotation } };
+    this.modifiedTransform = {
+      position: { ...this.position },
+      scale: { ...this.scale },
+      rotation: { ...this.rotation },
+    };
 
     if (sdkImagesAreFlipped) {
       this.modifiedTransform.rotation[sdkImageFlippedDimension] += 180;
@@ -272,11 +315,13 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
     const trackingId = clickEvent.trackingId || id;
 
     if (clickEvent.hasTracking && sceneFeatures.analytics) {
-      recordEvent(trackingId);
+      // recordEvent(trackingId);
     }
   };
 
-  updateDefaultClickEvent: CallableFunction = (newDefaultClickEvent: TClickEvent) => {
+  updateDefaultClickEvent: CallableFunction = (
+    newDefaultClickEvent: TClickEvent
+  ) => {
     this.defaultClickEvent = newDefaultClickEvent;
     this.updateClickEvent();
   };
@@ -310,7 +355,10 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
       case EClickEventType.TRACKING_ONLY: //tracking clicks only
         pointerDownEvent = new OnPointerDown(
           () => {
-            this.trackClickEvent(clickEvent, `click-event-${this.customId || this.id}`);
+            this.trackClickEvent(
+              clickEvent,
+              `click-event-${this.customId || this.id}`
+            );
           },
           { showFeedback, hoverText }
         );
@@ -318,19 +366,27 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
       case EClickEventType.EXTERNAL: //external link
         pointerDownEvent = new OnPointerDown(
           () => {
-            openExternalURL(clickEvent.externalLink);
-            this.trackClickEvent(clickEvent, `click-event-(external-link)-${this.customId || this.id}`);
+            if (clickEvent.externalLink) {
+              openExternalURL(clickEvent.externalLink);
+              this.trackClickEvent(
+                clickEvent,
+                `click-event-(external-link)-${this.customId || this.id}`
+              );
+            }
           },
           { showFeedback, hoverText }
         );
         break;
       case EClickEventType.SOUND: //play a sound
-        const clip = new AudioClip(clickEvent.sound);
+        const clip = new AudioClip(clickEvent.sound || "");
         const source = new AudioSource(clip);
         pointerDownEvent = new OnPointerDown(
           () => {
             source.playOnce();
-            this.trackClickEvent(clickEvent, `click-event-(sound)-${this.customId || this.id}`);
+            this.trackClickEvent(
+              clickEvent,
+              `click-event-(sound)-${this.customId || this.id}`
+            );
           },
           { showFeedback, hoverText }
         );
@@ -338,8 +394,19 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
       case EClickEventType.MOVE: // move player
         pointerDownEvent = new OnPointerDown(
           () => {
-            movePlayerTo(clickEvent.moveTo.position, (clickEvent.moveTo.setCameraTarget ? clickEvent.moveTo.cameraTarget : null));
-            this.trackClickEvent(clickEvent, `click-event-(move-player)-${this.customId || this.id}`);
+            if (!clickEvent.moveTo) {
+              return;
+            }
+            movePlayerTo(
+              clickEvent.moveTo.position,
+              clickEvent.moveTo.setCameraTarget
+                ? clickEvent.moveTo.cameraTarget
+                : undefined
+            );
+            this.trackClickEvent(
+              clickEvent,
+              `click-event-(move-player)-${this.customId || this.id}`
+            );
           },
           { showFeedback, hoverText }
         );
@@ -347,8 +414,13 @@ export class StoredImageInstance extends StoredEntityInstance implements ITransf
       case EClickEventType.TELEPORT: // teleport player
         pointerDownEvent = new OnPointerDown(
           () => {
-            teleportTo(clickEvent.teleportTo);
-            this.trackClickEvent(clickEvent, `click-event-(teleport-player)-${this.customId || this.id}`);
+            if (clickEvent.teleportTo) {
+              teleportTo(clickEvent.teleportTo);
+              this.trackClickEvent(
+                clickEvent,
+                `click-event-(teleport-player)-${this.customId || this.id}`
+              );
+            }
           },
           { showFeedback, hoverText }
         );

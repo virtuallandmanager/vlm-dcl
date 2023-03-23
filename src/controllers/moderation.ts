@@ -1,12 +1,16 @@
 import { getParcel } from "@decentraland/ParcelIdentity";
 import { movePlayerTo, triggerEmote } from "@decentraland/RestrictedActions";
-import { parcelSize } from "./helpers/defaults";
-import { getUser, userData } from "./helpers/user";
-import { sceneData } from "./sceneData";
-import { TNFTConfig } from "./types";
-import { EBanActions, EBanWallType, TModerationConfig } from "./types/Moderation";
-import { TPlayerConfig } from "./types/Player";
-import { includes } from "./utils";
+import { parcelSize } from "../helpers/defaults";
+import { getUser, userData } from "../helpers/user";
+import { sceneData } from "../sceneData";
+import { TNFTConfig } from "../types";
+import {
+  EBanActions,
+  EBanWallType,
+  TModerationConfig,
+} from "../types/Moderation";
+import { TPlayerConfig } from "../types/Player";
+import { includes } from "../utils";
 
 type ParcelBound = {
   x: number;
@@ -39,8 +43,9 @@ const walls: Entity[] = [];
 
 const messages = {
   bannedUser: "You have been blocked from interacting with this scene.",
-  bannedWearable: "One of your equipped wearables has been prohibited by this scene.",
-  accessRestricted: "Access to this scene has been restricted."
+  bannedWearable:
+    "One of your equipped wearables has been prohibited by this scene.",
+  accessRestricted: "Access to this scene has been restricted.",
 };
 
 class ModerationSystem implements ISystem {
@@ -162,7 +167,7 @@ const runModerationChecks = async () => {
     accessAllowed = false;
   }
 
-  if (sceneData.moderation.allowCertainUsers && isAllowedUser()) {
+  if (sceneData.moderation.allowCertainUsers && !isAllowedUser()) {
     accessAllowed = false;
   }
 
@@ -182,41 +187,64 @@ const wearableCheck = (wearableList: TNFTConfig[]) => {
   // check if the user is wearing a wearable in the list
   return userData.avatar.wearables.some((wearable: string) => {
     return wearableList.some((checkedWearable: TNFTConfig) => {
-      return wearable.indexOf(checkedWearable.contractAddress) >= 0 && wearable.indexOf(String(checkedWearable.itemId)) > 0;
+      return (
+        wearable.indexOf(checkedWearable.contractAddress) >= 0 &&
+        wearable.indexOf(String(checkedWearable.itemId)) > 0
+      );
     });
   });
 };
 
 const hasAllowedWearables = () => {
   const allowedWearables = sceneData.moderation.allowedWearables;
-  return wearableCheck(allowedWearables);
+  if (allowedWearables) {
+    return wearableCheck(allowedWearables);
+  }
 };
 
 const hasBannedWearables = () => {
   const bannedWearables = sceneData.moderation.bannedWearables;
-  bannedWearable = wearableCheck(bannedWearables);
-  return bannedWearable;
+  if (bannedWearables) {
+    bannedWearable = wearableCheck(bannedWearables);
+    return bannedWearable;
+  }
 };
 
 const isBannedUser = () => {
   const bannedUsers = sceneData.moderation.bannedUsers;
-  bannedUser = bannedUsers.some((user: TPlayerConfig) => {
-    let userName = userData.displayName;
-    let hasHash;
-    if (userData.displayName.indexOf("#") >= 0) {
-      userName = userName.split("#")[0];
-      hasHash = true;
-    }
-    return userName === user.displayName || userData.displayName === user.displayName || userData.userId === user.walletAddress;
-  });
-  return bannedUser;
+  if (bannedUsers) {
+    bannedUser = bannedUsers.some((user: TPlayerConfig) => {
+      let userName = userData.displayName;
+      let hasHash;
+      if (userData.displayName.indexOf("#") >= 0) {
+        userName = userName.split("#")[0];
+        hasHash = true;
+      }
+      return (
+        userName === user.displayName ||
+        userData.displayName === user.displayName ||
+        userData.userId === user.walletAddress
+      );
+    });
+    return bannedUser;
+  }
 };
 
 const isAllowedUser = () => {
   const allowedUsers = sceneData.moderation.allowedUsers;
-  return allowedUsers.some((user: TPlayerConfig) => {
-    return userData.displayName.indexOf(user.displayName) >= 0 || userData.userId === user.walletAddress;
-  });
+  if (!allowedUsers) {
+    return;
+  } else {
+    return allowedUsers.some((user: TPlayerConfig) => {
+      if (user && userData) {
+        return (
+          (user.displayName &&
+            userData.displayName.indexOf(user.displayName) >= 0) ||
+          (user.walletAddress && userData.userId === user.walletAddress)
+        );
+      }
+    });
+  }
 };
 
 const banAction = () => {
@@ -265,23 +293,39 @@ const movePlayer = () => {
   }
   const insideParcel = parcelBounds.filter((parcelBound) => {
     let withinNSBounds, withinEWBounds;
-    withinEWBounds = parcelBound.e >= playerWorldPosition.x && parcelBound.w <= playerWorldPosition.x;
-    withinNSBounds = parcelBound.n >= playerWorldPosition.z && parcelBound.s <= playerWorldPosition.z;
+    withinEWBounds =
+      parcelBound.e >= playerWorldPosition.x &&
+      parcelBound.w <= playerWorldPosition.x;
+    withinNSBounds =
+      parcelBound.n >= playerWorldPosition.z &&
+      parcelBound.s <= playerWorldPosition.z;
     // log(parcelBound.x, parcelBound.z, `EW: ${withinEWBounds}`, `NS: ${withinNSBounds}`);
     return withinEWBounds && withinNSBounds;
   });
 
-  const sameZ = parcelBounds.filter((parcelBound) => insideParcel.some((ip) => parcelBound.z == ip.z)).sort((a, b) => b.z - a.z);
-  const sameX = parcelBounds.filter((parcelBound) => insideParcel.some((ip) => parcelBound.x == ip.x)).sort((a, b) => b.x - a.x);
+  const sameZ = parcelBounds
+    .filter((parcelBound) => insideParcel.some((ip) => parcelBound.z == ip.z))
+    .sort((a, b) => b.z - a.z);
+  const sameX = parcelBounds
+    .filter((parcelBound) => insideParcel.some((ip) => parcelBound.x == ip.x))
+    .sort((a, b) => b.x - a.x);
 
   inScene = !!insideParcel.length;
   if (!inScene) {
     return;
   }
-  const atNorthWall = playerPosition.z < insideParcel[0].nr + 1 && playerPosition.z > insideParcel[0].nr - 1;
-  const atEastWall = playerPosition.x < insideParcel[0].er + 1 && playerPosition.x > insideParcel[0].er - 1;
-  const atSouthWall = playerPosition.z < insideParcel[0].sr + 1 && playerPosition.z > insideParcel[0].sr - 1;
-  const atWestWall = playerPosition.x < insideParcel[0].wr + 1 && playerPosition.x > insideParcel[0].wr - 1;
+  const atNorthWall =
+    playerPosition.z < insideParcel[0].nr + 1 &&
+    playerPosition.z > insideParcel[0].nr - 1;
+  const atEastWall =
+    playerPosition.x < insideParcel[0].er + 1 &&
+    playerPosition.x > insideParcel[0].er - 1;
+  const atSouthWall =
+    playerPosition.z < insideParcel[0].sr + 1 &&
+    playerPosition.z > insideParcel[0].sr - 1;
+  const atWestWall =
+    playerPosition.x < insideParcel[0].wr + 1 &&
+    playerPosition.x > insideParcel[0].wr - 1;
 
   // log(`In Scene: ${inScene}`);
   // log(`At North Wall: ${atNorthWall}`);
@@ -291,17 +335,41 @@ const movePlayer = () => {
   // log({ x: playerFeetPosition.x, y: playerFeetPosition.y, z: insideParcel[0].n / insideParcel[0].z });
 
   if (atNorthWall && !insideParcel[0].hasAdjacentNorth) {
-    movePlayerTo({ x: playerFeetPosition.x, y: playerFeetPosition.y, z: insideParcel[0].nr });
+    movePlayerTo({
+      x: playerFeetPosition.x,
+      y: playerFeetPosition.y,
+      z: insideParcel[0].nr,
+    });
   } else if (atEastWall && !insideParcel[0].hasAdjacentEast) {
-    movePlayerTo({ x: insideParcel[0].er, y: playerFeetPosition.y, z: playerFeetPosition.z });
+    movePlayerTo({
+      x: insideParcel[0].er,
+      y: playerFeetPosition.y,
+      z: playerFeetPosition.z,
+    });
   } else if (atSouthWall && !insideParcel[0].hasAdjacentSouth) {
-    movePlayerTo({ x: playerFeetPosition.x, y: playerFeetPosition.y, z: insideParcel[0].sr });
+    movePlayerTo({
+      x: playerFeetPosition.x,
+      y: playerFeetPosition.y,
+      z: insideParcel[0].sr,
+    });
   } else if (atWestWall && !insideParcel[0].hasAdjacentWest) {
-    movePlayerTo({ x: insideParcel[0].wr, y: playerFeetPosition.y, z: playerFeetPosition.z });
+    movePlayerTo({
+      x: insideParcel[0].wr,
+      y: playerFeetPosition.y,
+      z: playerFeetPosition.z,
+    });
   } else if (insideParcel[0].x > 0) {
-    movePlayerTo({ x: sameZ[sameX.length - 1].er, y: playerFeetPosition.y, z: playerFeetPosition.z });
+    movePlayerTo({
+      x: sameZ[sameX.length - 1].er,
+      y: playerFeetPosition.y,
+      z: playerFeetPosition.z,
+    });
   } else {
-    movePlayerTo({ x: sameZ[0].er, y: playerFeetPosition.y, z: playerFeetPosition.z });
+    movePlayerTo({
+      x: sameZ[0].er,
+      y: playerFeetPosition.y,
+      z: playerFeetPosition.z,
+    });
   }
 };
 
@@ -337,16 +405,28 @@ const findSceneBounds = async () => {
 
     parcelBounds.forEach((parcelBound) => {
       const hasAdjacentNorth = parcelBounds.some(
-        (otherParcelBound) => (parcelBound.e === otherParcelBound.e || parcelBound.w === otherParcelBound.w) && parcelBound.n === otherParcelBound.s
+        (otherParcelBound) =>
+          (parcelBound.e === otherParcelBound.e ||
+            parcelBound.w === otherParcelBound.w) &&
+          parcelBound.n === otherParcelBound.s
       );
       const hasAdjacentEast = parcelBounds.some(
-        (otherParcelBound) => (parcelBound.n === otherParcelBound.n || parcelBound.s === otherParcelBound.s) && parcelBound.e === otherParcelBound.w
+        (otherParcelBound) =>
+          (parcelBound.n === otherParcelBound.n ||
+            parcelBound.s === otherParcelBound.s) &&
+          parcelBound.e === otherParcelBound.w
       );
       const hasAdjacentSouth = parcelBounds.some(
-        (otherParcelBound) => (parcelBound.e === otherParcelBound.e || parcelBound.w === otherParcelBound.w) && parcelBound.s === otherParcelBound.n
+        (otherParcelBound) =>
+          (parcelBound.e === otherParcelBound.e ||
+            parcelBound.w === otherParcelBound.w) &&
+          parcelBound.s === otherParcelBound.n
       );
       const hasAdjacentWest = parcelBounds.some(
-        (otherParcelBound) => (parcelBound.n === otherParcelBound.n || parcelBound.s === otherParcelBound.s) && parcelBound.w === otherParcelBound.e
+        (otherParcelBound) =>
+          (parcelBound.n === otherParcelBound.n ||
+            parcelBound.s === otherParcelBound.s) &&
+          parcelBound.w === otherParcelBound.e
       );
 
       parcelBound.hasAdjacentNorth = hasAdjacentNorth;
@@ -375,47 +455,89 @@ const createWalls = () => {
     const { nr, er, sr, wr } = parcelBound;
 
     const ceiling = new Entity();
-    const ceilingPosition = new Vector3(er - parcelSize / 2, sceneHeight, nr - parcelSize / 2);
+    const ceilingPosition = new Vector3(
+      er - parcelSize / 2,
+      sceneHeight,
+      nr - parcelSize / 2
+    );
     ceiling.addComponent(wallShape);
     ceiling.addComponent(wallMat);
-    ceiling.addComponent(new Transform({ position: ceilingPosition, scale: ceilingSize, rotation: rotatedCeiling }));
+    ceiling.addComponent(
+      new Transform({
+        position: ceilingPosition,
+        scale: ceilingSize,
+        rotation: rotatedCeiling,
+      })
+    );
     engine.addEntity(ceiling);
     walls.push(ceiling);
 
     if (!parcelBound.hasAdjacentNorth) {
       const northWall = new Entity();
-      const northWallPosition = new Vector3(er - parcelSize / 2, sceneHeight / 2, nr);
+      const northWallPosition = new Vector3(
+        er - parcelSize / 2,
+        sceneHeight / 2,
+        nr
+      );
       wallShape.withCollisions = true;
       northWall.addComponent(wallShape);
       northWall.addComponent(wallMat);
-      northWall.addComponent(new Transform({ position: northWallPosition, scale: wallSize }));
+      northWall.addComponent(
+        new Transform({ position: northWallPosition, scale: wallSize })
+      );
       engine.addEntity(northWall);
       walls.push(northWall);
     }
     if (!parcelBound.hasAdjacentEast) {
       const eastWall = new Entity();
-      const eastWallPosition = new Vector3(er, sceneHeight / 2, nr - parcelSize / 2);
+      const eastWallPosition = new Vector3(
+        er,
+        sceneHeight / 2,
+        nr - parcelSize / 2
+      );
       eastWall.addComponent(wallShape);
       eastWall.addComponent(wallMat);
-      eastWall.addComponent(new Transform({ position: eastWallPosition, scale: wallSize, rotation: rotatedWall }));
+      eastWall.addComponent(
+        new Transform({
+          position: eastWallPosition,
+          scale: wallSize,
+          rotation: rotatedWall,
+        })
+      );
       engine.addEntity(eastWall);
       walls.push(eastWall);
     }
     if (!parcelBound.hasAdjacentSouth) {
       const southWall = new Entity();
-      const southWallPosition = new Vector3(er - parcelSize / 2, sceneHeight / 2, sr);
+      const southWallPosition = new Vector3(
+        er - parcelSize / 2,
+        sceneHeight / 2,
+        sr
+      );
       southWall.addComponent(wallShape);
       southWall.addComponent(wallMat);
-      southWall.addComponent(new Transform({ position: southWallPosition, scale: wallSize }));
+      southWall.addComponent(
+        new Transform({ position: southWallPosition, scale: wallSize })
+      );
       engine.addEntity(southWall);
       walls.push(southWall);
     }
     if (!parcelBound.hasAdjacentWest) {
       const westWall = new Entity();
-      const westWallPosition = new Vector3(wr, sceneHeight / 2, nr - parcelSize / 2);
+      const westWallPosition = new Vector3(
+        wr,
+        sceneHeight / 2,
+        nr - parcelSize / 2
+      );
       westWall.addComponent(wallShape);
       westWall.addComponent(wallMat);
-      westWall.addComponent(new Transform({ position: westWallPosition, scale: wallSize, rotation: rotatedWall }));
+      westWall.addComponent(
+        new Transform({
+          position: westWallPosition,
+          scale: wallSize,
+          rotation: rotatedWall,
+        })
+      );
       engine.addEntity(westWall);
       walls.push(westWall);
     }

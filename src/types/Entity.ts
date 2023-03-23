@@ -2,7 +2,7 @@ import { TClickEvent } from "./ClickEvent";
 import { TTransform } from "./Transform";
 
 export type TEntityMaterialConfig = {
-  id?: string;
+  id: string;
   customId?: string;
   customRendering?: boolean;
   clickEvent?: TClickEvent;

@@ -12,7 +12,6 @@ export type TModerationConfig = {
   bannedUsers?: TPlayerConfig[];
   allowedUsers?: TPlayerConfig[];
   banActions?: EBanActions[];
-  allowActions?: EAllowActions[];
   banWallType?: EBanWallType
 };
 
@@ -25,8 +24,4 @@ export enum EBanWallType {
   BLACK,
   INVISIBLE,
   MIRROR
-}
-
-export enum EAllowActions {
-  MOVE
 }

@@ -1,3 +1,4 @@
+import { TCustomizationConfig } from "./Customization";
 import { TDialogConfig } from "./Dialog";
 import { TEventConfig } from "./Event";
 import { TFeatureConfig } from "./Feature";
@@ -14,12 +15,9 @@ export type TSceneData = {
   events: TEventConfig[];
   features: TFeatureConfig[];
   dialogs: TDialogConfig[];
+  customizations: TCustomizationConfig[]
 };
 
 export type TSceneFeatures = {
-  analytics: boolean;
-  customizations: boolean;
-  dialogs: boolean;
-  entityPlacement: boolean;
-  moderation: boolean;
+  [id: string]: boolean;
 };

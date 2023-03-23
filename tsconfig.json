@@ -7,7 +7,14 @@
     "removeComments": true,
     "declaration": true,
     "declarationDir": ".",
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "colyseus.js": [
+        "\\node_modules\\colyseus.js\\dist\\colyseus.d.ts",
+      ]
+    },
+    "baseUrl": "."
+
   },
   "extends": "./node_modules/decentraland-ecs/types/tsconfig.json"
 }

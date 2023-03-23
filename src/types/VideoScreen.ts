@@ -19,7 +19,7 @@ export interface TVideoMaterialConfig {
   name: string;
   offType: EVideoSourceTypes;
   offImageLink: string;
-  parent?: string | null;
+  parent?: string;
   playlist: string[];
   show: boolean;
   volume: number;
@@ -30,7 +30,7 @@ export type TVideoInstanceConfig = {
   id: string;
   customId?: string;
   customRendering?: boolean;
-  parent?: string | null;
+  parent?: string;
   name: string;
   position: { x: number; y: number; z: number };
   rotation: { x: number; y: number; z: number };

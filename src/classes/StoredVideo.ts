@@ -6,15 +6,31 @@ import {
   sdkVideosAreFlipped,
   sdkVideosFace,
   vlmImagesFace,
-  vlmVideosFace
+  vlmVideosFace,
 } from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
-import { IEmission, IPlayer, IPlaylist, ITexture, IVolume, ITransform } from "../interfaces/index";
+import {
+  IEmission,
+  IPlayer,
+  IPlaylist,
+  ITexture,
+  IVolume,
+  ITransform,
+} from "../interfaces/index";
 import { videoInstances, videoMaterials, videoSystems } from "../storage";
-import { EVideoSourceTypes, TClickEvent, TTransform, TVideoInstanceConfig, TVideoMaterialConfig } from "../types/index";
+import {
+  EVideoSourceTypes,
+  TClickEvent,
+  TTransform,
+  TVideoInstanceConfig,
+  TVideoMaterialConfig,
+} from "../types/index";
 import { StoredEntityInstance, StoredEntityMaterial } from "./StoredEntity";
 
-export class StoredVideoMaterial extends StoredEntityMaterial implements ITexture, IEmission, IVolume, IPlaylist, IPlayer {
+export class StoredVideoMaterial
+  extends StoredEntityMaterial
+  implements ITexture, IEmission, IVolume, IPlaylist, IPlayer
+{
   id: string;
   parent?: string;
   show: boolean;
@@ -56,7 +72,9 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     this.volume = _config.volume;
     this.playlist = _config.playlist;
     this.withCollisions = _config.withCollisions;
-    this.textureMode = this.enableLiveStream ? EVideoSourceTypes.LIVE : this.offType;
+    this.textureMode = this.enableLiveStream
+      ? EVideoSourceTypes.LIVE
+      : this.offType;
     this.updateTexture(this.liveLink);
     videoMaterials[this.id] = this;
 
@@ -118,7 +136,9 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
   };
 
   deleteInstance: CallableFunction = (instanceId: string) => {
-    this.instanceIds = this.instanceIds.filter((id: string) => id !== instanceId);
+    this.instanceIds = this.instanceIds.filter(
+      (id: string) => id !== instanceId
+    );
     videoInstances[instanceId].delete();
   };
 
@@ -173,9 +193,17 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     }
   };
 
-  updateAllTransforms: CallableFunction = (newPosition?: TTransform, newScale?: TTransform, newRotation?: TTransform) => {
+  updateAllTransforms: CallableFunction = (
+    newPosition?: TTransform,
+    newScale?: TTransform,
+    newRotation?: TTransform
+  ) => {
     this.instanceIds.forEach((instanceId: string) => {
-      videoInstances[instanceId].updateTransform(newPosition, newScale, newRotation);
+      videoInstances[instanceId].updateTransform(
+        newPosition,
+        newScale,
+        newRotation
+      );
     });
   };
 
@@ -191,7 +219,10 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     // Currently playing video is in newly updated playlist
     this.playlist = playlist;
 
-    if (this.textureMode == EVideoSourceTypes.PLAYLIST && !playlist.includes(currentlyPlayingVideo)) {
+    if (
+      this.textureMode == EVideoSourceTypes.PLAYLIST &&
+      !playlist.includes(currentlyPlayingVideo)
+    ) {
       this.startPlaylist();
     }
   };
@@ -208,7 +239,9 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     this.textureMode = EVideoSourceTypes.LIVE;
     this.stop();
     this.updateTexture(this.liveLink);
-    this.videoTexture.play();
+    if (this.videoTexture) {
+      this.videoTexture.play();
+    }
     this.showAll();
   };
 
@@ -216,7 +249,9 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     this.textureMode = EVideoSourceTypes.PLAYLIST;
     this.playlistIndex = 0;
     this.updateTexture(this.playlist[this.playlistIndex]);
-    if (this.playlist.length > 1) {
+    if (!this.videoTexture) {
+      return;
+    } else if (this.playlist.length > 1) {
       this.videoTexture.loop = true;
     }
     this.videoTexture.play();
@@ -237,7 +272,9 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
     }
     this.stop();
     this.updateTexture(this.playlist[this.playlistIndex]);
-    this.videoTexture.play();
+    if (this.videoTexture) {
+      this.videoTexture.play();
+    }
   };
 
   stop: CallableFunction = () => {
@@ -248,14 +285,21 @@ export class StoredVideoMaterial extends StoredEntityMaterial implements ITextur
   };
 }
 
-export class StoredVideoInstance extends StoredEntityInstance implements ITransform {
+export class StoredVideoInstance
+  extends StoredEntityInstance
+  implements ITransform
+{
   id: string;
   materialId: string;
   parent?: string;
   position: TTransform;
   scale: TTransform;
   rotation: TTransform;
-  modifiedTransform: { position: TTransform; scale: TTransform; rotation: TTransform };
+  modifiedTransform: {
+    position: TTransform;
+    scale: TTransform;
+    rotation: TTransform;
+  };
   withCollisions: boolean;
 
   constructor(_material: StoredVideoMaterial, _instance: TVideoInstanceConfig) {
@@ -265,9 +309,15 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
     this.position = _instance.position;
     this.scale = _instance.scale;
     this.rotation = _instance.rotation;
+    this.modifiedTransform = {
+      position: this.position,
+      scale: this.scale,
+      rotation: this.rotation,
+    };
+    this.withCollisions = _instance.withCollisions;
     this.materialId = _material.id;
     const shape = new PlaneShape();
-    shape.withCollisions = _instance.withCollisions;
+    shape.withCollisions = this.withCollisions;
     this.addComponent(shape);
     this.addComponent(_material);
     this.updateTransform(this.position, this.scale, this.rotation);
@@ -312,7 +362,11 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
     this.customId = customId;
   };
 
-  updateTransform: CallableFunction = (newPosition?: TTransform, newScale?: TTransform, newRotation?: TTransform) => {
+  updateTransform: CallableFunction = (
+    newPosition?: TTransform,
+    newScale?: TTransform,
+    newRotation?: TTransform
+  ) => {
     this.applyCustomTransforms(newPosition, newScale, newRotation);
 
     const { position, scale, rotation } = this.modifiedTransform;
@@ -321,7 +375,7 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
       new Transform({
         position: new Vector3(position.x, position.y, position.z),
         scale: new Vector3(scale.x, scale.y, scale.z),
-        rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z)
+        rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z),
       })
     );
   };
@@ -337,21 +391,31 @@ export class StoredVideoInstance extends StoredEntityInstance implements ITransf
     return videoMaterials[this.materialId].textureMode == mode;
   };
 
-  applyCustomTransforms: CallableFunction = (newPosition: TTransform, newScale: TTransform, newRotation: TTransform) => {
+  applyCustomTransforms: CallableFunction = (
+    newPosition: TTransform,
+    newScale: TTransform,
+    newRotation: TTransform
+  ) => {
     const isImageTexture = this.textureModeIs(EVideoSourceTypes.IMAGE),
-      isVideoTexture = this.textureModeIs(EVideoSourceTypes.LIVE) || this.textureModeIs(EVideoSourceTypes.PLAYLIST);
+      isVideoTexture =
+        this.textureModeIs(EVideoSourceTypes.LIVE) ||
+        this.textureModeIs(EVideoSourceTypes.PLAYLIST);
 
     this.position = newPosition || this.position;
     this.scale = newScale || this.scale;
     this.rotation = newRotation || this.rotation;
 
-    this.modifiedTransform = { position: { ...this.position }, scale: { ...this.scale }, rotation: { ...this.rotation } };
+    this.modifiedTransform = {
+      position: { ...this.position },
+      scale: { ...this.scale },
+      rotation: { ...this.rotation },
+    };
 
-    if (sdkImagesAreFlipped && isImageTexture) {
+    if (isImageTexture && sdkImagesAreFlipped && sdkImageFlippedDimension) {
       this.modifiedTransform.rotation[sdkImageFlippedDimension] += 180;
     }
 
-    if (sdkVideosAreFlipped && isVideoTexture) {
+    if (isVideoTexture && sdkVideosAreFlipped && sdkVideoFlippedDimension) {
       this.modifiedTransform.rotation[sdkVideoFlippedDimension] += 180;
     }
 
@@ -409,7 +473,7 @@ export class StoredVideoCheckSystem implements ISystem {
   };
 
   update(dt: number) {
-    if (this.dtDelay > 100) {
+    if (!this || !this.video || this.dtDelay > 100) {
       this.dtDelay = 0;
       return;
     } else if (this.dtDelay > 0) {
@@ -423,8 +487,13 @@ export class StoredVideoCheckSystem implements ISystem {
       return;
     }
 
-    const playListBlank = this.video.offType == EVideoSourceTypes.PLAYLIST && this.video.playlist && !this.video.playlist.filter((x) => x).length,
-      imageBlank = this.video.offType == EVideoSourceTypes.IMAGE && !this.video.offImageLink;
+    const playListBlank =
+        this.video.offType == EVideoSourceTypes.PLAYLIST &&
+        this.video.playlist &&
+        !this.video.playlist.filter((x) => x).length,
+      imageBlank =
+        this.video.offType == EVideoSourceTypes.IMAGE &&
+        !this.video.offImageLink;
 
     // If live streaming is enabled, first check the status of the live stream
     if (this.video.enableLiveStream && !this.checkingStatus) {
@@ -439,14 +508,20 @@ export class StoredVideoCheckSystem implements ISystem {
 
     if (this.video.enableLiveStream && this.live && !this.instancesHidden) {
       // If live stream is enabled and is live, skip the block for removing the video when "NONE" is the off type
-    } else if (this.video.offType === EVideoSourceTypes.NONE && !this.instancesHidden) {
+    } else if (
+      this.video.offType === EVideoSourceTypes.NONE &&
+      !this.instancesHidden
+    ) {
       // If off type is NONE, stop everything and hide instances.
       this.video.stop();
       this.video.remove();
       this.instancesHidden = true;
       this.playing = false;
       return;
-    } else if ((!this.video.enableLiveStream || !this.live) && this.video.offType === EVideoSourceTypes.NONE) {
+    } else if (
+      (!this.video.enableLiveStream || !this.live) &&
+      this.video.offType === EVideoSourceTypes.NONE
+    ) {
       return;
     } else if (this.instancesHidden) {
       this.instancesHidden = false;
@@ -463,7 +538,11 @@ export class StoredVideoCheckSystem implements ISystem {
     // We are NOT in NONE mode beyond this point.//
     ///////////////////////////////////////////////
 
-    if (this.video.enableLiveStream && this.live && this.video.textureMode !== EVideoSourceTypes.LIVE) {
+    if (
+      this.video.enableLiveStream &&
+      this.live &&
+      this.video.textureMode !== EVideoSourceTypes.LIVE
+    ) {
       this.video.startLive();
       this.playing = true;
       return;
@@ -474,7 +553,10 @@ export class StoredVideoCheckSystem implements ISystem {
     } else if (this.video.textureMode == EVideoSourceTypes.IMAGE) {
       // Off type is image, and texture is an image. Do nothing else.
       return;
-    } else if ((!this.video.enableLiveStream || !this.live) && this.video.offImageLink) {
+    } else if (
+      (!this.video.enableLiveStream || !this.live) &&
+      this.video.offImageLink
+    ) {
       this.video.showImage();
       this.playing = false;
       return;
@@ -490,7 +572,7 @@ export class StoredVideoCheckSystem implements ISystem {
       // If stream is DOWN, skip the next steps
       this.playing = false;
       return;
-    } else if (!this.video.videoTexture.playing) {
+    } else if (this.video && this.video.videoTexture && !this.video.videoTexture.playing) {
       // We ARE in LIVE mode. Stream is LIVE.
       // If stream is live but not playing anything, start live video
       this.video.startLive();
@@ -499,7 +581,7 @@ export class StoredVideoCheckSystem implements ISystem {
       // We ARE in LIVE mode. Stream is LIVE. Video is PLAYING. Stream is ENABLED.
       // Do nothing else.
       return;
-    } else {
+    } else if (this.video && this.video.videoTexture) {
       // We ARE in LIVE mode. Stream is LIVE. Video is PLAYING. Stream is DISABLED.
       // Move on to switch to playlist.
       this.video.videoTexture.playing = false;
@@ -514,14 +596,17 @@ export class StoredVideoCheckSystem implements ISystem {
     //If not, we need to account for something that was added.//
     ///////////////////////////////////////////////////////////
 
-    if (!this.video.videoTexture.playing) {
+    if (this.video && this.video.videoTexture && !this.video.videoTexture.playing) {
       // If video is not playing, start the playlist.
       this.video.startPlaylist();
       this.playing = true;
       return;
     } else {
       this.observer = onVideoEvent.add((data) => {
-        if (this.video.textureMode !== EVideoSourceTypes.LIVE && data.videoClipId == this.video.videoTexture.videoClipId) {
+        if (
+          this.video && this.video.videoTexture && this.video.textureMode !== EVideoSourceTypes.LIVE &&
+          data.videoClipId == this.video.videoTexture.videoClipId
+        ) {
           this.videoStatus = data.videoStatus;
           this.videoLength = Math.floor(data.totalVideoLength);
           this.timer = Math.ceil(data.currentOffset);
@@ -536,7 +621,11 @@ export class StoredVideoCheckSystem implements ISystem {
       }
     }
 
-    if (this.video.playlist.length > 1 && this.videoStatus > VideoStatus.READY && this.timer >= this.videoLength) {
+    if (
+      this.video.playlist.length > 1 &&
+      this.videoStatus > VideoStatus.READY &&
+      this.timer >= this.videoLength
+    ) {
       this.video.playNextVideo();
       this.observer.remove();
     }
