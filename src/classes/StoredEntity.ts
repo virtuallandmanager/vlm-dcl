@@ -1,7 +1,19 @@
 import { movePlayerTo } from "@decentraland/RestrictedActions";
-import { sdkImageFlippedDimension, sdkImagesAreFlipped, sdkVideoFlippedDimension, sdkVideosAreFlipped } from "../helpers/defaults";
+import {
+  sdkImageFlippedDimension,
+  sdkImagesAreFlipped,
+  sdkVideoFlippedDimension,
+  sdkVideosAreFlipped,
+} from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
-import { IEmission, IPlayer, IPlaylist, ITexture, IVolume, ITransform } from "../interfaces/index";
+import {
+  IEmission,
+  IPlayer,
+  IPlaylist,
+  ITexture,
+  IVolume,
+  ITransform,
+} from "../interfaces/index";
 import {
   EClickEventType,
   EVideoSourceTypes,
@@ -10,13 +22,16 @@ import {
   TEntityMaterialConfig,
   TTransform,
   TVideoInstanceConfig,
-  TVideoMaterialConfig
+  TVideoMaterialConfig,
 } from "../types/index";
 import { Sound, Stream } from "./Sound";
 import { StoredImageInstance } from "./StoredImage";
 import { StoredVideoInstance } from "./StoredVideo";
 
-export class StoredEntityMaterial extends Material implements ITexture, IEmission {
+export class StoredEntityMaterial
+  extends Material
+  implements ITexture, IEmission
+{
   id: string;
   customId?: string;
   parent?: string;
@@ -35,9 +50,9 @@ export class StoredEntityMaterial extends Material implements ITexture, IEmissio
     super();
     this.id = _config.id;
     this.parent = _config.parent;
-    this.show = _config.show;
+    this.show = _config.show || true;
     this.customRendering = !!_config.customRendering;
-    this.emissiveIntensity = _config.emission;
+    this.emissiveIntensity = _config.emission || 0;
     this.clickEvent = _config.clickEvent;
   }
 
@@ -62,7 +77,7 @@ export class StoredEntityShape extends Shape {
     super();
     this.id = _config.id;
     this.parent = _config.parent;
-    this.show = _config.show;
+    this.show = _config.show || true;
   }
 }
 
@@ -75,7 +90,7 @@ export class StoredEntityConfig {
   constructor(_config: TEntityMaterialConfig) {
     this.id = _config.id;
     this.parent = _config.parent;
-    this.show = _config.show;
+    this.show = _config.show || true;
   }
 }
 
@@ -92,20 +107,32 @@ export class StoredEntityInstance extends Entity {
   rotation: TTransform;
   clickEvent?: TClickEvent;
   defaultClickEvent?: TClickEvent;
-  modifiedTransform: { position: TTransform; scale: TTransform; rotation: TTransform };
+  modifiedTransform: {
+    position: TTransform;
+    scale: TTransform;
+    rotation: TTransform;
+  };
 
-  constructor(_material: StoredEntityMaterial | StoredEntityConfig, _instance: TEntityInstanceConfig) {
+  constructor(
+    _material: StoredEntityMaterial | StoredEntityConfig,
+    _instance: TEntityInstanceConfig
+  ) {
     const id = _instance.id;
     super(`${_instance.name} - ${id}`);
     this.id = id;
     this.customId = _instance.customId;
+    this.name = _instance.name;
     this.show = _instance.show;
     this.parent = _instance.parent;
     this.position = _instance.position;
     this.scale = _instance.scale;
     this.rotation = _instance.rotation;
+    this.modifiedTransform = {
+      position: this.position,
+      scale: this.scale,
+      rotation: this.rotation,
+    };
     this.materialId = _material.id;
     this.clickEvent = _instance.clickEvent;
   }
-
 }

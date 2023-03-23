@@ -4,7 +4,10 @@ export let userWallet: string;
 export let userData: UserData;
 
 export const getUser = async () => {
-  userData = await getUserData();
-  userWallet = userData.userId;
-  log(userData)
-}
+  const newUserData = await getUserData();
+  if (newUserData) {
+    userData = newUserData;
+    userWallet = newUserData.userId;
+  }
+  return newUserData
+};

@@ -1,4 +1,9 @@
-import { sdkImageFlippedDimension, sdkImagesAreFlipped, sdkImagesFace, vlmImagesFace } from "../helpers/defaults";
+import {
+  sdkImageFlippedDimension,
+  sdkImagesAreFlipped,
+  sdkImagesFace,
+  vlmImagesFace,
+} from "../helpers/defaults";
 import { getEntityByName } from "../helpers/entity";
 import { ITransform } from "../interfaces/index";
 import { nftInstances, nftConfigs } from "../storage";
@@ -9,65 +14,68 @@ import { StoredEntityConfig, StoredEntityInstance } from "./StoredEntity";
 export class StoredNFTConfig extends StoredEntityConfig {
   id: string;
   customId?: string;
-  customRendering: boolean;
   parent?: string;
   show: boolean;
   instanceIds: string[] | any = [];
-  chain: number | string;
+  chain: number | string = 1;
   contractAddress: string;
   tokenId: number | string;
   withCollisions: boolean;
   nftLink: string;
   color?: Color3;
   style: PictureFrameStyle;
-  isTransparent: boolean;
 
   constructor(_config: TNFTConfig) {
     super(_config);
-    let chain = this.getChainName(_config.chain);
-    this.nftLink = `${chain}://${_config.contractAddress}/${_config.tokenId}`;
+    this.chain = this.getChainName(_config.chain);
+    this.nftLink = `${this.chain}://${_config.contractAddress}/${_config.tokenId}`;
     if (_config.color) {
       this.color = Color3.FromHexString(_config.color);
     }
-    this.style = _config.style;
+    this.style = _config.style || PictureFrameStyle.Classic;
 
     this.id = _config.id;
     this.customId = _config.customId;
     this.contractAddress = _config.contractAddress;
-    this.withCollisions = _config.withCollisions;
-    this.tokenId = _config.tokenId;
-    this.show = _config.show;
+    this.withCollisions = _config.withCollisions || false;
+    this.tokenId = _config.tokenId || 0;
+    this.show = _config.show || true;
     nftConfigs[this.id] = this;
 
     if (this.customId) {
       nftConfigs[this.customId] = nftConfigs[this.id];
     }
 
-    _config.instances.forEach((instance: TNFTInstanceConfig) => {
-      this.createInstance(instance);
-    });
+    if (_config.instances) {
+      _config.instances.forEach((instance: TNFTInstanceConfig) => {
+        this.createInstance(instance);
+      });
+    }
   }
 
   updateNft: CallableFunction = (nftConfig: TNFTConfig) => {
     let chain = this.getChainName(nftConfig.chain);
-    this.chain = nftConfig.chain;
+    this.chain = nftConfig.chain || this.chain;
     this.contractAddress = nftConfig.contractAddress;
-    this.tokenId = nftConfig.tokenId;
+    this.tokenId = nftConfig.tokenId || 0;
     this.nftLink = `${chain}://${nftConfig.contractAddress}/${nftConfig.tokenId}`;
     if (nftConfig.color) {
       this.color = Color3.FromHexString(nftConfig.color);
     }
-    this.style = nftConfig.style;
+    this.style = nftConfig.style || PictureFrameStyle.Classic;
 
     [...this.instanceIds].forEach((instanceId: string) => {
       const instance = nftInstances[instanceId];
-      const newShape = new NFTShape(this.nftLink, { color: this.color, style: this.style });
+      const newShape = new NFTShape(this.nftLink, {
+        color: this.color,
+        style: this.style,
+      });
       newShape.withCollisions = instance.withCollisions;
       instance.addComponentOrReplace(newShape);
     });
   };
 
-  getChainName: CallableFunction = (chain) => {
+  getChainName: CallableFunction = (chain: number | string) => {
     switch (Number(chain)) {
       case 1:
         return "ethereum";
@@ -136,7 +144,9 @@ export class StoredNFTConfig extends StoredEntityConfig {
   };
 
   deleteInstance: CallableFunction = (instanceId: string) => {
-    this.instanceIds = this.instanceIds.filter((id: string) => id !== instanceId);
+    this.instanceIds = this.instanceIds.filter(
+      (id: string) => id !== instanceId
+    );
     nftInstances[instanceId].delete();
   };
 
@@ -149,15 +159,22 @@ export class StoredNFTConfig extends StoredEntityConfig {
   };
 }
 
-export class StoredNFTInstance extends StoredEntityInstance implements ITransform {
+export class StoredNFTInstance
+  extends StoredEntityInstance
+  implements ITransform
+{
   id: string;
   configId: string;
-  parent: string;
+  parent?: string;
   show: boolean;
   position: TTransform;
   scale: TTransform;
   rotation: TTransform;
-  modifiedTransform: { position: TTransform; scale: TTransform; rotation: TTransform };
+  modifiedTransform: {
+    position: TTransform;
+    scale: TTransform;
+    rotation: TTransform;
+  };
   withCollisions: boolean;
   config: StoredNFTConfig;
 
@@ -173,9 +190,17 @@ export class StoredNFTInstance extends StoredEntityInstance implements ITransfor
     this.position = _instance.position;
     this.scale = _instance.scale;
     this.rotation = _instance.rotation;
+    this.modifiedTransform = {
+      position: this.position,
+      scale: this.scale,
+      rotation: this.rotation,
+    };
     this.configId = _config.id;
     this.show = _instance.show;
-    _config.withCollisions = typeof _instance.withCollisions === "boolean" ? _instance.withCollisions : _config.withCollisions;
+    this.withCollisions =
+      typeof _instance.withCollisions === "boolean"
+        ? _instance.withCollisions
+        : _config.withCollisions;
     this.addComponent(shape);
     this.updateTransform(this.position, this.scale, this.rotation);
 
@@ -220,30 +245,45 @@ export class StoredNFTInstance extends StoredEntityInstance implements ITransfor
     this.customId = customId;
   };
 
-  updateTransform: CallableFunction = (position?: TTransform, scale?: TTransform, rotation?: TTransform) => {
+  updateTransform: CallableFunction = (
+    position: TTransform,
+    scale: TTransform,
+    rotation: TTransform
+  ) => {
     this.addComponentOrReplace(
       new Transform({
         position: new Vector3(position.x, position.y, position.z),
         scale: new Vector3(scale.x, scale.y, scale.z),
-        rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z)
+        rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z),
       })
     );
   };
 
   updateCollider: CallableFunction = (withCollisions: boolean) => {
     this.withCollisions = withCollisions;
-    const newShape = new NFTShape(this.config.nftLink, { color: this.config.color, style: this.config.style });
+    const newShape = new NFTShape(this.config.nftLink, {
+      color: this.config.color,
+      style: this.config.style,
+    });
     newShape.withCollisions = this.withCollisions;
     nftConfigs[this.configId].withCollisions = this.withCollisions;
     this.addComponentOrReplace(newShape);
   };
 
-  applyCustomTransforms: CallableFunction = (originalPosition: TTransform, originalScale: TTransform, originalRotation: TTransform) => {
+  applyCustomTransforms: CallableFunction = (
+    originalPosition: TTransform,
+    originalScale: TTransform,
+    originalRotation: TTransform
+  ) => {
     this.position = originalPosition || this.position;
     this.scale = originalScale || this.scale;
     this.rotation = originalRotation || this.rotation;
 
-    this.modifiedTransform = { position: { ...this.position }, scale: { ...this.scale }, rotation: { ...this.rotation } };
+    this.modifiedTransform = {
+      position: { ...this.position },
+      scale: { ...this.scale },
+      rotation: { ...this.rotation },
+    };
 
     if (sdkImagesAreFlipped) {
       this.modifiedTransform.rotation[sdkImageFlippedDimension] += 180;

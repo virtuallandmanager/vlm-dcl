@@ -1,97 +1,11 @@
-import { getParcel } from "@decentraland/ParcelIdentity";
-import { TWebSocketMessage } from "./types/WebSocketMessage";
-import { VLMInterval } from "./components/interval";
-import { createAudioStream, deleteAudioStream, updateAudioStream } from "./audio";
-import { createDialog, deleteDialog, updateDialog } from "./dialogs";
-import { createImage, updateImage, updateImageInstance, createImageInstance, deleteImage, deleteImageInstance } from "./images";
-import { createNft, createNftInstance, deleteNft, deleteNftInstance, updateNft, updateNftInstance } from "./nfts";
-import { createVideoScreen, updateVideoScreen, updateVideoInstance, createVideoInstance, deleteVideoScreen, deleteVideoInstance } from "./videos";
-import { updateCustomization, deleteCustomization } from "./custom";
-import { updateSceneData, updateSceneFeatures } from "./sceneData";
-import { updateModeration } from "./moderation";
+import { VLMAudioStreams, VLMCustomizations, VLMDialogs, VLMImages, VLMNFTFrames, VLMVideoScreens } from "./controllers";
 import { initScene } from "./init";
-import { checkPreviewMode, isPreview, runLocalServer, runStagingServer } from "./environment";
+import { updateSceneData, updateSceneFeatures } from "./sceneData";
+import { TWebSocketMessage } from "./types/WebSocketMessage";
 
-export let sceneDataUrl = "wss://api.dcl-vlm.io/wss/";
-
-let initialized;
-let socketConnector;
-let connecting = false;
-let connected = false;
-
-const reconnect = () => {
-  connecting = false;
-  connected = false;
-  socketConnector = new Entity();
-  engine.addEntity(socketConnector);
-  socketConnector.addComponent(
-    new VLMInterval(10000, async () => {
-      if (connecting && socketConnector.getComponentOrNull(VLMInterval)) {
-        socketConnector.removeComponent(VLMInterval);
-        return;
-      }
-      log("Attempting to reconnect to websocket");
-      await connectCMS();
-    })
-  );
-};
-
-export const connectCMS = async () => {
-  const connectPromise = new Promise(async (resolve, reject) => {
-    connecting = true;
-    const parcel = await getParcel();
-    const baseParcel = parcel.land.sceneJsonData.scene.base;
-
-    await checkPreviewMode();
-
-    if (runLocalServer && isPreview) {
-      sceneDataUrl = "ws://localhost:3000";
-    } else if (runStagingServer && isPreview) {
-      sceneDataUrl = "wss://staging-api.dcl-vlm.io/wss/";
-    }
-
-    let socket = await new WebSocket(sceneDataUrl + `?scene=${baseParcel}`);
-
-    if (!socket) {
-      reconnect();
-      return;
-    }
-
-    socket.onopen = (ev) => {
-      log("connected to web socket");
-      connected = true;
-      connecting = false;
-      socket.send(JSON.stringify({ action: "init" }));
-
-      if (socketConnector) {
-        socketConnector.removeComponent(VLMInterval);
-        engine.removeEntity(socketConnector);
-      }
-
-      let socketdelay = new Entity();
-      engine.addEntity(socketdelay);
-      socketdelay.addComponent(
-        new VLMInterval(10000, () => {
-          if (socketdelay.getComponentOrNull(VLMInterval) && (!connected || connecting)) {
-            socketdelay.removeComponent(VLMInterval);
-            engine.removeEntity(socketdelay);
-            return;
-          }
-          log("Pinging web socket...");
-          socket.send(JSON.stringify({ command: "ping" }));
-        })
-      );
-    };
-
-    socket.onclose = (event) => {
-      log("socket closed");
-      reconnect();
-    };
-
-    socket.onmessage = (event) => {
-      // log(`VLM-DEBUG: socket event | `, event);
-      const message: TWebSocketMessage = JSON.parse(event.data);
-      // log(`VLM-DEBUG: received message to ${message.action} ${message.entity || ""} ${message.property || ""}`);
+export abstract class MessageRouter {
+   
+  onMessage: CallableFunction = (message: TWebSocketMessage) => {
 
       if (!message.sceneData && !message.entityData) {
         return;
@@ -102,11 +16,7 @@ export const connectCMS = async () => {
 
       switch (message.action) {
         case "init":
-          if (!initialized) {
             initScene(message);
-          }
-          initialized = true;
-          resolve();
           break;
         case "create":
           createEntity(message);
@@ -118,36 +28,35 @@ export const connectCMS = async () => {
           deleteEntity(message);
           break;
       }
-    };
-  });
-  return connectPromise;
+
+};
 };
 
 const createEntity = (message: any) => {
   switch (message.entity) {
     case "image":
-      createImage(message.entityData);
+      VLMImages.create(message.entityData);
       break;
     case "imageInstance":
-      createImageInstance(message.entityData, message.instanceData);
+      VLMImages.createInstance(message.entityData, message.instanceData);
       break;
     case "nft":
-      createNft(message.entityData);
+      VLMNFTFrames.create(message.entityData);
       break;
     case "nftInstance":
-      createNftInstance(message.entityData, message.instanceData);
+      VLMNFTFrames.createInstance(message.entityData, message.instanceData);
       break;
     case "video":
-      createVideoScreen(message.entityData);
+      VLMVideoScreens.create(message.entityData);
       break;
     case "videoInstance":
-      createVideoInstance(message.entityData, message.instanceData);
+      VLMVideoScreens.createInstance(message.entityData, message.instanceData);
       break;
     case "audioStream":
-      createAudioStream(message.entityData);
+      VLMAudioStreams.create(message.entityData);
       break;
     case "dialog":
-      createDialog(message.entityData);
+      VLMDialogs.create(message.entityData);
       break;
   }
 };
@@ -155,34 +64,34 @@ const createEntity = (message: any) => {
 const updateEntity = (message: any) => {
   switch (message.entity) {
     case "image":
-      updateImage(message.entityData, message.property, message.id);
+      VLMImages.update(message.entityData, message.property, message.id);
       break;
     case "imageInstance":
-      updateImageInstance(message.instanceData, message.property, message.id);
+      VLMImages.updateInstance(message.instanceData, message.property, message.id);
       break;
     case "nft":
-      updateNft(message.entityData, message.property, message.id);
+      VLMNFTFrames.update(message.entityData, message.property, message.id);
       break;
     case "nftInstance":
-      updateNftInstance(message.instanceData, message.property, message.id);
+      VLMNFTFrames.updateInstance(message.instanceData, message.property, message.id);
       break;
     case "video":
-      updateVideoScreen(message.entityData, message.property, message.id);
+      VLMVideoScreens.update(message.entityData, message.property, message.id);
       break;
     case "videoInstance":
-      updateVideoInstance(message.instanceData, message.property, message.id);
+      VLMVideoScreens.updateInstance(message.instanceData, message.property, message.id);
       break;
     case "audioStream":
-      updateAudioStream(message.entityData, message.property, message.id);
+      VLMAudioStreams.update(message.entityData, message.property, message.id);
       break;
     case "dialog":
-      updateDialog(message.entityData, message.property, message.id);
+      VLMDialogs.update(message.entityData, message.property, message.id);
       break;
     case "moderation":
-      updateModeration();
+      // updateModeration();
       break;
     case "customization":
-      updateCustomization(message.customizationData, message.id);
+      VLMCustomizations.update(message.customizationData, message.id);
       break;
   }
 };
@@ -191,31 +100,31 @@ const deleteEntity = (message: any) => {
   log("remove entity message", message);
   switch (message.entity) {
     case "image":
-      deleteImage(message.id);
+      VLMImages.delete(message.id);
       break;
     case "imageInstance":
-      deleteImageInstance(message.id);
+      VLMImages.deleteInstance(message.id);
       break;
     case "nft":
-      deleteNft(message.id);
+      VLMNFTFrames.delete(message.id);
       break;
     case "nftInstance":
-      deleteNftInstance(message.id);
+      VLMNFTFrames.deleteInstance(message.id);
       break;
     case "video":
-      deleteVideoScreen(message.id);
+      VLMVideoScreens.delete(message.id);
       break;
     case "videoInstance":
-      deleteVideoInstance(message.id);
+      VLMVideoScreens.deleteInstance(message.id);
       break;
     case "audioStream":
-      deleteAudioStream(message.id);
+      VLMAudioStreams.delete(message.id);
       break;
     case "dialog":
-      deleteDialog(message.id);
+      VLMDialogs.delete(message.id);
       break;
     case "customization":
-      deleteCustomization(message.id);
+      VLMCustomizations.delete(message.id);
       break;
   }
 };

@@ -2,7 +2,7 @@ import { SceneData, SceneFeatures } from "./classes/SceneData";
 import { TSceneData, TSceneFeatures } from "./types/SceneData";
 
 export let sceneData: TSceneData = new SceneData();
-export let sceneFeatures: TSceneFeatures = new SceneFeatures();
+export let sceneFeatures: SceneFeatures = new SceneFeatures();
 
 export const updateSceneData = (sceneDataConfig: TSceneData) => {
   sceneData = sceneDataConfig;
@@ -12,7 +12,5 @@ export const updateSceneFeatures = (sceneFeaturesConfig: TSceneFeatures) => {
   if (!sceneFeaturesConfig) {
     return;
   }
-  Object.keys(sceneFeaturesConfig).forEach((feature: string) => {
-    sceneFeatures[feature] = sceneFeaturesConfig[feature];
-  });
+  sceneFeatures = new SceneFeatures(sceneFeaturesConfig);
 };

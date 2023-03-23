@@ -1,25 +1,14 @@
-import { initAnalytics } from "./analytics";
-import { initModeration } from "./moderation";
-import { initImages } from "./images";
-import { initVideoScreens } from "./videos";
-import { initNfts } from "./nfts";
-// import { initDialogs } from "./dialogs";
-import { setCustomizationState } from "./custom";
+import { VLMNFTFrames, VLMImages, VLMVideoScreens, VLMCustomizations } from "./controllers";
+import { TWebSocketMessage } from "./types/WebSocketMessage";
 
-export const initScene = (message: any) => {
-  if (message.features.analytics) {
-    initAnalytics();
-  }
-  if (message.features.moderation) {
-    initModeration();
-  }
+export const initScene = (message: TWebSocketMessage) => {
   if (message.features.entityPlacement) {
-    initImages(message.sceneData.images);
-    initVideoScreens(message.sceneData.videoScreens);
-    initNfts(message.sceneData.nfts);
+    VLMImages.init(message.sceneData.images);
+    VLMVideoScreens.init(message.sceneData.videoScreens);
+    VLMNFTFrames.init(message.sceneData.nfts);
   }
   if (message.features.customizations) {
-    setCustomizationState(message.sceneData.customizations);
+    VLMCustomizations.setState(message.sceneData.customizations);
   }
   // TODO: Implement dialog feature
   // if (features.dialogs) {
