@@ -20,7 +20,7 @@
   2df06fc || improve pinging/reconnecting to websocket || Author:=
 
 07-November-2022
-  f868a75 || fix bug where nonexistant customizations will break the scene || Author:=
+  f868a75 || fix bug where nonexistant widgets will break the scene || Author:=
 
 05-November-2022
   42447ae || bug fixes || Author:=
@@ -78,7 +78,7 @@
   272dc19 || export initScene || Author:=
 
 14-July-2022
-  5ed19a6 || add customizations || Author:=
+  5ed19a6 || add widgets || Author:=
 
 01-July-2022
   0978b1b || 0.0.2 || Author:=

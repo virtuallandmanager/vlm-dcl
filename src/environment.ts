@@ -1,21 +1,21 @@
 import { isPreviewMode } from "@decentraland/EnvironmentAPI";
 
-export abstract class AppEnvironment {
+export abstract class VLMEnvironment {
   static devMode: boolean;
-  private static wssUrls = {
+  private static wssUrls: { [env: string]: string } = {
     dev: "ws://localhost:3010",
-    staging: "wss://staging-api.dcl-vlm.io",
-    prod: "wss://api.dcl-vlm.io",
+    staging: "wss://staging-api.vlm.gg",
+    production: "wss://api.vlm.gg",
   };
 
-  private static apiUrls = {
+  private static apiUrls: { [env: string]: string } = {
     dev: "http://localhost:3010",
-    staging: "https://staging-api.dcl-vlm.io",
-    prod: "https://api.dcl-vlm.io",
+    staging: "https://staging-api.vlm.gg",
+    prod: "https://api.vlm.gg",
   };
 
-  static apiUrl: string = "https://api.dcl-vlm.io";
-  static wssUrl: string = "wss://api.dcl-vlm.io";
+  static apiUrl: string = "https://api.vlm.gg";
+  static wssUrl: string = "wss://api.vlm.gg";
 
   static init: CallableFunction = async (env: string) => {
     this.devMode = await isPreviewMode();
@@ -26,7 +26,6 @@ export abstract class AppEnvironment {
     log(`VLM: Initializing ${env} environment`);
     this.wssUrl = this.wssUrls[env];
     log("VLM: WebSocket Server set to " + this.wssUrl);
-    log(env)
     this.apiUrl = this.apiUrls[env];
     log("VLM: HTTPS Server set to " + this.apiUrl);
   };

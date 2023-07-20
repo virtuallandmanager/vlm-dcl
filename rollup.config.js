@@ -1,10 +1,11 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
+import { apiExtractor } from "rollup-plugin-api-extractor";
 import { terser } from 'rollup-plugin-terser';
+import packageJson from './package.json';
 
-const packageJson = require('./package.json');
-const PROD = !!process.env.CI
+const PROD = !!process.env.CI;
 
 export default {
   input: 'src/index.ts',
@@ -13,7 +14,6 @@ export default {
   output: [
     {
       file: packageJson.main,
-      sourcemap: true,
       format: 'amd',
       amd: {
         id: packageJson.name
@@ -25,11 +25,35 @@ export default {
       preferBuiltins: false,
       browser: true
     }),
-    typescript({ tsconfig: './tsconfig.json' }),
+    typescript({
+      tsconfig: './tsconfig.json',
+      sourceMap: false,
+      compilerOptions: {
+        sourceMap: false,
+        inlineSourceMap: false,
+        inlineSources: false
+      },
+    }),
     commonjs({
       exclude: 'node_modules',
       ignoreGlobal: true,
     }),
-    PROD && terser({ format: { comments: false } }),
+    terser({ format: { comments: false } }),
+    apiExtractor({
+      configFile: './api-extractor.json',
+      configuration: {
+        projectFolder: '.',
+        compiler: {
+          tsconfigFilePath: "<projectFolder>/tsconfig.json",
+        },
+      },
+      local: !PROD,
+      cleanUpRollup: false
+    })
   ],
+  onwarn: function(warning, rollupWarn) {
+    if (warning.code !== 'CIRCULAR_DEPENDENCY') {
+      rollupWarn(warning);
+    }
+  }
 };
