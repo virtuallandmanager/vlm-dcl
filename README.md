@@ -1,13 +1,5 @@
 ## Virtual Land Manager for Decentraland SDK 6
 
-
-
-## Publish
-
-See [Create Libraries](https://docs.decentraland.org/development-guide/create-libraries/) for tips on how to design and develop your library, and for simple instructions for publishing it to NPM.
-
-Below is a template to help you craft documentation for your library, so others know how to use it.
-
 # Documentation
 
 Visit [vlm.gg/docs](https://www.vlm.gg/docs) for instructions on creating a scene in VLM and connecting it to your build in Decentraland (coming soon)
