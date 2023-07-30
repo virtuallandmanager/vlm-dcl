@@ -1,4 +1,4 @@
-import { VLMBase } from "src/components/VLMBaseConfig.component";
+import { VLMBase } from "../components/VLMBaseConfig.component";
 
 export const getEntityByName = (name: string) =>
   Object.keys(engine.entities)

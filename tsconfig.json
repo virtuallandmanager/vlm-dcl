@@ -1,18 +1,15 @@
 {
-  "include": ["src"],
-  "exclude": ["dist"],
   "compilerOptions": {
-    "module": "ESNext",
-    "declaration": true,
-    "declarationDir": "./types",
-    "declarationMap": true,
-    "noLib": false,
     "allowJs": true,
+    "strict": true,
+    "noLib": false,
     "paths": {
-      "colyseus.js": ["node_modules\\colyseus.js\\lib\\index.d.ts", "node_modules\\colyseus.js\\dist\\colyseus.d.ts"],
-      "@colyseus/schema": ["node_modules\\@colyseus\\schema"]
+      "colyseus.js": ["node_modules\\colyseus.js\\dist\\colyseus.d.ts"]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "moduleResolution": "node"
   },
-  "extends": "./node_modules/decentraland-ecs/types/tsconfig.json"
+  "include": ["src/**/*.ts"],
+  "extends": "./node_modules/decentraland-ecs/types/tsconfig.json",
+  "compileOnSave": false
 }

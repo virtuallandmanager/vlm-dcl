@@ -9,7 +9,6 @@ export interface Transformable {
   position: SimpleTransform;
   scale: SimpleTransform;
   rotation: SimpleTransform;
-  updateTransform: CallableFunction;
   updateParent: CallableFunction;
 }
 

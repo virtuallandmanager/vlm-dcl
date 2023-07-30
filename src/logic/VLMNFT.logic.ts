@@ -1,4 +1,4 @@
-import { VLMNFT } from "src/components/VLMNFT.component";
+import { VLMNFT } from "../components/VLMNFT.component";
 
 export abstract class VLMNFTManager {
   static configs: { [uuid: string]: VLMNFT.DCLConfig } = {};

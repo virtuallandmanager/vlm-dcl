@@ -1,8 +1,8 @@
-import { sdkImagesAreFlipped, sdkVideosAreFlipped } from "src/shared/defaults";
+import { sdkImagesAreFlipped, sdkVideosAreFlipped } from "../shared/defaults";
 import { getEntityByName } from "../shared/entity";
 import { VLMBase } from "./VLMBaseConfig.component";
 import { VLMClickEvent } from "./VLMClickEvent.component";
-import { Audible, Emissive, HasHybridTexture, HasPlaylist, Playable, SimpleTransform, Transformable } from "src/shared/interfaces";
+import { Audible, Emissive, HasHybridTexture, HasPlaylist, Playable, SimpleTransform, Transformable } from "../shared/interfaces";
 
 export namespace VLMVideo {
   export const configs: { [uuid: string]: DCLConfig } = {};
@@ -39,7 +39,7 @@ export namespace VLMVideo {
     imageTexture?: Texture;
     albedoTexture?: VideoTexture | Texture;
     emissiveTexture?: VideoTexture | Texture;
-    liveLink?: string;
+    liveLink: string = "";
     playlist: string[];
     playlistIndex: number = 0;
     isLive: boolean = false;
@@ -49,7 +49,7 @@ export namespace VLMVideo {
     videoClipId?: string;
     emissiveIntensity: number;
     offType: SourceTypes;
-    offImageSrc?: string;
+    offImageSrc: string = "";
 
     constructor(config: VLMConfig) {
       super(config);
@@ -277,8 +277,14 @@ export namespace VLMVideo {
   }
 
   export class VLMConfig extends DCLConfig {
-    instances?: VLMInstanceConfig[];
+    instances: VLMInstanceConfig[];
     emission?: number;
+
+    constructor(config: VLMConfig) {
+      super(config);
+      this.instances = config.instances;
+      this.emission = config.emission;
+    }
   }
 
   export class DCLInstanceConfig extends VLMBase.Instance implements Transformable {
@@ -338,6 +344,9 @@ export namespace VLMVideo {
     };
     flipUvs: CallableFunction = () => {
       const plane = this.getComponentOrNull(PlaneShape);
+      if (!plane) {
+        return;
+      }
       log("before flip uvs", plane.uvs);
       if (this.correctUvs) {
         plane.uvs = [0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1];

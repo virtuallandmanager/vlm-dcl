@@ -1,4 +1,4 @@
-import { VLMSound } from "src/components/VLMSound.component";
+import { VLMSound } from "../components/VLMSound.component";
 
 export abstract class VLMSoundManager {
   static init: CallableFunction = (sounds: VLMSound.VLMConfig[]) => {

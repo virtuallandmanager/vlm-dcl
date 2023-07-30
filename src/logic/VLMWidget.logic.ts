@@ -1,4 +1,4 @@
-import { VLMWidget } from "src/components/VLMWidget.component";
+import { VLMWidget } from "../components/VLMWidget.component";
 
 export abstract class VLMWidgetManager {
   static configs: {
@@ -68,7 +68,10 @@ export abstract class VLMWidgetManager {
       };
     }
     VLMWidgetManager.configs[widgetId].value = widget.value;
-    VLMWidgetManager.configs[widgetId].init(widget);
+
+    if (typeof VLMWidgetManager.configs[widgetId]?.init === "function") {
+      VLMWidgetManager.configs[widgetId].init!(widget);
+    }
   };
 
   static update: CallableFunction = (widget: VLMWidget.DCLConfig, widgetId: string) => {

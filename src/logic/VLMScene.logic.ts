@@ -1,4 +1,4 @@
-import { VLMSceneMessage } from "src/components/VLMSystemEvents.component";
+import { VLMSceneMessage } from "../components/VLMSystemEvents.component";
 import { VLMGiveaway } from "../components/VLMGiveaway.component";
 import { VLMImage } from "../components/VLMImage.component";
 import { VLMNFT } from "../components/VLMNFT.component";
@@ -17,12 +17,7 @@ export type VLMSceneElementInstance = VLMGiveaway.ClaimPoint | VLMImage.VLMInsta
 export abstract class VLMSceneManager {
   static sceneId: string;
   static store: { [uuid: string]: VLMSceneElement } = {};
-  static scenePreset: VLMScene.Preset = new VLMScene.Preset();
-
-  static update: CallableFunction = (property: string, id: string, value: any) => {
-    const index = VLMSceneManager[property].findIndex((item: VLMSceneElement) => item.sk == id);
-    VLMSceneManager[property][index] = value;
-  };
+  static scenePreset: VLMScene.Preset;
 
   static initScenePreset: CallableFunction = (message: VLMSceneMessage) => {
     try {
@@ -120,6 +115,7 @@ export abstract class VLMSceneManager {
 
   static updateSceneSetting: CallableFunction = (message: VLMSceneMessage) => {
     try {
+      if (message.settingsData === undefined) return;
       switch (message.settings) {
         case "moderation":
           VLMModerationManager.updateSettings(message.settingsData);

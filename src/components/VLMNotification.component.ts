@@ -3,7 +3,7 @@ export namespace VLMNotification {
   export class Message extends UIText {
     vAlign: string = "center";
     hAlign: string = "center";
-    fontSize: number;
+    fontSize: number = 16;
     color: Color4 = Color4.White();
     outlineColor: Color4 = Color4.Black();
     outlineWidth: number = 0.125;
@@ -20,7 +20,7 @@ export namespace VLMNotification {
       const color = _messageOptions.color,
         fontSize = _messageOptions.fontSize;
       this.value = _value;
-      this.fontSize = fontSize || 16;
+      this.fontSize = fontSize || this.fontSize;
       if (!color) {
         return;
       }

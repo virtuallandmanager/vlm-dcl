@@ -1,14 +1,14 @@
-import { VLMPathClientEvent, VLMPathServerEvent, VLMSceneMessage, VLMSessionAction, VLMSessionEvent, VLMSoundStateEvent, VLMVideoStatusEvent, VLMWitnessedAction } from "src/components/VLMSystemEvents.component";
+import { VLMPathClientEvent, VLMPathServerEvent, VLMSceneMessage, VLMSessionAction, VLMSessionEvent, VLMSoundStateEvent, VLMVideoStatusEvent, VLMWitnessedAction } from "../components/VLMSystemEvents.component";
 import { VLMEventManager } from "./VLMSystemEvents.logic";
 import { Room } from "colyseus.js";
 import { VLMSceneManager } from "./VLMScene.logic";
-import { VLMSession } from "src/components/VLMSession.component";
+import { VLMSession } from "../components/VLMSession.component";
 import { getPlayerData, getPlayersInScene } from "@decentraland/Players";
-import { VLMTimer } from "src/components/VLMTimer.component";
+import { VLMTimer } from "../components/VLMTimer.component";
 import { VLMPathManager } from "./VLMPath.logic";
 import { VLMSessionManager, VLMSoundManager } from "./index";
-import { VLMVideo } from "src/components/VLMVideo.component";
-import { VLMSound } from "src/components/VLMSound.component";
+import { VLMVideo } from "../components/VLMVideo.component";
+import { VLMSound } from "../components/VLMSound.component";
 
 export abstract class VLMEventListeners {
   static sceneRoom: Room;
@@ -28,9 +28,9 @@ export abstract class VLMEventListeners {
 
     VLMEventManager.events.addListener(VLMSoundStateEvent, null, ({ elementData, userId }) => {
       const id = elementData.sk;
-      log(userId, this.sessionUser, id, VLMSound.configs[id])
+      log(userId, this.sessionUser, id, VLMSound.configs[id]);
       // if (userId == this.sessionUser) {
-        VLMSound.configs[id].toggleLocators()
+      VLMSound.configs[id].toggleLocators();
       // }
     });
 
@@ -125,7 +125,7 @@ export abstract class VLMEventListeners {
         let otherPlayers = await getPlayersInScene();
         log("VLM | SESSION ACTION: Witnessed Connection", userId);
 
-        VLMEventManager.events.fireEvent(new VLMWitnessedAction(`Witnessed ${user.displayName || "Someone"} Connect`, { userId, otherPlayers }));
+        VLMEventManager.events.fireEvent(new VLMWitnessedAction(`Witnessed ${user?.displayName || "Someone"} Connect`, { userId, otherPlayers }));
       }
     });
 
@@ -135,7 +135,7 @@ export abstract class VLMEventListeners {
         let user = await getPlayerData({ userId });
 
         log("VLM | SESSION ACTION: Witnessed Disconnection", userId);
-        VLMEventManager.events.fireEvent(new VLMWitnessedAction(`Witnessed ${user.displayName || "Someone"} Disconnect`, { userId, otherPlayers }));
+        VLMEventManager.events.fireEvent(new VLMWitnessedAction(`Witnessed ${user?.displayName || "Someone"} Disconnect`, { userId, otherPlayers }));
       }
     });
 
@@ -150,7 +150,7 @@ export abstract class VLMEventListeners {
       } else if (VLMPathManager.moving || VLMPathManager.engaged) {
         log("VLM | SESSION ACTION: Witnessed Player Enter Scene Boundaries", userId);
         let user = await getPlayerData({ userId });
-        VLMEventManager.events.fireEvent(new VLMSessionAction(`Witnessed ${user.displayName || "Someone"} Enter Scene`, { userId, otherPlayers, witness: this.sessionUser.connectedWallet }));
+        VLMEventManager.events.fireEvent(new VLMSessionAction(`Witnessed ${user?.displayName || "Someone"} Enter Scene`, { userId, otherPlayers, witness: this.sessionUser.connectedWallet }));
       }
     });
 
@@ -165,7 +165,7 @@ export abstract class VLMEventListeners {
       } else if (VLMPathManager.moving || VLMPathManager.engaged) {
         log("VLM | SESSION ACTION: Witnessed Player Leave Scene Boundaries", userId);
         let user = await getPlayerData({ userId });
-        VLMEventManager.events.fireEvent(new VLMSessionAction(`Witnessed ${user.displayName || "Someone"} Leave Scene`, { userId, otherPlayers, witness: this.sessionUser.connectedWallet }));
+        VLMEventManager.events.fireEvent(new VLMSessionAction(`Witnessed ${user?.displayName || "Someone"} Leave Scene`, { userId, otherPlayers, witness: this.sessionUser.connectedWallet }));
       }
     });
 
@@ -192,7 +192,7 @@ export abstract class VLMEventListeners {
         case "path_started":
           log("VLM: Started new path");
           const pathIds = this.sessionData.paths;
-          if (message.pathId && pathIds.indexOf(message.pathId) < 0) {
+          if (message.pathId && pathIds && pathIds.indexOf(message.pathId) < 0) {
             pathIds.push(message.pathId);
           }
           VLMPathManager.pathId = message.pathId;
@@ -225,7 +225,11 @@ export abstract class VLMEventListeners {
     });
 
     VLMEventManager.events.addListener(VLMVideoStatusEvent, null, (message: VLMVideoStatusEvent) => {
-      const videoConfig = VLMVideo.configs[message.sk];
+      const videoId = message.sk;
+      if (!videoId) {
+        return;
+      }
+      const videoConfig = VLMVideo.configs[videoId];
 
       if (videoConfig?.liveLink == message.url) {
         log("VLM: Received Video Status Update", message);
@@ -235,7 +239,7 @@ export abstract class VLMEventListeners {
       }
     });
 
-    this.sceneRoom.onLeave((message) => {
+    this.sceneRoom.onLeave(() => {
       VLMPathManager.endPath();
     });
 
@@ -262,7 +266,7 @@ export abstract class VLMEventListeners {
     });
 
     this.sceneRoom.onMessage("scene_sound_locator", (message: VLMSoundStateEvent) => {
-      log('got message', message)
+      log("got message", message);
       VLMEventManager.events.fireEvent(new VLMSoundStateEvent(message));
     });
 

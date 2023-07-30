@@ -1,7 +1,7 @@
 import { PositionType, movePlayerTo } from "@decentraland/RestrictedActions";
 import { VLMBase } from "./VLMBaseConfig.component";
 import { VLMSessionAction } from "./VLMSystemEvents.component";
-import { VLMSessionManager } from "src/logic/VLMSession.logic";
+import { VLMSessionManager } from "../logic/VLMSession.logic";
 
 export namespace VLMClickEvent {
   export enum Actions {
@@ -25,7 +25,7 @@ export namespace VLMClickEvent {
     hasTracking?: boolean;
     trackingId?: string;
     synced?: boolean;
-    pointerDownEvent: OnPointerDown;
+    pointerDownEvent: OnPointerDown = new OnPointerDown(() => {}, { hoverText: "", showFeedback: false });
 
     constructor(config: DCLConfig, clickable: VLMBase.Instance & IsClickable) {
       this.type = config.type || Actions.NONE;
@@ -44,8 +44,7 @@ export namespace VLMClickEvent {
       let id = clickable.sk,
         customId = clickable.customId,
         showFeedback = config.showFeedback,
-        hoverText = config.hoverText,
-        pointerDownEvent;
+        hoverText = config.hoverText;
 
       if (!clickEvent || !clickable) {
         return;
@@ -90,11 +89,10 @@ export namespace VLMClickEvent {
         case Actions.MOVE: // move player
           this.pointerDownEvent = new OnPointerDown(
             () => {
-              if (!clickEvent.moveTo) {
-                return;
+              if (clickEvent.moveTo) {
+                movePlayerTo(clickEvent.moveTo.position, clickEvent.moveTo.setCameraTarget ? clickEvent.moveTo.cameraTarget : undefined);
+                this.trackClickEvent(clickEvent, `click-event-(move-player)-${customId || id}`);
               }
-              movePlayerTo(clickEvent.moveTo.position, clickEvent.moveTo.setCameraTarget ? clickEvent.moveTo.cameraTarget : undefined);
-              this.trackClickEvent(clickEvent, `click-event-(move-player)-${customId || id}`);
             },
             { showFeedback, hoverText }
           );
@@ -111,8 +109,6 @@ export namespace VLMClickEvent {
           );
           break;
       }
-
-      return pointerDownEvent;
     }
 
     trackClickEvent: CallableFunction = (clickEvent: DCLConfig, id: string) => {

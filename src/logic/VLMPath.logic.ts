@@ -1,7 +1,7 @@
 import { PositionType } from "@decentraland/RestrictedActions";
 import { Room } from "colyseus.js";
-import { VLMSession } from "src/components/VLMSession.component";
-import { VLMPathClientEvent, VLMPathServerEvent } from "src/components/VLMSystemEvents.component";
+import { VLMSession } from "../components/VLMSession.component";
+import { VLMPathClientEvent, VLMPathServerEvent } from "../components/VLMSystemEvents.component";
 import { VLMSessionManager } from "./VLMSession.logic";
 import { VLMEventManager } from "./VLMSystemEvents.logic";
 
@@ -23,7 +23,7 @@ export type PathPoint = [number, number, number, number, number, number, number,
 // [O, Px, Py, Pz, Rx, Ry, Rz, V]
 
 export abstract class VLMPathManager implements ISystem {
-  static motionButtonsPressed: { w: boolean; a: boolean; s: boolean; d: boolean; shift: boolean } = { w: false, a: false, s: false, d: false, shift: false };
+  static motionButtonsPressed: { w: boolean; a: boolean; s: boolean; d: boolean; shift: boolean; [id: string]: boolean } = { w: false, a: false, s: false, d: false, shift: false };
   static moving: boolean = hasTruthyProperty((({ shift, ...data }) => data)(this.motionButtonsPressed));
   static walking: boolean = this.motionButtonsPressed.shift && this.moving;
   static running: boolean = !this.motionButtonsPressed.shift && this.moving;
@@ -32,7 +32,7 @@ export abstract class VLMPathManager implements ISystem {
   static pathId?: string;
   static sceneRoom: Room;
   static sessionData: VLMSession.Config;
-  static pathSegments?: VLMSession.Path.Segment[] = [{ type: VLMSession.Path.SegmentType.LOADING, path: [] }];
+  static pathSegments: VLMSession.Path.Segment[] = [{ type: VLMSession.Path.SegmentType.LOADING, path: [] }];
   static pov: 0 | 1 | 2 = 2;
   static started: boolean = false;
   static finished: boolean = false;
@@ -77,12 +77,12 @@ export abstract class VLMPathManager implements ISystem {
       return;
     }
     try {
-      const thousandPointPaths = this.pathSegments.some((segment) => segment.path.length >= 1000);
+      const thousandPointPaths = this.pathSegments.some((segment) => segment?.path && segment.path.length >= 1000);
       const isFirstSegment = this.pathSegments[0].type == VLMSession.Path.SegmentType.LOADING;
       const latestSegment = this.pathSegments[0];
       const lastSegment = this.pathSegments[1];
       const latestSegmentStart = isFirstSegment ? this.sessionData.sessionStart : this.pathSegments[0].path[0][0];
-      const debounced = Date.now() - latestSegmentStart;
+      const debounced = Date.now() - (latestSegmentStart || 0);
 
       if (isFirstSegment) {
         this.initMovement();
@@ -90,7 +90,7 @@ export abstract class VLMPathManager implements ISystem {
       }
 
       // make a stationary segment into a movement segment if the user moves within the first second of changing to stationary
-      if (debounced < 2500 && segmentType && segmentType >= VLMSession.Path.SegmentType.RUNNING_DISENGAGED && lastSegment.type < VLMSession.Path.SegmentType.RUNNING_DISENGAGED) {
+      if (debounced < 2500 && segmentType && segmentType >= VLMSession.Path.SegmentType.RUNNING_DISENGAGED && lastSegment.type && lastSegment.type < VLMSession.Path.SegmentType.RUNNING_DISENGAGED) {
         latestSegment.type = segmentType;
         return;
       }
@@ -248,7 +248,7 @@ export abstract class VLMPathManager implements ISystem {
 
   static updateMovingState: CallableFunction = async (button?: string, pressed?: boolean) => {
     if (button) {
-      this.motionButtonsPressed[button] = pressed;
+      this.motionButtonsPressed[button] = !!pressed;
     }
     const isMoving = this.motionButtonsPressed.w || this.motionButtonsPressed.a || this.motionButtonsPressed.s || this.motionButtonsPressed.d,
       isWalking = this.motionButtonsPressed.shift && isMoving,

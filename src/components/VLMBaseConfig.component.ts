@@ -1,6 +1,6 @@
-import { getEntityByName } from "src/shared/entity";
+import { getEntityByName } from "../shared/entity";
 import { VLMClickEvent } from "./VLMClickEvent.component";
-import { SimpleTransform, Transformable } from "src/shared/interfaces";
+import { SimpleTransform, Transformable } from "../shared/interfaces";
 
 export namespace VLMBase {
   export class MaterialConfig extends Material {
@@ -33,11 +33,12 @@ export namespace VLMBase {
     clickEvent?: VLMClickEvent.DCLConfig;
     customRendering?: boolean;
 
-    constructor(config?: NFTConfig) {
+    constructor(config: NFTConfig) {
       const src = `ethereum://${config.contractAddress}/${config.tokenId}`;
       super(src);
       this.sk = config.sk;
       this.customId = config.customId;
+      this.name = config.name;
       this.parent = config.parent;
       this.enabled = config.enabled || true;
       this.clickEvent = config.clickEvent;
@@ -54,11 +55,12 @@ export namespace VLMBase {
     clickEvent?: VLMClickEvent.DCLConfig;
     customRendering?: boolean;
 
-    constructor(config?: AudioConfig) {
+    constructor(config: AudioConfig) {
       super(new AudioClip(""));
       this.sk = config.sk;
       this.customId = config.customId;
       this.parent = config.parent;
+      this.name = config.name;
       this.enabled = config.enabled || true;
       this.clickEvent = config.clickEvent;
     }
@@ -78,20 +80,21 @@ export namespace VLMBase {
     rotation: SimpleTransform;
     scale: SimpleTransform;
 
-    constructor(config?: MaterialConfig | AudioConfig, _instance?: Instance) {
-      const id = _instance.sk;
-      super(`${_instance.name} - ${id}`);
+    constructor(config: MaterialConfig | AudioConfig, instance: Instance) {
+      const id = instance.sk;
+      super(`${instance.name} - ${id}`);
       this.sk = id;
-      this.name = _instance.name;
-      this.enabled = config.enabled || _instance.enabled;
-      this.customId = _instance.customId;
-      this.clickEvent = _instance.clickEvent;
+      this.name = instance.name;
+      this.enabled = config.enabled || instance.enabled;
+      this.customId = instance.customId;
+      this.clickEvent = instance.clickEvent;
       this.defaultClickEvent = config.clickEvent;
-      this.customRendering = _instance.customRendering;
-      this.parent = _instance.parent;
-      this.position = _instance.position;
-      this.rotation = _instance.rotation;
-      this.scale = _instance.scale;
+      this.customRendering = instance.customRendering;
+      this.configId = instance.configId;
+      this.parent = instance.parent;
+      this.position = instance.position;
+      this.rotation = instance.rotation;
+      this.scale = instance.scale;
     }
 
     updateParent: CallableFunction = (parent: string) => {
@@ -102,16 +105,6 @@ export namespace VLMBase {
       } else {
         this.setParent(null);
       }
-    };
-
-    updateTransform: CallableFunction = (position?: SimpleTransform, scale?: SimpleTransform, rotation?: SimpleTransform) => {
-      this.addComponentOrReplace(
-        new Transform({
-          position: new Vector3(position.x, position.y, position.z),
-          scale: new Vector3(scale.x, scale.y, scale.z),
-          rotation: Quaternion.Euler(rotation.x, rotation.y, rotation.z),
-        })
-      );
     };
   }
 }

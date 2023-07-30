@@ -1,4 +1,4 @@
-import { VLMVideo } from "src/components/VLMVideo.component";
+import { VLMVideo } from "../components/VLMVideo.component";
 
 export abstract class VLMVideoManager {
   static init: CallableFunction = (videoScreens: VLMVideo.VLMConfig[]) => {
@@ -68,7 +68,7 @@ export abstract class VLMVideoManager {
         video.updateVolume(config.volume);
         break;
       case "emission":
-        video.emissiveIntensity = config.emission;
+        video.emissiveIntensity = config.emission || 0;
         break;
       case "offType":
         video.offType = config.offType;

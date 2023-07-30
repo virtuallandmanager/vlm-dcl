@@ -1,5 +1,3 @@
-import { getEntityByName } from "src/shared/entity";
-
 export namespace VLMModeration {
   export enum BanActions {
     WALL,
@@ -26,11 +24,11 @@ export namespace VLMModeration {
     banActions?: BanActions[];
     banWallType?: BanWallType;
 
-    constructor(config?: VLMConfig) {
+    constructor(config: VLMConfig) {
+      this.sk = config.sk || "";
       if (!config) {
         return;
       }
-      this.sk = config.sk;
       this.allowCertainWearables = config.allowCertainWearables || this.allowCertainWearables;
       this.banCertainWearables = config.banCertainWearables || this.banCertainWearables;
       this.allowCertainUsers = config.allowCertainUsers || this.allowCertainUsers;
