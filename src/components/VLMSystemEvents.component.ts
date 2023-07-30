@@ -119,7 +119,7 @@ export class VLMVideoStatusEvent {
 type ElementName = "image" | "video" | "nft" | "sound" | "widget";
 type Action = "init" | "create" | "update" | "delete" | "trigger";
 type Settings = "moderation";
-type Property = "enabled" | "liveLink" | "imageLink" | "nftData" | "enableLiveStream" | "playlist" | "volume" | "emission" | "offType" | "offImage" | "transform" | "collider" | "parent" | "customId" | "clickEvent" | "transparency";
+type Property = "enabled" | "liveLink" | "imageSrc" | "nftData" | "enableLiveStream" | "playlist" | "volume" | "emission" | "offType" | "offImage" | "transform" | "collider" | "parent" | "customId" | "clickEvent" | "transparency";
 
 @EventConstructor()
 export class VLMSceneMessage {

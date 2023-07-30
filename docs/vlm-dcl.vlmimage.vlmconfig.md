@@ -17,4 +17,5 @@ class VLMConfig extends DCLConfig
 |  --- | --- | --- | --- |
 |  [emission?](./vlm-dcl.vlmimage.vlmconfig.emission.md) |  | number | <i>(Optional)</i> |
 |  [instances?](./vlm-dcl.vlmimage.vlmconfig.instances.md) |  | [VLMInstanceConfig](./vlm-dcl.vlmimage.vlminstanceconfig.md)<!-- -->\[\] | <i>(Optional)</i> |
+|  [textureSrc?](./vlm-dcl.vlmimage.vlmconfig.texturesrc.md) |  | string | <i>(Optional)</i> |
 

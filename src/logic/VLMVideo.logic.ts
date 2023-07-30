@@ -78,7 +78,7 @@ export abstract class VLMVideoManager {
         video.updateCustomId(config.customId);
         video.updateCustomRendering(config.customRendering);
       case "offImage":
-        video.updateOffImage(config.offImageLink);
+        video.updateOffImage(config.offImageSrc);
         break;
       case "parent":
         video.updateParent(config.parent);

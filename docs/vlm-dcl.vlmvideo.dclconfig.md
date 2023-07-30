@@ -41,7 +41,7 @@ class DCLConfig extends VLMBase.MaterialConfig implements HasHybridTexture, Emis
 |  [isLive](./vlm-dcl.vlmvideo.dclconfig.islive.md) |  | boolean |  |
 |  [liveLink?](./vlm-dcl.vlmvideo.dclconfig.livelink.md) |  | string | <i>(Optional)</i> |
 |  [metallic](./vlm-dcl.vlmvideo.dclconfig.metallic.md) |  | number |  |
-|  [offImageLink?](./vlm-dcl.vlmvideo.dclconfig.offimagelink.md) |  | string | <i>(Optional)</i> |
+|  [offImageSrc?](./vlm-dcl.vlmvideo.dclconfig.offimagesrc.md) |  | string | <i>(Optional)</i> |
 |  [offType](./vlm-dcl.vlmvideo.dclconfig.offtype.md) |  | [SourceTypes](./vlm-dcl.vlmvideo.sourcetypes.md) |  |
 |  [parent?](./vlm-dcl.vlmvideo.dclconfig.parent.md) |  | string | <i>(Optional)</i> |
 |  [playlist](./vlm-dcl.vlmvideo.dclconfig.playlist.md) |  | string\[\] |  |

@@ -1827,12 +1827,12 @@
                 },
                 {
                   "kind": "Property",
-                  "canonicalReference": "vlm-dcl!VLMImage.DCLConfig#imageLink:member",
+                  "canonicalReference": "vlm-dcl!VLMImage.DCLConfig#imageSrc:member",
                   "docComment": "",
                   "excerptTokens": [
                     {
                       "kind": "Content",
-                      "text": "imageLink: "
+                      "text": "imageSrc: "
                     },
                     {
                       "kind": "Content",
@@ -1845,7 +1845,7 @@
                   ],
                   "isOptional": false,
                   "releaseTag": "Public",
-                  "name": "imageLink",
+                  "name": "imageSrc",
                   "propertyTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -3204,6 +3204,33 @@
                   "propertyTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 3
+                  },
+                  "isStatic": false
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "vlm-dcl!VLMImage.VLMConfig#textureSrc:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "textureSrc?: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "string"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isOptional": true,
+                  "releaseTag": "Public",
+                  "name": "textureSrc",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
                   },
                   "isStatic": false
                 }
@@ -12677,12 +12704,12 @@
                 },
                 {
                   "kind": "Property",
-                  "canonicalReference": "vlm-dcl!VLMVideo.DCLConfig#offImageLink:member",
+                  "canonicalReference": "vlm-dcl!VLMVideo.DCLConfig#offImageSrc:member",
                   "docComment": "",
                   "excerptTokens": [
                     {
                       "kind": "Content",
-                      "text": "offImageLink?: "
+                      "text": "offImageSrc?: "
                     },
                     {
                       "kind": "Content",
@@ -12695,7 +12722,7 @@
                   ],
                   "isOptional": true,
                   "releaseTag": "Public",
-                  "name": "offImageLink",
+                  "name": "offImageSrc",
                   "propertyTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2

@@ -49,7 +49,7 @@ export namespace VLMVideo {
     videoClipId?: string;
     emissiveIntensity: number;
     offType: SourceTypes;
-    offImageLink?: string;
+    offImageSrc?: string;
 
     constructor(config: VLMConfig) {
       super(config);
@@ -61,7 +61,7 @@ export namespace VLMVideo {
       this.isLive = config.isLive;
       this.liveLink = config.liveLink;
       this.offType = config.offType;
-      this.offImageLink = config.offImageLink;
+      this.offImageSrc = config.offImageSrc;
       this.customRendering = !!config.customRendering;
       this.emissiveIntensity = config.emissiveIntensity || 1;
       this.volume = config.volume;
@@ -163,14 +163,14 @@ export namespace VLMVideo {
       }
     };
 
-    updateOffImage: CallableFunction = (offImageLink: string) => {
-      this.offImageLink = offImageLink;
-      this.updateTexture(this.offImageLink);
+    updateOffImage: CallableFunction = (offImageSrc: string) => {
+      this.offImageSrc = offImageSrc;
+      this.updateTexture(this.offImageSrc);
     };
 
     updateTexture: CallableFunction = (src: string) => {
       if (this.textureMode == SourceTypes.IMAGE) {
-        const url = this.offImageLink;
+        const url = this.offImageSrc;
         this.stop();
         this.textureMode = SourceTypes.IMAGE;
         const texture = new Texture(url, { hasAlpha: true });
@@ -247,7 +247,7 @@ export namespace VLMVideo {
       this.textureMode = SourceTypes.IMAGE;
       this.stop();
       this.flipUvs();
-      this.updateTexture(this.offImageLink);
+      this.updateTexture(this.offImageSrc);
       this.showAll();
     };
 
@@ -452,9 +452,9 @@ export namespace VLMVideo {
       if (this.checkingStatus || this.stopped) {
         return;
       }
-      
+
       const playListBlank = this.video.offType == SourceTypes.PLAYLIST && this.video.playlist && !this.video.playlist.filter((x) => x).length,
-        imageBlank = this.video.offType == SourceTypes.IMAGE && !this.video.offImageLink;
+        imageBlank = this.video.offType == SourceTypes.IMAGE && !this.video.offImageSrc;
 
       if (this.video.enableLiveStream && this.live && !this.instancesHidden) {
         // If live stream is enabled and is live, skip the block for removing the video when "NONE" is the off type
@@ -490,7 +490,7 @@ export namespace VLMVideo {
 
       if (this.video.offType !== SourceTypes.IMAGE) {
         // If off type is not image, ignore this condition set and move on
-      } else if (this.video.textureMode !== SourceTypes.IMAGE && (!this.video.enableLiveStream || !this.live) && this.video.offImageLink) {
+      } else if (this.video.textureMode !== SourceTypes.IMAGE && (!this.video.enableLiveStream || !this.live) && this.video.offImageSrc) {
         this.video.showImage();
         this.playing = false;
         return;

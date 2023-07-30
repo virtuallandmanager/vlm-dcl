@@ -36,7 +36,7 @@ class DCLConfig extends Material implements HasImageTexture, Emissive
 |  [emissiveIntensity](./vlm-dcl.vlmimage.dclconfig.emissiveintensity.md) |  | number |  |
 |  [emissiveTexture](./vlm-dcl.vlmimage.dclconfig.emissivetexture.md) |  | Texture |  |
 |  [enabled](./vlm-dcl.vlmimage.dclconfig.enabled.md) |  | boolean |  |
-|  [imageLink](./vlm-dcl.vlmimage.dclconfig.imagelink.md) |  | string |  |
+|  [imageSrc](./vlm-dcl.vlmimage.dclconfig.imagesrc.md) |  | string |  |
 |  [instanceIds](./vlm-dcl.vlmimage.dclconfig.instanceids.md) |  | string\[\] \| any |  |
 |  [isTransparent](./vlm-dcl.vlmimage.dclconfig.istransparent.md) |  | boolean |  |
 |  [metallic](./vlm-dcl.vlmimage.dclconfig.metallic.md) |  | number |  |
