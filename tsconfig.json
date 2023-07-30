@@ -3,6 +3,9 @@
     "allowJs": true,
     "strict": true,
     "noLib": false,
+    "outDir": "./dist",
+    "declaration": true,
+    "esModuleInterop": true,
     "paths": {
       "colyseus.js": ["node_modules\\colyseus.js\\dist\\colyseus.d.ts"]
     },
