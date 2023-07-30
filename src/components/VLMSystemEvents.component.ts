@@ -34,12 +34,12 @@ export class VLMPathClientEvent {
 export class VLMPathServerEvent {
   action: "path_started" | "path_segments_added";
   pathId?: string;
-  added?: number;
+  added: number = 0;
   total?: number;
   constructor(config: VLMPathServerEvent) {
     this.action = config.action;
     this.pathId = config.pathId;
-    this.added = config.added;
+    this.added = config.added || 0;
     this.total = config.total;
   }
 }
@@ -54,7 +54,7 @@ export class VLMSessionEvent {
 
 @EventConstructor()
 export class VLMSoundStateEvent {
-  action: "scene_sound_locators";
+  action: "scene_sound_locators" = "scene_sound_locators";
   elementData: VLMSound.DCLConfig;
   instanceData: VLMSound.DCLInstanceConfig;
   showLocators: boolean;
@@ -103,7 +103,7 @@ export class VLMClaimEvent {
 
 @EventConstructor()
 export class VLMVideoStatusEvent {
-  action: "scene_video_status";
+  action: "scene_video_status" = "scene_video_status";
   sceneId?: string;
   status?: VLMVideo.StreamState;
   url?: string;

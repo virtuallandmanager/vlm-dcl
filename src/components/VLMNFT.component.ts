@@ -1,6 +1,6 @@
 import { getEntityByName } from "../shared/entity";
 import { VLMBase } from "./VLMBaseConfig.component";
-import { SimpleTransform, Transformable } from "src/shared/interfaces";
+import { SimpleTransform, Transformable } from "../shared/interfaces";
 
 export namespace VLMNFT {
   export const configs: { [uuid: string]: DCLConfig } = {};
@@ -154,6 +154,12 @@ export namespace VLMNFT {
   export class VLMConfig extends DCLConfig {
     instances: VLMInstanceConfig[];
     color?: string;
+
+    constructor(config: VLMConfig) {
+      super(config);
+      this.instances = config.instances || [];
+      this.color = config.color;
+    }
   }
 
   export class DCLInstanceConfig extends VLMBase.Instance implements Transformable {

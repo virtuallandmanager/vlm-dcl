@@ -95,7 +95,7 @@ class Blackout extends UIContainerRect {
 }
 
 export abstract class VLMModerationManager implements ISystem {
-  static moderationSettings?: VLMModeration.DCLConfig;
+  static moderationSettings: VLMModeration.DCLConfig;
   static accessAllowed: boolean;
   static bannedUser: boolean;
   static bannedWearable: boolean;

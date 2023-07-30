@@ -1,7 +1,7 @@
 import { VLMClickEvent } from "./VLMClickEvent.component";
 import { getEntityByName } from "../shared/entity";
 import { Emissive, HasImageTexture, SimpleTransform, Transformable } from "../shared/interfaces";
-import { sdkImagesAreFlipped } from "src/shared/defaults";
+import { sdkImagesAreFlipped } from "../shared/defaults";
 
 export namespace VLMImage {
   export const configs: { [uuid: string]: DCLConfig } = {};
@@ -174,7 +174,14 @@ export namespace VLMImage {
   export class VLMConfig extends DCLConfig {
     textureSrc?: string;
     emission?: number;
-    instances?: VLMInstanceConfig[];
+    instances: VLMInstanceConfig[];
+
+    constructor(config: VLMConfig) {
+      super(config);
+      this.textureSrc = config.textureSrc;
+      this.emission = config.emission;
+      this.instances = config.instances;
+    }
   }
 
   @Component("VLMImageInstance")
@@ -285,7 +292,7 @@ export namespace VLMImage {
       }
     };
 
-    updateTransform: CallableFunction = (position?: SimpleTransform, scale?: SimpleTransform, rotation?: SimpleTransform) => {
+    updateTransform: CallableFunction = (position: SimpleTransform, scale: SimpleTransform, rotation: SimpleTransform) => {
       this.addComponentOrReplace(
         new Transform({
           position: new Vector3(position.x, position.y, position.z),

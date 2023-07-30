@@ -11,12 +11,12 @@ export namespace VLMScene {
     sounds: VLMSound.DCLConfig[] = [];
     widgets: VLMWidget.DCLConfig[] = [];
 
-    constructor(config?: Preset) {
-      this.giveaways = config?.giveaways || this.giveaways;
-      this.images = config?.images || this.images;
-      this.nfts = config?.nfts || this.nfts;
-      this.sounds = config?.sounds || this.sounds;
-      this.widgets = config?.widgets || this.widgets;
+    constructor(config: Preset) {
+      this.giveaways = config.giveaways || this.giveaways;
+      this.images = config.images || this.images;
+      this.nfts = config.nfts || this.nfts;
+      this.sounds = config.sounds || this.sounds;
+      this.widgets = config.widgets || this.widgets;
     }
   }
 }

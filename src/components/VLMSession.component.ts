@@ -4,7 +4,7 @@ export namespace VLMSession {
     sk?: string;
     userId?: string;
     connectedWallet?: string;
-    sessionStart?: number;
+    sessionStart: number;
     sessionEnd?: number;
     sessionToken?: string;
     paths?: string[];
@@ -15,23 +15,23 @@ export namespace VLMSession {
     ts?: number;
 
     constructor(config: Config) {
-      this.sk = config?.sk || this.sk;
-      this.userId = config?.userId;
-      this.connectedWallet = config?.connectedWallet;
-      this.sessionStart = config?.sessionStart;
-      this.sessionEnd = config?.sessionEnd;
-      this.sessionToken = config?.sessionToken;
-      this.expires = config?.expires;
-      this.sceneId = config?.sceneId;
-      this.world = config?.world;
-      this.worldLocation = config?.worldLocation;
-      this.ts = config?.ts || this.ts;
+      this.sk = config.sk || this.sk;
+      this.userId = config.userId;
+      this.connectedWallet = config.connectedWallet;
+      this.sessionStart = config.sessionStart;
+      this.sessionEnd = config.sessionEnd;
+      this.sessionToken = config.sessionToken;
+      this.expires = config.expires;
+      this.sceneId = config.sceneId;
+      this.world = config.world;
+      this.worldLocation = config.worldLocation;
+      this.ts = config.ts || this.ts;
     }
   }
 
   export class User {
     sk?: string;
-    displayName?: string;
+    displayName: string;
     connectedWallet?: string;
     lastIp?: string;
     activeSessionId?: string;
@@ -42,7 +42,7 @@ export namespace VLMSession {
     constructor(config: User) {
       this.sk = config.sk;
       this.connectedWallet = config.connectedWallet;
-      this.displayName = config.displayName;
+      this.displayName = config.displayName || "";
       this.lastIp = config.lastIp;
       this.hasConnectedWeb3 = config.hasConnectedWeb3;
       this.world = config.world;
@@ -65,7 +65,7 @@ export namespace VLMSession {
       sk?: string; // Sort Key
       pathId?: string;
       type?: SegmentType;
-      path?: Point[];
+      path: Point[];
 
       constructor(config: Segment) {
         this.sk = config.sk || this.sk;

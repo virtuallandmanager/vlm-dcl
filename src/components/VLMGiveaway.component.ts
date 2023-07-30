@@ -1,9 +1,9 @@
 import { signedFetch } from "@decentraland/SignedFetch";
 import { VLMEnvironment } from "../environment";
 import messages from "../messages/giveaway";
-import { VLMNotificationManager } from "src/logic/VLMNotification.logic";
+import { VLMNotificationManager } from "../logic/VLMNotification.logic";
 import { VLMNotification } from "./VLMNotification.component";
-import { VLMSessionManager } from "src/logic/VLMSession.logic";
+import { VLMSessionManager } from "../logic/VLMSession.logic";
 import { VLMClaimEvent } from "./VLMSystemEvents.component";
 
 export namespace VLMGiveaway {
@@ -45,27 +45,29 @@ export namespace VLMGiveaway {
     messageFontSize?: number;
     requestInProgress: boolean;
 
-    constructor(config: ClaimPoint, _messageOptions: VLMNotification.MessageOptions) {
-      const actionId = config.actionId,
-        position = config.position,
-        scale = config.scale,
-        glb = config.glb,
-        image = config.image,
-        clickDistance = config.clickDistance,
-        rotation = config.rotation,
-        hoverText = config.hoverText;
-      this.messageColor = _messageOptions.color;
-      this.messageFontSize = _messageOptions.fontSize;
+    constructor(config: ClaimPoint, messageOptions: VLMNotification.MessageOptions) {
+      const objThis = this;
+      this.actionId = config.actionId;
+      this.position = config.position;
+      this.scale = config.scale;
+      this.glb = config.glb;
+      this.image = config.image;
+      this.clickDistance = config.clickDistance;
+      this.rotation = config.rotation;
+      this.hoverText = config.hoverText;
+      this.messageColor = messageOptions.color;
+      this.messageFontSize = messageOptions.fontSize;
+      this.requestInProgress = false;
       const claimEntity = new Entity("Giveaway Trigger");
       engine.addEntity(claimEntity);
-      if (glb) {
-        claimEntity.addComponent(new GLTFShape(glb || "src/vlm-giveaway/VLM-Sign.glb"));
-      } else if (image) {
+      if (this.glb) {
+        claimEntity.addComponent(new GLTFShape(this.glb || "../vlm-giveaway/VLM-Sign.glb"));
+      } else if (this.image) {
         const plane = new PlaneShape();
         plane.uvs = [0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1];
         claimEntity.addComponent(plane);
         const claimImageMat = new Material();
-        const claimImageTexture = new Texture(image);
+        const claimImageTexture = new Texture(this.image);
         claimImageMat.albedoTexture = claimImageTexture;
         claimImageMat.emissiveTexture = claimImageTexture;
         claimImageMat.emissiveIntensity = 1;
@@ -77,20 +79,20 @@ export namespace VLMGiveaway {
       }
 
       const claimEntityTransform = new Transform({
-        position: new Vector3(position.x || 8, position.y || 8, position.z || 8),
-        rotation: Quaternion.Euler(0, rotation || 0, 0),
-        scale: new Vector3(scale?.x || 1, scale?.y || 1, scale?.z || 1),
+        position: new Vector3(this.position.x || 8, this.position.y || 8, this.position.z || 8),
+        rotation: Quaternion.Euler(0, this.rotation || 0, 0),
+        scale: new Vector3(this.scale?.x || 1, this.scale?.y || 1, this.scale?.z || 1),
       });
       claimEntity.addComponentOrReplace(claimEntityTransform);
       claimEntity.addComponent(
         new OnPointerDown(
           async function () {
-            await this.claim(actionId);
+            await objThis.claim(objThis.actionId);
           },
           {
             button: ActionButton.POINTER,
-            hoverText: hoverText || "Claim Item",
-            distance: clickDistance || 5,
+            hoverText: objThis.hoverText || "Claim Item",
+            distance: objThis.clickDistance || 5,
           }
         )
       );
@@ -112,14 +114,14 @@ export namespace VLMGiveaway {
   }
 
   export class DCLConfig {
-    sk: string;
     claimAction: string;
     requestInProgress: boolean;
     messageOptions: VLMNotification.MessageOptions;
 
-    constructor(_claimAction: string, _messageOptions: VLMNotification.MessageOptions) {
-      this.claimAction = _claimAction;
-      this.messageOptions = _messageOptions;
+    constructor(claimAction: string, messageOptions: VLMNotification.MessageOptions) {
+      this.claimAction = claimAction;
+      this.messageOptions = messageOptions;
+      this.requestInProgress = false;
     }
 
     claim: CallableFunction = async () => {

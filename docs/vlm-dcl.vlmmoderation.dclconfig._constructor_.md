@@ -9,12 +9,12 @@ Constructs a new instance of the `DCLConfig` class
 <b>Signature:</b>
 
 ```typescript
-constructor(config?: VLMConfig);
+constructor(config: VLMConfig);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  config | [VLMConfig](./vlm-dcl.vlmmoderation.vlmconfig.md) | <i>(Optional)</i> |
+|  config | [VLMConfig](./vlm-dcl.vlmmoderation.vlmconfig.md) |  |
 

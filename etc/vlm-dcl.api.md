@@ -7,181 +7,14 @@
 /// <reference types="dcl" />
 /// <reference types="env" />
 
-import { DefaultEvents } from 'nanoevents';
-import { Emitter } from 'nanoevents';
-import { Iterator as Iterator_2 } from '@colyseus/schema';
+import * as Colyseus from 'colyseus.js';
 import { PositionType } from '@decentraland/RestrictedActions';
+import { Room } from 'colyseus.js';
 import { SceneJsonData } from '@decentraland/ParcelIdentity';
-import { Schema } from '@colyseus/schema';
 import { UserData } from '@decentraland/Identity';
-
-// Warning: (ae-forgotten-export) The symbol "IUser" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-class Auth implements IUser {
-    constructor(endpoint: string);
-    // (undocumented)
-    acceptFriendRequest(friendId: string): Promise<IStatus>;
-    // (undocumented)
-    avatarUrl: string;
-    // (undocumented)
-    blockedUserIds: string[];
-    // (undocumented)
-    blockUser(friendId: string): Promise<IStatus>;
-    // (undocumented)
-    createdAt: Date;
-    // (undocumented)
-    declineFriendRequest(friendId: string): Promise<IStatus>;
-    // (undocumented)
-    devices: Device[];
-    // (undocumented)
-    displayName: string;
-    // (undocumented)
-    email: string;
-    // (undocumented)
-    protected endpoint: string;
-    // (undocumented)
-    facebookId: string;
-    // (undocumented)
-    friendIds: string[];
-    // (undocumented)
-    gameCenterId: string;
-    // (undocumented)
-    getFriendRequests(): Promise<IUser[]>;
-    // (undocumented)
-    getFriends(): Promise<IUser[]>;
-    // (undocumented)
-    getOnlineFriends(): Promise<IUser[]>;
-    // (undocumented)
-    googleId: string;
-    // (undocumented)
-    get hasToken(): boolean;
-    // (undocumented)
-    _id: string;
-    // (undocumented)
-    isAnonymous: boolean;
-    // (undocumented)
-    protected keepOnlineInterval: any;
-    // (undocumented)
-    lang: string;
-    // (undocumented)
-    location: string;
-    // (undocumented)
-    login(options?: {
-        accessToken?: string;
-        deviceId?: string;
-        platform?: string;
-        email?: string;
-        password?: string;
-    }): Promise<this>;
-    // (undocumented)
-    logout(): void;
-    // (undocumented)
-    metadata: any;
-    // (undocumented)
-    registerPingService(timeout?: number): void;
-    // (undocumented)
-    request(method: 'get' | 'post' | 'put' | 'del', segments: string, query?: {
-        [key: string]: number | string;
-    }, body?: any, headers?: {
-        [key: string]: string;
-    }): Promise<any>;
-    // (undocumented)
-    save(): Promise<this>;
-    // Warning: (ae-forgotten-export) The symbol "IStatus" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    sendFriendRequest(friendId: string): Promise<IStatus>;
-    // (undocumented)
-    steamId: string;
-    // (undocumented)
-    timezone: string;
-    // (undocumented)
-    token: string;
-    // (undocumented)
-    twitterId: string;
-    // (undocumented)
-    unblockUser(friendId: string): Promise<IStatus>;
-    // (undocumented)
-    unregisterPingService(): void;
-    // (undocumented)
-    updatedAt: Date;
-    // (undocumented)
-    username: string;
-}
-
-// @public (undocumented)
-class Client {
-    constructor(endpoint?: string);
-    // (undocumented)
-    get auth(): Auth;
-    // (undocumented)
-    protected _auth: Auth;
-    // (undocumented)
-    protected buildEndpoint(room: any, options?: any): string;
-    // (undocumented)
-    consumeSeatReservation<T>(response: any, rootSchema?: SchemaConstructor<T>): Promise<Room<T>>;
-    // (undocumented)
-    create<T>(roomName: string, options?: JoinOptions, rootSchema?: SchemaConstructor<T>): Promise<Room<T>>;
-    // (undocumented)
-    protected createMatchMakeRequest<T>(method: string, roomName: string, options?: JoinOptions, rootSchema?: SchemaConstructor<T>): Promise<Room<T>>;
-    // (undocumented)
-    protected createRoom<T>(roomName: string, rootSchema?: SchemaConstructor<T>): Room<T>;
-    // (undocumented)
-    protected endpoint: string;
-    // (undocumented)
-    getAvailableRooms<Metadata = any>(roomName?: string): Promise<RoomAvailable<Metadata>[]>;
-    // (undocumented)
-    join<T>(roomName: string, options?: JoinOptions, rootSchema?: SchemaConstructor<T>): Promise<Room<T>>;
-    // (undocumented)
-    joinById<T>(roomId: string, options?: JoinOptions, rootSchema?: SchemaConstructor<T>): Promise<Room<T>>;
-    // Warning: (ae-forgotten-export) The symbol "SchemaConstructor" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    joinOrCreate<T>(roomName: string, options?: JoinOptions, rootSchema?: SchemaConstructor<T>): Promise<Room<T>>;
-    // (undocumented)
-    reconnect<T>(roomId: string, sessionId: string, rootSchema?: SchemaConstructor<T>): Promise<Room<T>>;
-}
-
-// @public (undocumented)
-interface Device {
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    platform: Platform;
-}
-
-// @public (undocumented)
-enum ErrorCode {
-    // (undocumented)
-    APPLICATION_ERROR = 4216,
-    // (undocumented)
-    AUTH_FAILED = 4215,
-    // (undocumented)
-    MATCHMAKE_EXPIRED = 4214,
-    // (undocumented)
-    MATCHMAKE_INVALID_CRITERIA = 4211,
-    // (undocumented)
-    MATCHMAKE_INVALID_ROOM_ID = 4212,
-    // (undocumented)
-    MATCHMAKE_NO_HANDLER = 4210,
-    // (undocumented)
-    MATCHMAKE_UNHANDLED = 4213
-}
-
-// @public (undocumented)
-type JoinOptions = any;
 
 // @public (undocumented)
 export type PathPoint = [number, number, number, number, number, number, number, -1 | 0 | 1 | 2];
-
-// @public (undocumented)
-enum Platform {
-    // (undocumented)
-    android = "android",
-    // (undocumented)
-    ios = "ios"
-}
 
 // @public (undocumented)
 export type PlatformData = {
@@ -198,140 +31,6 @@ export type PlatformData = {
         coordinates?: string[] | number[];
     };
 };
-
-// @public (undocumented)
-enum Protocol {
-    // (undocumented)
-    ERROR = 11,
-    // (undocumented)
-    HANDSHAKE = 9,
-    // (undocumented)
-    JOIN_ROOM = 10,
-    // (undocumented)
-    LEAVE_ROOM = 12,
-    // (undocumented)
-    ROOM_DATA = 13,
-    // (undocumented)
-    ROOM_DATA_SCHEMA = 16,
-    // (undocumented)
-    ROOM_STATE = 14,
-    // (undocumented)
-    ROOM_STATE_PATCH = 15
-}
-
-// @public (undocumented)
-function registerSerializer(id: string, serializer: any): void;
-
-// @public (undocumented)
-class Room<State = any> {
-    constructor(name: string, rootSchema?: SchemaConstructor<State>);
-    // (undocumented)
-    connect(endpoint: string): void;
-    // Warning: (ae-forgotten-export) The symbol "Connection" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    connection: Connection;
-    // (undocumented)
-    protected hasJoined: boolean;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    leave(consented?: boolean): Promise<number>;
-    // (undocumented)
-    name: string;
-    // (undocumented)
-    onError: {
-        once: (cb: (code: number, message?: string) => void) => void;
-        remove: (cb: (code: number, message?: string) => void) => void;
-        invoke: (code: number, message?: string) => void;
-        invokeAsync: (code: number, message?: string) => Promise<any[]>;
-        clear: () => void;
-    } & ((this: any, cb: (code: number, message?: string) => void) => EventEmitter<(code: number, message?: string) => void>);
-    // (undocumented)
-    protected onJoin: {
-        once: (cb: (...args: any[]) => void | Promise<any>) => void;
-        remove: (cb: (...args: any[]) => void | Promise<any>) => void;
-        invoke: (...args: any[]) => void;
-        invokeAsync: (...args: any[]) => Promise<any[]>;
-        clear: () => void;
-    } & ((this: any, cb: (...args: any[]) => void | Promise<any>) => EventEmitter<(...args: any[]) => void | Promise<any>>);
-    // (undocumented)
-    onLeave: {
-        once: (cb: (code: number) => void) => void;
-        remove: (cb: (code: number) => void) => void;
-        invoke: (code: number) => void;
-        invokeAsync: (code: number) => Promise<any[]>;
-        clear: () => void;
-    } & ((this: any, cb: (code: number) => void) => EventEmitter<(code: number) => void>);
-    // (undocumented)
-    onMessage<T = any>(type: "*", callback: (type: string | number | Schema, message: T) => void): any;
-    // (undocumented)
-    onMessage<T extends (typeof Schema & (new (...args: any[]) => any))>(type: T, callback: (message: InstanceType<T>) => void): any;
-    // (undocumented)
-    onMessage<T = any>(type: string | number, callback: (message: T) => void): any;
-    // (undocumented)
-    protected onMessageCallback(event: MessageEvent): void;
-    // (undocumented)
-    protected onMessageHandlers: Emitter<DefaultEvents>;
-    // Warning: (ae-forgotten-export) The symbol "EventEmitter" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    onStateChange: {
-        once: (cb: (state: State) => void) => void;
-        remove: (cb: (state: State) => void) => void;
-        invoke: (state: State) => void;
-        invokeAsync: (state: State) => Promise<any[]>;
-        clear: () => void;
-    } & ((this: any, cb: (state: State) => void) => EventEmitter<(state: State) => void>);
-    // (undocumented)
-    protected patch(binaryPatch: number[]): void;
-    // (undocumented)
-    removeAllListeners(): void;
-    // (undocumented)
-    protected rootSchema: SchemaConstructor<State>;
-    // (undocumented)
-    send(type: string | number, message?: any): void;
-    // Warning: (ae-forgotten-export) The symbol "Serializer" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    protected serializer: Serializer<State>;
-    // (undocumented)
-    serializerId: string;
-    // (undocumented)
-    sessionId: string;
-    // (undocumented)
-    protected setState(encodedState: number[]): void;
-    // (undocumented)
-    get state(): State;
-}
-
-// @public (undocumented)
-interface RoomAvailable<Metadata = any> {
-    // (undocumented)
-    clients: number;
-    // (undocumented)
-    maxClients: number;
-    // (undocumented)
-    metadata?: Metadata;
-    // (undocumented)
-    roomId: string;
-}
-
-// @public (undocumented)
-class SchemaSerializer<T extends Schema = any> implements Serializer<T> {
-    // (undocumented)
-    getState(): T;
-    // (undocumented)
-    handshake(bytes: number[], it?: Iterator_2): void;
-    // (undocumented)
-    patch(patches: any): void;
-    // (undocumented)
-    setState(rawState: any): void;
-    // (undocumented)
-    state: T;
-    // (undocumented)
-    teardown(): void;
-}
 
 // @public
 export class VLM {
@@ -523,7 +222,7 @@ export namespace VLMImage {
         // (undocumented)
         withCollisions: boolean;
     }
-    // Warning: (ae-forgotten-export) The symbol "Transformable" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Transformable_2" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     export class DCLInstanceConfig extends Entity implements Transformable_2 {
@@ -548,7 +247,7 @@ export namespace VLMImage {
         enabled?: boolean;
         // (undocumented)
         parent?: string;
-        // Warning: (ae-forgotten-export) The symbol "SimpleTransform" needs to be exported by the entry point index.d.ts
+        // Warning: (ae-forgotten-export) The symbol "SimpleTransform_2" needs to be exported by the entry point index.d.ts
         //
         // (undocumented)
         position: SimpleTransform_2;
@@ -635,7 +334,7 @@ export namespace VLMModeration {
     }
     // (undocumented)
     export class DCLConfig {
-        constructor(config?: VLMConfig);
+        constructor(config: VLMConfig);
         // (undocumented)
         allowCertainUsers?: boolean;
         // (undocumented)
@@ -1072,8 +771,6 @@ export type VLMSceneJsonData = SceneJsonData & {
 
 // @public (undocumented)
 export abstract class VLMSessionManager {
-    // Warning: (ae-forgotten-export) The symbol "Colyseus" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     static client: Colyseus.Client;
     // (undocumented)
@@ -1332,10 +1029,10 @@ export namespace VLMVideo {
         [uuid: string]: System;
     };
     // Warning: (ae-forgotten-export) The symbol "HasHybridTexture" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Emissive" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Audible" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "HasPlaylist" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Playable" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Emissive_2" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Audible_2" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "HasPlaylist_2" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Playable_2" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     export class DCLConfig extends VLMBase.MaterialConfig implements HasHybridTexture, Emissive_2, Audible_2, HasPlaylist_2, Playable_2 {
@@ -1637,8 +1334,8 @@ export abstract class VLMWidgetManager {
 
 // Warnings were encountered during analysis:
 //
-// dist/types/logic/VLMNFT.logic.d.ts:5:9 - (ae-forgotten-export) The symbol "VLMNFT" needs to be exported by the entry point index.d.ts
-// dist/types/logic/VLMWidget.logic.d.ts:5:9 - (ae-forgotten-export) The symbol "VLMWidget" needs to be exported by the entry point index.d.ts
+// dist/types/logic/VLMNFT.logic.d.ts:5:9 - (ae-forgotten-export) The symbol "VLMNFT_2" needs to be exported by the entry point index.d.ts
+// dist/types/logic/VLMWidget.logic.d.ts:5:9 - (ae-forgotten-export) The symbol "VLMWidget_2" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

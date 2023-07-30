@@ -1,19 +1,19 @@
-import * as Colyseus from "colyseus.js";
-import { VLMEnvironment } from "src/environment";
+import { Room, Client } from "colyseus.js";
+import { VLMEnvironment } from "../environment";
 import { signedFetch } from "@decentraland/SignedFetch";
 import { getPlatform } from "@decentraland/EnvironmentAPI";
 import { UserData, getUserData } from "@decentraland/Identity";
-import { VLMSession } from "src/components/VLMSession.component";
+import { VLMSession } from "../components/VLMSession.component";
 import { SceneJsonData, getParcel } from "@decentraland/ParcelIdentity";
 
 export abstract class VLMSessionManager {
-  static dclUserData?: UserData;
-  static sessionUser?: VLMSession.User;
-  static sessionData?: VLMSession.Config;
-  static client: Colyseus.Client;
+  static dclUserData: UserData;
+  static sessionUser: VLMSession.User;
+  static sessionData: VLMSession.Config;
+  static client: Client;
   static playerPathId?: string;
   static eventsBound: boolean = false;
-  static sceneRoom: Colyseus.Room;
+  static sceneRoom: Room;
   static platformData: PlatformData = {};
   static connected: boolean;
   static connecting: boolean;
@@ -23,8 +23,8 @@ export abstract class VLMSessionManager {
     try {
       this.platformData.vlmVersion = version;
       await this.getPlatformData();
-      this.client = new Colyseus.Client(VLMEnvironment.wssUrl);
-      this.sceneRoom = new Colyseus.Room("vlm_scene");
+      this.client = new Client(VLMEnvironment.wssUrl);
+      this.sceneRoom = new Room("vlm_scene");
       const { session, user } = await this.requestToken();
       this.sessionData = session;
       this.sessionUser = user;
@@ -74,7 +74,7 @@ export abstract class VLMSessionManager {
   static joinRelayRoom: CallableFunction = async (session?: VLMSession.Config) => {
     try {
       log("VLM: Attempting to join the relay room");
-      this.client = new Colyseus.Client(VLMEnvironment.wssUrl);
+      this.client = new Client(VLMEnvironment.wssUrl);
       log("VLM Cient:", this.client);
 
       const sceneRoom = await this.client.joinOrCreate("vlm_scene", {
@@ -100,7 +100,7 @@ export abstract class VLMSessionManager {
   static reconnect: CallableFunction = () => {
     this.connected = false;
     this.connecting = true;
-    const sessionId = VLMSessionManager.sessionData.sceneId;
+    const sessionId = VLMSessionManager.sessionData.sceneId || "";
     log("Attempting to reconnect to multiplayer server");
     this.client.reconnect(this.sceneRoom.id, sessionId);
   };
@@ -110,7 +110,7 @@ export abstract class VLMSessionManager {
 
     const sceneJsonData = parcel.land.sceneJsonData as VLMSceneJsonData,
       baseParcel = sceneJsonData.scene.base,
-      sceneId = sceneJsonData.vlm.sceneId,
+      sceneId = sceneJsonData?.vlm?.sceneId,
       user = userData ? (({ avatar, ...data }) => data)(userData) : {};
 
     const platformData = this.platformData;

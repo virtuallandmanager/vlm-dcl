@@ -1,15 +1,15 @@
 export namespace VLMTimer {
   export class System implements ISystem {
-    private static _instance: System | null = null;
+    private static instance: System | null = null;
 
     private _components: ComponentConstructor<ITimerComponent>[] = [];
 
     static createAndAddToEngine(): System {
-      if (this._instance == null) {
-        this._instance = new System();
-        engine.addSystem(this._instance);
+      if (this.instance == null) {
+        this.instance = new System();
+        engine.addSystem(this.instance);
       }
-      return this._instance;
+      return this.instance;
     }
 
     static registerCustomComponent<T extends ITimerComponent>(component: ComponentConstructor<T>) {
@@ -26,7 +26,7 @@ export namespace VLMTimer {
     }
 
     private constructor() {
-      System._instance = this;
+      System.instance = this;
     }
 
     update(dt: number) {

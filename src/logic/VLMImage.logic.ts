@@ -1,4 +1,4 @@
-import { VLMImage  } from "src/components/VLMImage.component";
+import { VLMImage  } from "../components/VLMImage.component";
 
 export abstract class VLMImageManager {
   static init: CallableFunction = (images: VLMImage.VLMConfig[]) => {

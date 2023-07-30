@@ -56,10 +56,13 @@ export abstract class VLMNotificationManager implements ISystem {
   };
 
   static removeMessage: CallableFunction = () => {
-    this.messageQueue.shift().visible = false;
+    const message = this.messageQueue.shift();
+    if (message) {
+      message.visible = false;
+    }
   };
 
-  private static fadeIn: CallableFunction = (value, messageOptions) => {
+  private static fadeIn: CallableFunction = () => {
     this.state = EMessageState.FADING_IN;
     this.messageQueue[0].opacity = 0;
     this.messageQueue[0].visible = true;

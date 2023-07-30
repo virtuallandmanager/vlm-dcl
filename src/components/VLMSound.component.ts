@@ -14,18 +14,17 @@ export namespace VLMSound {
     STREAM,
   }
 
-  export class DCLConfig extends VLMBase.AudioConfig implements Audible, HasPlaylist, Playable {
+  export class DCLConfig extends VLMBase.AudioConfig implements Audible, Playable {
     sk: string;
     customId?: string;
     parent?: string;
     enabled: boolean;
-    playlist: string[];
     audioPath: string;
     instanceIds: string[] = [];
     volume: number;
-    audioClip: AudioClip;
-    audioStream: AudioStream;
-    customRendering: boolean;
+    audioClip: AudioClip = new AudioClip("");
+    audioStream?: AudioStream;
+    customRendering?: boolean;
     sourceType: SourceType;
     showLocators: boolean = false;
 
@@ -35,6 +34,7 @@ export namespace VLMSound {
         this.sk = config.sk;
         this.customId = config.customId;
         this.audioPath = config.audioPath;
+        this.volume = config.volume;
         this.parent = config.parent;
         this.sourceType = config.sourceType;
         this.enabled = config.enabled;
@@ -211,6 +211,11 @@ export namespace VLMSound {
 
   export class VLMConfig extends DCLConfig {
     instances: VLMInstanceConfig[];
+
+    constructor(config: VLMConfig) {
+      super(config);
+      this.instances = config.instances;
+    }
   }
 
   export class DCLInstanceConfig extends VLMBase.Instance implements Transformable {

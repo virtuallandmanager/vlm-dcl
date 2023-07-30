@@ -1,59 +1,55 @@
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import typescript from '@rollup/plugin-typescript';
-import { apiExtractor } from "rollup-plugin-api-extractor";
-import { terser } from 'rollup-plugin-terser';
-import packageJson from './package.json';
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
+import babel from "@rollup/plugin-babel";
+import { terser } from "rollup-plugin-terser";
+import typescript from "@rollup/plugin-typescript"; // Import the new plugin
 
 const PROD = !!process.env.CI;
 
 export default {
-  input: 'src/index.ts',
-  context: 'globalThis',
-  external: [/@dcl\//, /@decentraland\//],
-  output: [
-    {
-      file: packageJson.main,
-      format: 'amd',
-      amd: {
-        id: packageJson.name
-      },
+  input: "src/index.ts",
+  external: (id) => {
+    return /@dcl\/|@decentraland\//.test(id);
+  },
+  output: {
+    file: "./dist/index.js",
+    format: "amd", // or your desired output format
+    amd: {
+      id: "vlm-dcl", // replace with your library name
     },
-  ],
+    sourcemap: true, // Add this line to enable source maps
+    globals: {
+      // Add any global dependencies here, if needed
+      // Example:
+      // 'dependency-name': 'GlobalDependencyName',
+    },
+  },
   plugins: [
+    typescript({
+      tsconfig: "./tsconfig.json", // Update the path to point to the new tsconfig.json
+    }),
     resolve({
       preferBuiltins: false,
-      browser: true
+      browser: true,
+      extensions: [".mjs", ".js", ".jsx", ".json", ".node", ".ts", ".tsx"],
     }),
-    typescript({
-      tsconfig: './tsconfig.json',
-      sourceMap: false,
-      compilerOptions: {
-        sourceMap: false,
-        inlineSourceMap: false,
-        inlineSources: false
-      },
-    }),
-    commonjs({
-      exclude: 'node_modules',
-      ignoreGlobal: true,
+    commonjs(),
+    babel({
+      presets: ["@babel/preset-env", "@babel/preset-typescript"],
+      plugins: [
+        ["@babel/plugin-proposal-decorators", { legacy: true }],
+        ["@babel/plugin-proposal-class-properties", { loose: true }],
+        ["@babel/plugin-transform-private-methods", { loose: true }],
+        ["@babel/plugin-transform-private-property-in-object", { loose: true }],
+      ],
+      exclude: "node_modules/**", // Exclude node_modules to avoid potential problems
+      babelHelpers: "bundled",
     }),
     terser({ format: { comments: false } }),
-    apiExtractor({
-      configFile: './api-extractor.json',
-      configuration: {
-        projectFolder: '.',
-        compiler: {
-          tsconfigFilePath: "<projectFolder>/tsconfig.json",
-        },
-      },
-      local: !PROD,
-      cleanUpRollup: false
-    })
   ],
-  onwarn: function(warning, rollupWarn) {
-    if (warning.code !== 'CIRCULAR_DEPENDENCY') {
-      rollupWarn(warning);
+  onwarn: function (warning, warn) {
+    if (warning.code !== "CIRCULAR_DEPENDENCY" && warning.code !== "THIS_IS_UNDEFINED") {
+      warn(warning);
     }
-  }
+  },
 };
