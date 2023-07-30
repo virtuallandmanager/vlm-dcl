@@ -20,7 +20,7 @@ export namespace VLMImage {
     parent?: string;
     enabled: boolean;
     instanceIds: string[] | any = [];
-    imageLink: string;
+    imageSrc: string;
     roughness: number = 1.0;
     specularIntensity: number = 0;
     metallic: number = 0;
@@ -36,11 +36,11 @@ export namespace VLMImage {
       this.parent = config.parent;
       this.enabled = config.enabled;
       this.emissiveIntensity = config.emission || 1;
-      this.imageLink = config.imageLink;
+      this.imageSrc = config.textureSrc || config.imageSrc;
       this.withCollisions = config.withCollisions;
       this.isTransparent = config.isTransparent;
       this.clickEvent = config.clickEvent;
-      this.updateTexture(this.imageLink);
+      this.updateTexture(this.imageSrc);
       VLMImage.configs[this.sk] = this;
 
       if (this.customId) {
@@ -115,10 +115,10 @@ export namespace VLMImage {
 
     updateTexture: CallableFunction = (url?: string) => {
       if (url) {
-        this.imageLink = url;
+        this.imageSrc = url;
       }
 
-      const texture = new Texture(this.imageLink, {
+      const texture = new Texture(this.imageSrc, {
         hasAlpha: this.isTransparent,
       });
       this.albedoTexture = texture;
@@ -172,6 +172,7 @@ export namespace VLMImage {
   }
 
   export class VLMConfig extends DCLConfig {
+    textureSrc?: string;
     emission?: number;
     instances?: VLMInstanceConfig[];
   }

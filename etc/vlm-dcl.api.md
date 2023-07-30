@@ -485,7 +485,7 @@ export namespace VLMImage {
         // (undocumented)
         enabled: boolean;
         // (undocumented)
-        imageLink: string;
+        imageSrc: string;
         // (undocumented)
         instanceIds: string[] | any;
         // (undocumented)
@@ -583,6 +583,8 @@ export namespace VLMImage {
         emission?: number;
         // (undocumented)
         instances?: VLMInstanceConfig[];
+        // (undocumented)
+        textureSrc?: string;
     }
     // (undocumented)
     export class VLMInstanceConfig extends DCLInstanceConfig {
@@ -1375,7 +1377,7 @@ export namespace VLMVideo {
         // (undocumented)
         metallic: number;
         // (undocumented)
-        offImageLink?: string;
+        offImageSrc?: string;
         // (undocumented)
         offType: SourceTypes;
         // (undocumented)

@@ -55,8 +55,8 @@ export abstract class VLMImageManager {
           this.add(imageConfig.sk);
         }
         break;
-      case "imageLink":
-        image.updateTexture(imageConfig.imageLink);
+      case "imageSrc":
+        image.updateTexture(imageConfig.imageSrc);
         break;
       case "emission":
         image.emissiveIntensity = imageConfig.emission;
