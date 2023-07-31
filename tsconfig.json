@@ -8,7 +8,7 @@
     "declarationDir": "./types",
     "declarationMap": true,
     "paths": {
-      "colyseus.js": ["node_modules\\colyseus.js\\dist\\colyseus.d.ts"]
+      "colyseus.js": ["node_modules\\colyseus.js\\dist\\colyseus.d.ts", "node_modules\\vlm-dcl\\node_modules\\colyseus.js\\dist\\colyseus.d.ts"]
     },
     "baseUrl": ".",
     "moduleResolution": "node"
