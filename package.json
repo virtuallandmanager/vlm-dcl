@@ -57,8 +57,5 @@
   },
   "dependencies": {
     "colyseus.js": "^0.14.13"
-  },
-  "bundleDependencies": [
-    "colyseus.js"
-  ]
+  }
 }
