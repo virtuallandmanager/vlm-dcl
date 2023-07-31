@@ -21,7 +21,7 @@ To use any of the helpers provided by this library:
    VLM.init()
    ```
 
-## Usding Custom Widgets
+## Using Custom Widgets
 
 
 ...
