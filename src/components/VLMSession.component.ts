@@ -10,6 +10,7 @@ export namespace VLMSession {
     paths?: string[];
     expires?: number;
     sceneId?: string;
+    sessionId?: string;
     world?: number;
     worldLocation?: string;
     ts?: number;

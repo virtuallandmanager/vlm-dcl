@@ -1,5 +1,4 @@
 import { getEntityByName } from "../shared/entity";
-import { VLMClickEvent } from "./VLMClickEvent.component";
 import { SimpleTransform, Transformable } from "../shared/interfaces";
 
 export namespace VLMBase {
@@ -9,7 +8,6 @@ export namespace VLMBase {
     name?: string;
     customId?: string;
     parent?: string;
-    clickEvent?: VLMClickEvent.DCLConfig;
     customRendering?: boolean;
 
     constructor(config: MaterialConfig) {
@@ -18,7 +16,6 @@ export namespace VLMBase {
       this.customId = config.customId;
       this.parent = config.parent;
       this.enabled = config.enabled || true;
-      this.clickEvent = config.clickEvent;
     }
   }
 
@@ -30,7 +27,6 @@ export namespace VLMBase {
     tokenId?: string;
     customId?: string;
     parent?: string;
-    clickEvent?: VLMClickEvent.DCLConfig;
     customRendering?: boolean;
 
     constructor(config: NFTConfig) {
@@ -41,7 +37,6 @@ export namespace VLMBase {
       this.name = config.name;
       this.parent = config.parent;
       this.enabled = config.enabled || true;
-      this.clickEvent = config.clickEvent;
     }
   }
 
@@ -52,7 +47,6 @@ export namespace VLMBase {
     customId?: string;
     liveStreamUrl?: string;
     parent?: string;
-    clickEvent?: VLMClickEvent.DCLConfig;
     customRendering?: boolean;
 
     constructor(config: AudioConfig) {
@@ -62,7 +56,6 @@ export namespace VLMBase {
       this.parent = config.parent;
       this.name = config.name;
       this.enabled = config.enabled || true;
-      this.clickEvent = config.clickEvent;
     }
   }
 
@@ -74,8 +67,6 @@ export namespace VLMBase {
     customRendering?: boolean;
     configId: string;
     parent?: string;
-    clickEvent?: VLMClickEvent.DCLConfig;
-    defaultClickEvent?: VLMClickEvent.DCLConfig;
     position: SimpleTransform;
     rotation: SimpleTransform;
     scale: SimpleTransform;
@@ -87,8 +78,6 @@ export namespace VLMBase {
       this.name = instance.name;
       this.enabled = config.enabled || instance.enabled;
       this.customId = instance.customId;
-      this.clickEvent = instance.clickEvent;
-      this.defaultClickEvent = config.clickEvent;
       this.customRendering = instance.customRendering;
       this.configId = instance.configId;
       this.parent = instance.parent;
