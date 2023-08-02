@@ -1,9 +1,9 @@
 import { PositionType } from "@decentraland/RestrictedActions";
-import { Room } from "colyseus.js";
 import { VLMSession } from "../components/VLMSession.component";
 import { VLMPathClientEvent, VLMPathServerEvent } from "../components/VLMSystemEvents.component";
 import { VLMSessionManager } from "./VLMSession.logic";
 import { VLMEventManager } from "./VLMSystemEvents.logic";
+import { ColyRoom } from "../shared/interfaces";
 
 // Property names minimized for data efficiency
 // O = offset from startTime - tracked in seconds
@@ -30,7 +30,7 @@ export abstract class VLMPathManager implements ISystem {
   static engaged?: boolean;
   static idle?: boolean;
   static pathId?: string;
-  static sceneRoom: Room;
+  static sceneRoom: ColyRoom;
   static sessionData: VLMSession.Config;
   static pathSegments: VLMSession.Path.Segment[] = [{ type: VLMSession.Path.SegmentType.LOADING, path: [] }];
   static pov: 0 | 1 | 2 = 2;

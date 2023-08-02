@@ -1,3 +1,9 @@
+///<reference lib="es2015.symbol" />
+///<reference lib="es2015.symbol.wellknown" />
+///<reference lib="es2015.collection" />
+///<reference lib="es2015.iterable" />
+import { Room, Client } from "colyseus.js";
+
 export type SimpleTransform = {
   x: number;
   y: number;
@@ -46,4 +52,16 @@ export interface Playable {
   start: CallableFunction;
   pause?: CallableFunction;
   stop: CallableFunction;
+}
+
+export class ColyClient extends Client {
+  constructor(url: string) {
+    super(url);
+  }
+}
+
+export class ColyRoom extends Room {
+  constructor(name: string) {
+    super(name);
+  }
 }
