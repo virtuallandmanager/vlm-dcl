@@ -15,6 +15,7 @@ export default [
     output: {
       file: "dist/bundle.min.js", // this will be the output bundle
       format: "esm", // output format
+      sourcemap: true,
     },
     plugins: [
       resolve({
@@ -23,7 +24,7 @@ export default [
       }),
       commonjs(),
       typescript(),
-      terser({ format: { comments: false } }),
+      PROD && terser({ format: { comments: false } }),
     ],
   },
   // This configuration is for bundling the TypeScript declarations
