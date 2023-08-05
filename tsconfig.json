@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
     "allowJs": true,
     "strict": true,
     "noLib": false,
@@ -10,7 +12,8 @@
     "baseUrl": ".",
     "moduleResolution": "node",
     "paths": {
-      "colyseus.js": ["node_modules\\colyseus.js\\lib\\index.d.ts", "node_modules\\colyseus.js\\dist\\colyseus.d.ts"]
+      "colyseus.js": ["./node_modules\\colyseus.js\\lib\\index.d.ts", "./node_modules\\colyseus.js\\dist\\colyseus.d.ts"],
+      "@colyseus/schema": ["./node_modules\\@colyseus\\schema\\lib\\index.d.ts"]
     }
   },
   "include": ["src/**/*.ts"],
