@@ -5,7 +5,7 @@ export abstract class VLMEnvironment {
   private static wssUrls: { [env: string]: string } = {
     dev: "ws://localhost:3010",
     staging: "wss://staging-api.vlm.gg",
-    production: "wss://api.vlm.gg",
+    prod: "wss://api.vlm.gg",
   };
 
   private static apiUrls: { [env: string]: string } = {

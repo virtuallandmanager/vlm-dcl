@@ -27,7 +27,7 @@ export class VLM {
   public static init: CallableFunction = async (options?: VLMInitConfig) => {
     onSceneReadyObservable.addOnce(async () => {
       try {
-        await VLMEnvironment.init(options?.env || "production");
+        await VLMEnvironment.init(options?.env || "prod");
         await VLMSessionManager.start(VLM.version);
         VLMEventListeners.init();
       } catch (e) {
