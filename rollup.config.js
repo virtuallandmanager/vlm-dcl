@@ -1,39 +1,40 @@
-import resolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import { terser } from "rollup-plugin-terser";
-import typescript from "@rollup/plugin-typescript"; // Import the new plugin
-import dts from "rollup-plugin-dts";
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
+import { terser } from 'rollup-plugin-terser';
+import packageJson from './package.json'
 
-const PROD = !!process.env.CI;
-
-export default [
-  {
-    input: "src/index.ts",
-    external: (id) => {
-      return /@dcl\/|@decentraland\//.test(id);
+export default {
+  input: 'src/index.ts',
+  context: 'globalThis',
+  external: [/@dcl\//, /@decentraland\//],
+  output: [
+    {
+      file: packageJson.main,
+      format: 'amd',
+      amd: {
+        id: packageJson.name
+      },
     },
-    output: {
-      file: "dist/bundle.min.js", // this will be the output bundle
-      format: "esm", // output format
-      sourcemap: true,
-    },
-    plugins: [
-      resolve({
-        mainFields: ["module", "main"],
-        browser: true,
-      }),
-      commonjs(),
-      typescript(),
-      PROD && terser({ format: { comments: false } }),
-    ],
-  },
-  // This configuration is for bundling the TypeScript declarations
-  {
-    input: "src/index.ts", // replace this with the entry point to your library
-    output: {
-      file: "dist/bundle.d.ts", // this will be the output declarations file
-      format: "es", // always use 'es' for TypeScript declarations
-    },
-    plugins: [dts()],
-  },
-];
+  ],
+  plugins: [
+    resolve({
+      preferBuiltins: false,
+      browser: true
+    }),
+    typescript({
+      tsconfig: './tsconfig.json',
+      sourceMap: false,
+      compilerOptions: {
+        sourceMap: false,
+        inlineSourceMap: false,
+        inlineSources: false
+      },
+    }),
+    commonjs({
+      exclude: 'node_modules',
+      ignoreGlobal: true,
+    }),
+    terser({ format: { comments: false } }),
+  ],
+};
