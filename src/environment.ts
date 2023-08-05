@@ -24,9 +24,9 @@ export abstract class VLMEnvironment {
     }
 
     log(`VLM: Initializing ${env} environment`);
-    this.wssUrl = this.wssUrls[env];
-    log("VLM: WebSocket Server set to " + this.wssUrl);
     this.apiUrl = this.apiUrls[env];
     log("VLM: HTTPS Server set to " + this.apiUrl);
+    this.wssUrl = this.wssUrls[env];
+    log("VLM: WebSocket Server set to " + this.wssUrl);
   };
 }
