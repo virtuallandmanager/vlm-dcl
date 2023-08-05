@@ -1,4 +1,9 @@
-import { VLMGiveaway, VLMImage, VLMNFT, VLMSound, VLMVideo, VLMWidget } from "../index";
+import { VLMGiveaway } from "./VLMGiveaway.component";
+import { VLMImage } from "./VLMImage.component";
+import { VLMNFT } from "./VLMNFT.component";
+import { VLMSound } from "./VLMSound.component";
+import { VLMVideo } from "./VLMVideo.component";
+import { VLMWidget } from "./VLMWidget.component";
 
 export namespace VLMScene {
   export let sceneName: string;
