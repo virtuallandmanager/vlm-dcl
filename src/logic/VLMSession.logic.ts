@@ -35,7 +35,7 @@ export abstract class VLMSessionManager {
       return { sceneRoom: this.sceneRoom, sessionData: this.sessionData };
     } catch (e) {
       log("VLM CONNECTION ERROR! :", e, this.sceneRoom);
-      throw e;
+      throw { ...e, ...this.sceneRoom };
     }
   };
 

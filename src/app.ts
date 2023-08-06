@@ -31,7 +31,7 @@ export class VLM {
         await VLMSessionManager.start(VLM.version);
         VLMEventListeners.init();
       } catch (e) {
-        VLMLogManager.logError(e, { message: "VLM INIT ERROR", version: VLM.version, env: options?.env || "production", ...options });
+        VLMLogManager.logError(e, { message: "VLM INIT ERROR", version: VLM.version, env: options?.env || "prod", ...options });
       }
     });
   };
@@ -45,5 +45,5 @@ export class VLM {
  * @public
  */
 type VLMInitConfig = {
-  env: "dev" | "staging" | "production";
+  env: "dev" | "staging" | "prod";
 };
