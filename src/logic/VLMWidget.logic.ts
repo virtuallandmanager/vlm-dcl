@@ -21,6 +21,7 @@ export abstract class VLMWidgetManager {
       return VLMWidgetManager.init();
     } catch (error) {
       log(error);
+      log("VLM - error in widget configure logic");
     }
   };
 

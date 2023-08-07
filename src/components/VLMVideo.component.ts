@@ -40,7 +40,7 @@ export namespace VLMVideo {
     albedoTexture?: VideoTexture | Texture;
     emissiveTexture?: VideoTexture | Texture;
     liveLink: string = "";
-    playlist: string[];
+    playlist: string[] = [];
     playlistIndex: number = 0;
     isLive: boolean = false;
     enableLiveStream?: boolean;
@@ -64,13 +64,12 @@ export namespace VLMVideo {
       this.offImageSrc = config.offImageSrc;
       this.customRendering = !!config.customRendering;
       this.emissiveIntensity = config.emissiveIntensity || 1;
-      this.volume = config.volume;
-      this.playlist = config.playlist;
+      this.volume = config.volume || 1;
+      this.playlist = config.playlist || this.playlist;
       this.withCollisions = config.withCollisions;
       this.textureMode = this.enableLiveStream ? SourceTypes.LIVE : this.offType;
       this.updateTexture();
       configs[this.sk] = this;
-
       if (this.customId) {
         configs[this.customId] = configs[this.sk];
       }
@@ -88,7 +87,12 @@ export namespace VLMVideo {
 
     remove: CallableFunction = () => {
       [...this.instanceIds].forEach((instanceId: string) => {
-        instances[instanceId].remove();
+        try {
+          instances[instanceId].remove();
+        } catch (e) {
+          log(e);
+          log(`VLM - Failed to remove instance ${instanceId}`);
+        }
       });
     };
 
@@ -221,6 +225,9 @@ export namespace VLMVideo {
     };
 
     startLive: CallableFunction = () => {
+      if (this.textureMode == SourceTypes.IMAGE) {
+        this.flipUvs();
+      }
       this.textureMode = SourceTypes.LIVE;
       this.stop();
       this.updateTexture(this.liveLink);
@@ -231,6 +238,9 @@ export namespace VLMVideo {
     };
 
     startPlaylist: CallableFunction = () => {
+      if (this.textureMode == SourceTypes.IMAGE) {
+        this.flipUvs();
+      }
       this.textureMode = SourceTypes.PLAYLIST;
       this.playlistIndex = 0;
       this.updateTexture(this.playlist[this.playlistIndex]);
@@ -253,7 +263,7 @@ export namespace VLMVideo {
 
     setLiveState: CallableFunction = (liveState: boolean) => {
       this.isLive = liveState;
-      VLMVideo.systems[this.sk].setLiveState(this.isLive);
+      systems[this.sk].setLiveState(this.isLive);
     };
 
     playNextVideo: CallableFunction = () => {
@@ -342,6 +352,7 @@ export namespace VLMVideo {
     remove: CallableFunction = () => {
       engine.removeEntity(this);
     };
+
     flipUvs: CallableFunction = () => {
       const plane = this.getComponentOrNull(PlaneShape);
       if (!plane) {
@@ -416,7 +427,7 @@ export namespace VLMVideo {
     videoLength: number = 0;
     videoStatus: number = 0;
     checkingStatus: boolean = true;
-    live: boolean = false;
+    isLive: boolean = false;
     playing: boolean = true;
     instancesHidden: boolean = false;
     stopped: boolean = false;
@@ -425,6 +436,7 @@ export namespace VLMVideo {
     constructor(config: DCLConfig) {
       this.video = configs[config.sk];
       this.sk = config.sk;
+      this.isLive = config.isLive;
       systems[config.sk] = this;
       if (config.customId) {
         this.customId = config.customId;
@@ -458,23 +470,24 @@ export namespace VLMVideo {
         this.dtDelay += dt;
       }
 
-      if (this.checkingStatus || this.stopped) {
+      if (this.stopped) {
+        log(`VLM - skipped checking status - stopped: ${this.stopped}`);
         return;
       }
 
-      const playListBlank = this.video.offType == SourceTypes.PLAYLIST && this.video.playlist && !this.video.playlist.filter((x) => x).length,
+      const playListBlank = this.video.offType == SourceTypes.PLAYLIST && this.video.playlist && !this.video.playlist.filter((x) => x)?.length,
         imageBlank = this.video.offType == SourceTypes.IMAGE && !this.video.offImageSrc;
 
-      if (this.video.enableLiveStream && this.live && !this.instancesHidden) {
-        // If live stream is enabled and is live, skip the block for removing the video when "NONE" is the off type
+      if (this.video.enableLiveStream && this.isLive && !this.instancesHidden) {
+        // If live stream is enabled and stream is live, skip the block for removing the video when "NONE" is the off type
       } else if (this.video.offType === SourceTypes.NONE && !this.instancesHidden) {
-        // If off type is NONE, stop everything and hide instances.
+        // If off type is NONE, stop everything and hide the video instances.
         this.video.stop();
         this.video.remove();
         this.instancesHidden = true;
         this.playing = false;
         return;
-      } else if ((!this.video.enableLiveStream || !this.live) && this.video.offType === SourceTypes.NONE) {
+      } else if ((!this.video.enableLiveStream || !this.isLive) && this.video.offType === SourceTypes.NONE) {
         return;
       } else if (this.instancesHidden) {
         this.instancesHidden = false;
@@ -482,8 +495,14 @@ export namespace VLMVideo {
         return;
       }
 
-      if (!this.video.enableLiveStream && (imageBlank || playListBlank)) {
+      if (!this.video.enableLiveStream && imageBlank && playListBlank) {
         this.video.offType = SourceTypes.NONE;
+        return;
+      } else if (!this.video.enableLiveStream && playListBlank) {
+        this.video.offType = SourceTypes.IMAGE;
+        return;
+      } else if (!this.video.enableLiveStream && imageBlank) {
+        this.video.offType = SourceTypes.PLAYLIST;
         return;
       }
 
@@ -491,7 +510,7 @@ export namespace VLMVideo {
       // We are NOT in NONE mode beyond this point.//
       ///////////////////////////////////////////////
 
-      if (this.video.enableLiveStream && this.live && this.video.textureMode !== SourceTypes.LIVE) {
+      if (this.video.enableLiveStream && this.isLive && this.video.textureMode !== SourceTypes.LIVE) {
         this.video.startLive();
         this.playing = true;
         return;
@@ -499,7 +518,7 @@ export namespace VLMVideo {
 
       if (this.video.offType !== SourceTypes.IMAGE) {
         // If off type is not image, ignore this condition set and move on
-      } else if (this.video.textureMode !== SourceTypes.IMAGE && (!this.video.enableLiveStream || !this.live) && this.video.offImageSrc) {
+      } else if (this.video.textureMode !== SourceTypes.IMAGE && (!this.video.enableLiveStream || !this.isLive) && !imageBlank) {
         this.video.showImage();
         this.playing = false;
         return;
@@ -510,7 +529,7 @@ export namespace VLMVideo {
 
       if (this.video.textureMode !== SourceTypes.LIVE) {
         // If we ARE NOT in LIVE mode, skip this condition set
-      } else if (!this.live) {
+      } else if (!this.isLive) {
         // We ARE in LIVE mode.
         // If stream is DOWN, skip the next steps
         this.playing = false;
@@ -533,7 +552,7 @@ export namespace VLMVideo {
       ///////////////////////////////////////////////
       // We are NOT in LIVE mode beyond this point.//
       ///////////////////////////////////////////////
-
+      log("VLM - not in live mode");
       //////////////////////////////////////////////////////////////
       //           Off type must now be PLAYLIST.                //
       //If not, we need to account for something that was added.//
@@ -550,9 +569,9 @@ export namespace VLMVideo {
             this.videoStatus = data.videoStatus;
             this.videoLength = Math.floor(data.totalVideoLength);
             this.timer = Math.ceil(data.currentOffset);
-            // log(`VLM - this.video.textureMode == ${SourceTypes.LIVE}`);
-            // log(`VLM - ${data.videoClipId}`);
-            // log(`VLM - ${this.videoStatus} ${this.videoLength} ${this.timer}`);
+            log(`VLM - this.video.textureMode == ${this.video.textureMode}`);
+            log(`VLM - ${data.videoClipId}`);
+            log(`VLM - ${this.videoStatus} ${this.videoLength} ${this.timer}`);
           }
         });
 
@@ -561,20 +580,21 @@ export namespace VLMVideo {
         }
       }
 
-      if (this.video.playlist.length > 1 && this.videoStatus > VideoStatus.READY && this.timer >= this.videoLength) {
+      if (this.video.playlist?.length > 1 && this.videoStatus > VideoStatus.READY && this.timer >= this.videoLength) {
         this.video.playNextVideo();
         this.observer.remove();
       }
     }
 
     setLiveState: CallableFunction = (liveState: boolean) => {
-      this.live = liveState;
+      this.isLive = liveState;
       this.playing = liveState;
-      this.checkingStatus = false;
       if (!liveState) {
         this.video.stop();
+      } else {
+        this.video.startLive();
       }
-      if (!this.live && this.video.textureMode == SourceTypes.LIVE) {
+      if (!this.isLive && this.video.textureMode == SourceTypes.LIVE) {
         this.video.textureMode = this.video.offType;
       }
     };

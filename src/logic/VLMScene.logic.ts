@@ -24,7 +24,7 @@ export abstract class VLMSceneManager {
       const scenePreset = message.scenePreset;
       VLMImageManager.init(scenePreset.images);
       VLMVideoManager.init(scenePreset.videos);
-      // VLMNFTManager.init(scenePreset.nfts);
+      VLMNFTManager.init(scenePreset.nfts);
       VLMSoundManager.init(scenePreset.sounds);
 
       if (scenePreset.widgets) {
@@ -32,6 +32,7 @@ export abstract class VLMSceneManager {
       }
     } catch (error) {
       log(error);
+      log("VLM - Error initializing scene preset");
       throw error;
     }
   };
@@ -61,6 +62,7 @@ export abstract class VLMSceneManager {
       }
     } catch (error) {
       log(error);
+      log("VLM - Error creating scene element");
       throw error;
     }
   };
@@ -83,6 +85,7 @@ export abstract class VLMSceneManager {
       }
     } catch (error) {
       log(error);
+      log("VLM - Error creating scene element instance");
     }
   };
 
@@ -110,6 +113,7 @@ export abstract class VLMSceneManager {
       }
     } catch (error) {
       log(error);
+      log("VLM - Error updating scene element");
     }
   };
 
@@ -123,6 +127,7 @@ export abstract class VLMSceneManager {
       }
     } catch (error) {
       log(error);
+      log("VLM - Error updating scene setting");
       throw error;
     }
   };
@@ -145,6 +150,7 @@ export abstract class VLMSceneManager {
       }
     } catch (error) {
       log(error);
+      log("VLM - Error updating scene element instance");
       throw error;
     }
   };
@@ -170,6 +176,7 @@ export abstract class VLMSceneManager {
       }
     } catch (error) {
       log(error);
+      log("VLM - Error deleting scene element");
     }
   };
 
@@ -191,6 +198,7 @@ export abstract class VLMSceneManager {
       }
     } catch (error) {
       log(error);
+      log("VLM - Error deleting scene element instance");
     }
   };
 }

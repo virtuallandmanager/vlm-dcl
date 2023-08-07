@@ -19,7 +19,7 @@ export namespace VLMSession {
       this.sk = config.sk || this.sk;
       this.userId = config.userId;
       this.connectedWallet = config.connectedWallet;
-      this.sessionStart = config.sessionStart;
+      this.sessionStart = config?.sessionStart || Date.now();
       this.sessionEnd = config.sessionEnd;
       this.sessionToken = config.sessionToken;
       this.expires = config.expires;

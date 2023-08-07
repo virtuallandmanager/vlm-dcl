@@ -11,6 +11,7 @@ export abstract class VLMVideoManager {
       });
     } catch (error) {
       log(error);
+      log("VLM - error in video init logic");
     }
   };
 
@@ -23,6 +24,7 @@ export abstract class VLMVideoManager {
       new VLMVideo.DCLConfig(config);
     } catch (error) {
       log(error);
+      log("VLM - error in video create logic");
     }
   };
 
@@ -35,6 +37,7 @@ export abstract class VLMVideoManager {
       VLMVideo.configs[videoId].createInstance(instance);
     } catch (error) {
       log(error);
+      log("VLM - error in video instance create logic");
     }
   };
 

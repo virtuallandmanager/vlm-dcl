@@ -93,6 +93,7 @@ export abstract class VLMSessionManager {
       return sceneRoom;
     } catch (e) {
       log(e);
+      log("VLM - Error joining the relay room");
       throw e;
     }
   };
