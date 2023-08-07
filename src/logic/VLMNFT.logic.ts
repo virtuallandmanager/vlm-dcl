@@ -14,6 +14,7 @@ export abstract class VLMNFTManager {
       });
     } catch (error) {
       log(error);
+      log("VLM - Error initializing NFTs");
       throw error;
     }
   };
@@ -27,6 +28,7 @@ export abstract class VLMNFTManager {
       new VLMNFT.DCLConfig(nftConfig);
     } catch (error) {
       log(error);
+      log("VLM - Error creating NFT Frame")
       throw error;
     }
   };

@@ -16,7 +16,7 @@ export abstract class VLMNotificationManager implements ISystem {
   static delay: number = 5000;
 
   static update(dt: number) {
-    if (!this.messageQueue.length) {
+    if (!this.messageQueue?.length) {
       return;
     }
 

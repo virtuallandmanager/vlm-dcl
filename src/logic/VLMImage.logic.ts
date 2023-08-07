@@ -1,4 +1,4 @@
-import { VLMImage  } from "../components/VLMImage.component";
+import { VLMImage } from "../components/VLMImage.component";
 
 export abstract class VLMImageManager {
   static init: CallableFunction = (images: VLMImage.VLMConfig[]) => {
@@ -11,6 +11,7 @@ export abstract class VLMImageManager {
       });
     } catch (error) {
       log(error);
+      log("VLM - error in image init logic")
       throw error;
     }
   };
@@ -23,7 +24,7 @@ export abstract class VLMImageManager {
       log("VLM: Creating Image");
       new VLMImage.DCLConfig(imageConfig);
     } catch (error) {
-      log(error);
+      log("VLM - error in image create logic");
       throw error;
     }
   };
@@ -35,7 +36,10 @@ export abstract class VLMImageManager {
       return;
     }
     const imageId = config.sk;
-    VLMImage.configs[imageId].createInstance(instance);
+    const imageConfig = VLMImage.configs[imageId];
+    if (imageConfig) {
+      VLMImage.configs[imageId].createInstance(instance);
+    }
   };
 
   static update: CallableFunction = (imageConfig: VLMImage.VLMConfig | any, property: string, id: string) => {
@@ -56,7 +60,7 @@ export abstract class VLMImageManager {
         }
         break;
       case "imageSrc":
-        image.updateTexture(imageConfig.imageSrc);
+        image.updateTexture(imageConfig);
         break;
       case "emission":
         image.emissiveIntensity = imageConfig.emission;

@@ -4,6 +4,9 @@ import { VLMPathClientEvent, VLMPathServerEvent } from "../components/VLMSystemE
 import { VLMSessionManager } from "./VLMSession.logic";
 import { VLMEventManager } from "./VLMSystemEvents.logic";
 import { ColyRoom } from "../shared/interfaces";
+import { FlatFetchInit, signedFetch } from "@decentraland/SignedFetch";
+import { VLMLogManager } from "./VLMLogging";
+import { VLMEnvironment } from "../environment";
 
 // Property names minimized for data efficiency
 // O = offset from startTime - tracked in seconds
@@ -54,8 +57,22 @@ export abstract class VLMPathManager implements ISystem {
     engine.addSystem(this);
   };
 
-  static endPath: CallableFunction = () => {
-    VLMEventManager.events.fireEvent(new VLMPathClientEvent({ action: "path_end", pathId: this.pathId, pathSegments: this.pathSegments }));
+  static endPath: CallableFunction = async (error: any, metadata: any) => {
+    try {
+      const platformData = await VLMSessionManager.getPlatformData();
+      const payload: FlatFetchInit = {
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+        body: JSON.stringify({ error, sessionData: this.sessionData, pathId: this.pathId, pathSegments: this.pathSegments, metadata: { ...platformData, ...metadata, ts: Date.now() } }),
+      };
+
+      const config = await signedFetch(`${VLMEnvironment.apiUrl}/session/end`, payload);
+      if (config.ok) {
+        return config.json;
+      }
+    } catch (error) {
+      VLMLogManager.reportOutage();
+    }
   };
 
   static initMovement: CallableFunction = async () => {
@@ -77,11 +94,11 @@ export abstract class VLMPathManager implements ISystem {
       return;
     }
     try {
-      const thousandPointPaths = this.pathSegments.some((segment) => segment?.path && segment.path.length >= 1000);
+      const thousandPointPaths = this.pathSegments.some((segment) => segment?.path && segment.path?.length >= 1000);
       const isFirstSegment = this.pathSegments[0].type == VLMSession.Path.SegmentType.LOADING;
       const latestSegment = this.pathSegments[0];
       const lastSegment = this.pathSegments[1];
-      const latestSegmentStart = isFirstSegment ? this.sessionData.sessionStart : this.pathSegments[0].path[0][0];
+      const latestSegmentStart = isFirstSegment ? this.sessionData?.sessionStart || Date.now() : this.pathSegments[0].path[0][0];
       const debounced = Date.now() - (latestSegmentStart || 0);
 
       if (isFirstSegment) {
@@ -137,7 +154,7 @@ export abstract class VLMPathManager implements ISystem {
       this.pathSegments.unshift(newSegment);
       log("Started a new segment.", newSegment);
       log("All segments:", this.pathSegments);
-      if (this.pathSegments.length > 25 || thousandPointPaths) {
+      if (this.pathSegments?.length > 25 || thousandPointPaths) {
         log("VLM FIRE ZE MISSILES!");
         VLMEventManager.events.fireEvent(new VLMPathClientEvent({ action: "path_segments_add", pathId: this.pathId, pathSegments: this.pathSegments }));
       }
@@ -148,13 +165,15 @@ export abstract class VLMPathManager implements ISystem {
 
   static trimStoredSegments: CallableFunction = (message: VLMPathServerEvent) => {
     log("VLM: trimming path segments!", this.pathSegments);
-    this.pathSegments.splice(this.pathSegments.length - message.added);
-    log("VLM: trimmed path segments!", this.pathSegments);
+    if (this.pathSegments?.length) {
+      this.pathSegments.splice(this.pathSegments.length - message.added);
+      log("VLM: trimmed path segments!", this.pathSegments);
+    }
   };
 
   static getPathPoint: CallableFunction = (firstPoint: boolean) => {
     this.approximatePathPoint();
-    const offset = firstPoint ? 0 : Date.now() - this.sessionData.sessionStart;
+    const offset = firstPoint ? 0 : Date.now() - (this.sessionData?.sessionStart || 0);
     return [offset, this.playerPosition?.x, this.playerPosition?.y, this.playerPosition?.z, this.cameraRotation?.x, this.cameraRotation?.y, this.cameraRotation?.z, this.pov];
   };
 
@@ -176,7 +195,7 @@ export abstract class VLMPathManager implements ISystem {
   };
 
   static comparePoints: CallableFunction = (pointA: PathPoint, pointB: PathPoint) => {
-    if (!pointA.length || !pointB.length) {
+    if (!pointA?.length || !pointB?.length) {
       return;
     }
     const xMatch = pointA[1] == pointB[1],
@@ -187,7 +206,7 @@ export abstract class VLMPathManager implements ISystem {
   };
 
   static lastPathPoint: CallableFunction = () => {
-    if (this.pathSegments[0].path && this.pathSegments[0].path.length) {
+    if (this.pathSegments[0].path && this.pathSegments[0].path?.length) {
       return this.pathSegments[0].path[this.pathSegments[0].path.length - 1];
     } else {
       return this.getPathPoint();
@@ -231,7 +250,7 @@ export abstract class VLMPathManager implements ISystem {
     const lastPathPoint = this.lastPathPoint(),
       lastPointOffset = lastPathPoint[0];
 
-    if (this.pathId && this.pathSegments[0].path.length >= 1000) {
+    if (this.pathId && this.pathSegments[0].path?.length >= 1000) {
       this.startNewSegment();
       return;
     }

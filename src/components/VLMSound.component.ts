@@ -42,7 +42,7 @@ export namespace VLMSound {
         if (this.customId) {
           configs[this.customId] = configs[this.sk];
         }
-        if (this.customRendering || config.instances.length < 1) {
+        if (this.customRendering || !config.instances || config.instances.length < 1) {
           return;
         }
 
@@ -57,6 +57,7 @@ export namespace VLMSound {
         });
       } catch (e) {
         log(e);
+        log("VLM: Error creating sound config");
         throw e;
       }
     }
@@ -100,6 +101,7 @@ export namespace VLMSound {
         }
       } catch (e) {
         log(e);
+        log("VLM: Error creating sound instance");
         throw e;
       }
     };

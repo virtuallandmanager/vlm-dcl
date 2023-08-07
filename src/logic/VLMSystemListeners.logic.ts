@@ -6,7 +6,7 @@ import { VLMSession } from "../components/VLMSession.component";
 import { getPlayerData, getPlayersInScene } from "@decentraland/Players";
 import { VLMTimer } from "../components/VLMTimer.component";
 import { VLMPathManager } from "./VLMPath.logic";
-import { VLMSessionManager, VLMSoundManager } from "./index";
+import { VLMSessionManager } from "./index";
 import { VLMVideo } from "../components/VLMVideo.component";
 import { VLMSound } from "../components/VLMSound.component";
 
@@ -179,9 +179,6 @@ export abstract class VLMEventListeners {
         case "path_segments_add":
           this.sceneRoom.send("path_segments_add", message);
           break;
-        case "path_end":
-          this.sceneRoom.send("path_end", message);
-          break;
       }
     });
 
@@ -215,7 +212,6 @@ export abstract class VLMEventListeners {
           VLMSceneManager.createSceneElement(message);
           break;
         case "update":
-          log("updating");
           VLMSceneManager.updateSceneElement(message);
           break;
         case "delete":
@@ -230,7 +226,8 @@ export abstract class VLMEventListeners {
         return;
       }
       const videoConfig = VLMVideo.configs[videoId];
-
+      log(VLMVideo.configs);
+      log(VLMVideo.systems);
       if (videoConfig?.liveLink == message.url) {
         log("VLM: Received Video Status Update", message);
         videoConfig.setLiveState(message.status);

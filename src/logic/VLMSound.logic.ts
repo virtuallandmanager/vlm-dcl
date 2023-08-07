@@ -12,14 +12,14 @@ export abstract class VLMSoundManager {
 
   static create: CallableFunction = (soundConfig: VLMSound.VLMConfig) => {
     try {
-      log("VLM: Creating Sound");
+      log("VLM - Creating Sound");
       if (!soundConfig.enabled) {
         return;
       }
       new VLMSound.DCLConfig(soundConfig);
     } catch (error) {
-      log("fooked");
       log(error);
+      log("VLM - Error creating sound");
     }
   };
 
