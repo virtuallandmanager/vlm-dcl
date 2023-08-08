@@ -59,7 +59,7 @@
 
 05-September-2022
   ea3244b || working: updating parenting || Author:=
-  2f9769b || working: create video, remove video, update livelink, update playlist, move instance || Author:=
+  2f9769b || working: create video, remove video, update liveSrc, update playlist, move instance || Author:=
 
 20-August-2022
   571279f || update npm packages || Author:=

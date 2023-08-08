@@ -31,8 +31,6 @@ export abstract class VLMSceneManager {
         VLMWidgetManager.setState(scenePreset.widgets);
       }
     } catch (error) {
-      log(error);
-      log("VLM - Error initializing scene preset");
       throw error;
     }
   };
@@ -61,8 +59,6 @@ export abstract class VLMSceneManager {
           break;
       }
     } catch (error) {
-      log(error);
-      log("VLM - Error creating scene element");
       throw error;
     }
   };
@@ -84,8 +80,7 @@ export abstract class VLMSceneManager {
           break;
       }
     } catch (error) {
-      log(error);
-      log("VLM - Error creating scene element instance");
+      throw error;
     }
   };
 
@@ -112,8 +107,7 @@ export abstract class VLMSceneManager {
           break;
       }
     } catch (error) {
-      log(error);
-      log("VLM - Error updating scene element");
+      throw error;
     }
   };
 
@@ -126,8 +120,6 @@ export abstract class VLMSceneManager {
           break;
       }
     } catch (error) {
-      log(error);
-      log("VLM - Error updating scene setting");
       throw error;
     }
   };
@@ -149,8 +141,6 @@ export abstract class VLMSceneManager {
           break;
       }
     } catch (error) {
-      log(error);
-      log("VLM - Error updating scene element instance");
       throw error;
     }
   };
@@ -175,8 +165,7 @@ export abstract class VLMSceneManager {
           break;
       }
     } catch (error) {
-      log(error);
-      log("VLM - Error deleting scene element");
+      throw error;
     }
   };
 
@@ -197,8 +186,7 @@ export abstract class VLMSceneManager {
           break;
       }
     } catch (error) {
-      log(error);
-      log("VLM - Error deleting scene element instance");
+      throw error;
     }
   };
 }

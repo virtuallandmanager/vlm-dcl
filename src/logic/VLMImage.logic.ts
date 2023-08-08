@@ -10,121 +10,125 @@ export abstract class VLMImageManager {
         this.create(image);
       });
     } catch (error) {
-      log(error);
-      log("VLM - error in image init logic")
       throw error;
     }
   };
 
-  static create: CallableFunction = (imageConfig: VLMImage.VLMConfig) => {
+  static create: CallableFunction = (config: VLMImage.VLMConfig) => {
     try {
-      if (!imageConfig.enabled) {
+      if (!config.enabled) {
         return;
       }
       log("VLM: Creating Image");
-      new VLMImage.DCLConfig(imageConfig);
+      new VLMImage.DCLConfig(config);
     } catch (error) {
-      log("VLM - error in image create logic");
       throw error;
     }
   };
 
   static createInstance: CallableFunction = (config: VLMImage.VLMConfig, instance: VLMImage.VLMInstanceConfig) => {
-    log("VLM: Creating Image Instance");
-
-    if (!config.enabled || !instance.enabled) {
-      return;
-    }
-    const imageId = config.sk;
-    const imageConfig = VLMImage.configs[imageId];
-    if (imageConfig) {
+    try {
+      if (!config.enabled || !instance.enabled) {
+        return;
+      }
+      const imageId = config.sk;
       VLMImage.configs[imageId].createInstance(instance);
+    } catch (error) {
+      throw error;
     }
   };
 
-  static update: CallableFunction = (imageConfig: VLMImage.VLMConfig | any, property: string, id: string) => {
-    const image: VLMImage.DCLConfig = VLMImage.configs[imageConfig.sk || id];
+  static update: CallableFunction = (config: VLMImage.VLMConfig | any, property: string, id: string) => {
+    try {
+      const image: VLMImage.DCLConfig = VLMImage.configs[config.sk || id];
 
-    if (!imageConfig || (!image && !imageConfig.enabled)) {
-      return;
-    } else if (!image && imageConfig.enabled) {
-      new VLMImage.DCLConfig(imageConfig);
-    }
+      if (!config || (!image && !config.enabled)) {
+        return;
+      } else if (!image && config.enabled) {
+        new VLMImage.DCLConfig(config);
+      }
 
-    switch (property) {
-      case "enabled":
-        if (!imageConfig.enabled) {
-          this.remove(imageConfig.sk);
-        } else if (image) {
-          this.add(imageConfig.sk);
-        }
-        break;
-      case "imageSrc":
-        image.updateTexture(imageConfig);
-        break;
-      case "emission":
-        image.emissiveIntensity = imageConfig.emission;
-        break;
-      case "clickEvent":
-        image.updateClickEvent(imageConfig.clickEvent);
-        break;
-      case "transparency":
-        image.updateTransparency(imageConfig.isTransparent);
-        break;
-      case "parent":
-        image.updateParent(imageConfig.parent);
-        break;
-      case "customId":
-        image.updateCustomId(imageConfig.customId);
-        break;
+      switch (property) {
+        case "enabled":
+          if (!config.enabled) {
+            this.remove(config.sk);
+          } else if (image) {
+            this.add(config.sk);
+          }
+          break;
+        case "imageSrc":
+          image.updateTexture(config);
+          break;
+        case "emission":
+          image.emissiveIntensity = config.emission;
+          break;
+        case "clickEvent":
+          image.updateClickEvent(config.clickEvent);
+          break;
+        case "isTransparent":
+          image.updateTransparency(config.isTransparent);
+          break;
+        case "parent":
+          image.updateParent(config.parent);
+          break;
+        case "customId":
+          image.updateCustomId(config.customId);
+          break;
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
   static updateInstance: CallableFunction = (instanceConfig: VLMImage.VLMInstanceConfig, property: string, id: string) => {
-    const instance = VLMImage.instances[instanceConfig.sk],
-      configId = instance.configId,
-      config = VLMImage.configs[configId];
+    try {
+      const instance = VLMImage.instances[instanceConfig.sk],
+        configId = instance.configId,
+        config = VLMImage.configs[configId];
 
-    if (!config) {
-      return;
-    } else if (!instance && instanceConfig.enabled) {
-      config.createInstance(instanceConfig);
-    }
+      if (!config) {
+        return;
+      } else if (!instance && instanceConfig.enabled) {
+        config.createInstance(instanceConfig);
+      }
 
-    const { position, scale, rotation } = instanceConfig;
+      const { position, scale, rotation } = instanceConfig;
 
-    switch (property) {
-      case "enabled":
-        if (!config.enabled || !instanceConfig.enabled) {
-          config.removeInstance(instanceConfig.sk);
-        } else if (instance && instanceConfig.enabled) {
-          config.addInstance(instanceConfig.sk);
-        }
-        break;
-      case "transform":
-        instance.updateTransform(position, scale, rotation);
-        break;
-      case "clickEvent":
-        instance.updateClickEvent(instanceConfig.clickEvent);
-        break;
-      case "properties":
-        instance.updateCollider(instanceConfig);
-        instance.updateParent(instanceConfig.parent);
-        instance.updateCustomId(instanceConfig.customId);
-        instance.updateCustomRendering(instanceConfig.customRendering);
-        break;
-      case "withCollider":
-        instance.updateCollider(instanceConfig);
-        break;
-      case "customId":
-        instance.updateCustomId(instanceConfig.customId);
-        break;
-      case "customRendering":
-        instance.updateCustomRendering(instanceConfig.customRendering);
-        break;
-      case "parent":
-        instance.updateParent(instanceConfig.parent);
-        break;
+      switch (property) {
+        case "enabled":
+          if (!config.enabled || !instanceConfig.enabled) {
+            config.removeInstance(instanceConfig.sk);
+          } else if (instance && instanceConfig.enabled) {
+            config.addInstance(instanceConfig.sk);
+          }
+          break;
+        case "transform":
+          instance.updateTransform(position, scale, rotation);
+          break;
+        case "clickEvent":
+          instance.updateClickEvent(instanceConfig.clickEvent);
+          break;
+        case "properties":
+          instance.updateCollider(instanceConfig);
+          instance.updateParent(instanceConfig.parent);
+          instance.updateCustomId(instanceConfig.customId);
+          instance.updateCustomRendering(instanceConfig.customRendering);
+          break;
+        case "withCollider":
+          instance.updateCollider(instanceConfig);
+          break;
+        case "customId":
+          instance.updateCustomId(instanceConfig.customId);
+          break;
+        case "customRendering":
+          instance.updateCustomRendering(instanceConfig.customRendering);
+          break;
+        case "parent":
+          instance.updateParent(instanceConfig.parent);
+          break;
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
