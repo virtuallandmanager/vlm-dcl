@@ -18,15 +18,19 @@ export abstract class VLMEnvironment {
   static wssUrl: string = "wss://api.vlm.gg";
 
   static init: CallableFunction = async (env: string) => {
-    this.devMode = await isPreviewMode();
-    if (!env || (env !== "prod" && !this.devMode)) {
-      env = "prod";
-    }
+    try {
+      this.devMode = await isPreviewMode();
+      if (!env || (env !== "prod" && !this.devMode)) {
+        env = "prod";
+      }
 
-    log(`VLM: Initializing ${env} environment`);
-    this.apiUrl = this.apiUrls[env];
-    log("VLM: HTTPS Server set to " + this.apiUrl);
-    this.wssUrl = this.wssUrls[env];
-    log("VLM: WebSocket Server set to " + this.wssUrl);
+      log(`VLM: Initializing ${env} environment`);
+      this.apiUrl = this.apiUrls[env];
+      log("VLM: HTTPS Server set to " + this.apiUrl);
+      this.wssUrl = this.wssUrls[env];
+      log("VLM: WebSocket Server set to " + this.wssUrl);
+    } catch (e) {
+      throw e;
+    }
   };
 }

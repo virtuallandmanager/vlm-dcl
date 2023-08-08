@@ -10,21 +10,18 @@ export abstract class VLMVideoManager {
         this.create(videoScreen);
       });
     } catch (error) {
-      log(error);
-      log("VLM - error in video init logic");
+      throw error;
     }
   };
 
   static create: CallableFunction = (config: VLMVideo.VLMConfig) => {
     try {
-      log("VLM: Creating Video Screen");
       if (!config.enabled) {
         return;
       }
       new VLMVideo.DCLConfig(config);
     } catch (error) {
-      log(error);
-      log("VLM - error in video create logic");
+      throw error;
     }
   };
 
@@ -36,107 +33,117 @@ export abstract class VLMVideoManager {
       const videoId = config.sk;
       VLMVideo.configs[videoId].createInstance(instance);
     } catch (error) {
-      log(error);
-      log("VLM - error in video instance create logic");
+      throw error;
     }
   };
 
   static update: CallableFunction = (config: VLMVideo.VLMConfig, property: string, id: string) => {
-    const video: VLMVideo.DCLConfig = VLMVideo.configs[id || config.sk];
+    try {
+      const video: VLMVideo.DCLConfig = VLMVideo.configs[id || config.sk];
 
-    if (!config || (!video && !config.enabled)) {
-      return;
-    } else if (!video && config.enabled) {
-      new VLMVideo.DCLConfig(config);
-    }
+      if (!config || (!video && !config.enabled)) {
+        return;
+      } else if (!video && config.enabled) {
+        new VLMVideo.DCLConfig(config);
+      }
 
-    switch (property) {
-      case "enabled":
-        if (!config.enabled) {
-          this.remove(config.sk);
-        } else if (video) {
-          this.add(config.sk);
-        }
-        break;
-      case "liveLink":
-        video.liveLink = config.liveLink;
-        break;
-      case "enableLiveStream":
-        video.enableLiveStream = config.enableLiveStream;
-        break;
-      case "playlist":
-        video.updatePlaylist(config.playlist);
-        break;
-      case "volume":
-        video.updateVolume(config.volume);
-        break;
-      case "emission":
-        video.emissiveIntensity = config.emission || 0;
-        break;
-      case "offType":
-        video.offType = config.offType;
-        break;
-      case "properties":
-        video.updateParent(config.parent);
-        video.updateCustomId(config.customId);
-        video.updateCustomRendering(config.customRendering);
-      case "offImage":
-        video.updateOffImage(config.offImageSrc);
-        break;
-      case "parent":
-        video.updateParent(config.parent);
-        break;
-      case "customId":
-        video.updateCustomId(config.customId);
-        break;
-      case "customRendering":
-        video.updateCustomRendering(config.customRendering);
-        break;
+      switch (property) {
+        case "enabled":
+          if (!config.enabled) {
+            this.remove(config.sk);
+          } else if (video) {
+            this.add(config.sk);
+          }
+          break;
+        case "liveSrc":
+          video.liveSrc = config.liveSrc;
+          break;
+        case "enableLiveStream":
+          video.enableLiveStream = config.enableLiveStream;
+          break;
+        case "playlist":
+          video.updatePlaylist(config.playlist);
+          break;
+        case "volume":
+          video.updateVolume(config.volume);
+          break;
+        case "emission":
+          video.emissiveIntensity = config.emission || 0;
+          break;
+        case "offType":
+          video.offType = config.offType;
+          break;
+        case "clickEvent":
+          video.updateClickEvent(config.clickEvent);
+          break;
+        case "properties":
+          video.updateParent(config.parent);
+          video.updateCustomId(config.customId);
+          video.updateCustomRendering(config.customRendering);
+        case "offImage":
+          video.updateOffImage(config.offImageSrc);
+          break;
+        case "parent":
+          video.updateParent(config.parent);
+          break;
+        case "customId":
+          video.updateCustomId(config.customId);
+          break;
+        case "customRendering":
+          video.updateCustomRendering(config.customRendering);
+          break;
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
   static updateInstance: CallableFunction = (instanceConfig: VLMVideo.VLMInstanceConfig, property: string, id: string) => {
-    const instance = VLMVideo.instances[instanceConfig?.sk] || VLMVideo.instances[id],
-      configId = instance.configId,
-      config = VLMVideo.configs[configId];
+    try {
+      const instance = VLMVideo.instances[instanceConfig?.sk] || VLMVideo.instances[id],
+        configId = instance.configId,
+        config = VLMVideo.configs[configId];
 
-    if (!config) {
-      return;
-    } else if (!instance && instanceConfig.enabled) {
-      config.createInstance(instanceConfig);
-    }
+      if (!config) {
+        return;
+      } else if (!instance && instanceConfig.enabled) {
+        config.createInstance(instanceConfig);
+      }
 
-    const { position, scale, rotation } = instanceConfig;
+      const { position, scale, rotation } = instanceConfig;
 
-    switch (property) {
-      case "enabled":
-        if (!config.enabled || !instanceConfig.enabled) {
-          config.removeInstance(instanceConfig.sk);
-        } else if (instance && instanceConfig.enabled) {
-          config.addInstance(instanceConfig.sk);
-        }
-        break;
-      case "transform":
-        instance.updateTransform(position, scale, rotation);
-        break;
-      case "properties":
-        instance.updateCollider(instanceConfig);
-        instance.updateParent(instanceConfig.parent);
-        instance.updateCustomId(instanceConfig.customId);
-        instance.updateCustomRendering(instanceConfig.customRendering);
-        break;
-      case "withCollider":
-        instance.updateCollider(instanceConfig);
-        break;
-      case "customRendering":
-        instance.updateCustomRendering(instanceConfig.customRendering);
-        break;
-      case "customId":
-        instance.updateCustomId(instanceConfig.customId);
-        break;
-      case "parent":
-        instance.updateParent(instanceConfig.parent);
-        break;
+      switch (property) {
+        case "enabled":
+          if (!config.enabled || !instanceConfig.enabled) {
+            config.removeInstance(instanceConfig.sk);
+          } else if (instance && instanceConfig.enabled) {
+            config.addInstance(instanceConfig.sk);
+          }
+          break;
+        case "transform":
+          instance.updateTransform(position, scale, rotation);
+          break;
+        case "properties":
+          instance.updateCollider(instanceConfig);
+          instance.updateParent(instanceConfig.parent);
+          instance.updateCustomId(instanceConfig.customId);
+          instance.updateCustomRendering(instanceConfig.customRendering);
+          break;
+        case "withCollider":
+          instance.updateCollider(instanceConfig);
+          break;
+        case "customRendering":
+          instance.updateCustomRendering(instanceConfig.customRendering);
+          break;
+        case "customId":
+          instance.updateCustomId(instanceConfig.customId);
+          break;
+        case "parent":
+          instance.updateParent(instanceConfig.parent);
+          break;
+      }
+    } catch (error) {
+      throw error;
     }
   };
   static add: CallableFunction = (id: string) => {

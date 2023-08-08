@@ -66,20 +66,20 @@ export namespace VLMImage {
     // deletes the material record AND removes the VLMImage.instances from the engine
     delete: CallableFunction = () => {
       delete configs[this.sk];
-      [...this.instanceIds].forEach((instanceId: string) => {
+      this.instanceIds.forEach((instanceId: string) => {
         instances[instanceId].delete();
       });
     };
 
     // just removes the VLMImage.instances from the engine, keeps the material record and instance records so we can bring stuff back
     remove: CallableFunction = () => {
-      [...this.instanceIds].forEach((instanceId: string) => {
+      this.instanceIds.forEach((instanceId: string) => {
         instances[instanceId].remove();
       });
     };
 
     showAll: CallableFunction = () => {
-      [...this.instanceIds].forEach((instanceId: string) => {
+      this.instanceIds.forEach((instanceId: string) => {
         const visible = instances[instanceId].enabled,
           parent = instances[instanceId].parent || this.parent;
 
@@ -94,7 +94,7 @@ export namespace VLMImage {
     };
 
     updateParent: CallableFunction = (parent: string) => {
-      [...this.instanceIds].forEach((instanceId: string) => {
+      this.instanceIds.forEach((instanceId: string) => {
         if (instances[instanceId].parent === this.parent) {
           instances[instanceId].updateParent(parent);
         }
@@ -138,8 +138,7 @@ export namespace VLMImage {
           this.transparencyMode = TransparencyMode.OPAQUE;
         }
       } catch (e) {
-        log("VLM - Error updating image texture");
-        log(e);
+        throw e;
       }
     };
 
@@ -161,13 +160,14 @@ export namespace VLMImage {
 
     createInstance: CallableFunction = (config: DCLInstanceConfig) => {
       try {
-        log("VLM: Creating Image...");
-        if (this.instanceIds?.length && !includes(this.instanceIds, config.sk)) {
+        if (!includes(this.instanceIds, config.sk)) {
           this.instanceIds.push(config.sk);
         }
         new DCLInstanceConfig(this, config);
+        if (config.customId) {
+          instances[config.customId] = instances[config.sk];
+        }
       } catch (error) {
-        log("VLM - Error creating image instance from config class");
         throw error;
       }
     };
@@ -261,8 +261,6 @@ export namespace VLMImage {
       try {
         engine.addEntity(this);
       } catch (error) {
-        log("VLM - Error adding entity");
-        log(error);
         throw error;
       }
     };
@@ -369,5 +367,5 @@ export namespace VLMImage {
       }
     };
   }
-  export class VLMInstanceConfig extends DCLInstanceConfig {}
+  export class VLMInstanceConfig extends DCLInstanceConfig { }
 }
