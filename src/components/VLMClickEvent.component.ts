@@ -111,8 +111,7 @@ export namespace VLMClickEvent {
             break;
         }
       } catch (error) {
-        log("VLM - Error in ClickEvent constructor");
-        log(error);
+        throw error;
       }
     }
 

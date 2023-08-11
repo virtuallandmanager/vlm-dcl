@@ -27,11 +27,14 @@ export class VLM {
   public static init: CallableFunction = async (options?: VLMInitConfig) => {
     onSceneReadyObservable.addOnce(async () => {
       try {
+        if (options?.widgets) {
+          VLMWidgetManager.configureWidgets(options.widgets);
+        }
         await VLMEnvironment.init(options?.env || "prod");
         await VLMSessionManager.start(VLM.version);
         VLMEventListeners.init();
-      } catch (e) {
-        VLMLogManager.logError(e, { message: "VLM INIT ERROR", version: VLM.version, env: options?.env || "prod", ...options });
+      } catch (error) {
+        VLMLogManager.logError(error, { message: "VLM INIT ERROR", version: VLM.version, env: options?.env || "prod", ...options });
       }
     });
   };
@@ -46,4 +49,7 @@ export class VLM {
  */
 type VLMInitConfig = {
   env: "dev" | "staging" | "prod";
+  widgets?: VLMWidget.DCLConfig[];
 };
+
+export type VLMWidgetConfig = VLMWidget.DCLConfig;

@@ -19,7 +19,6 @@ export abstract class VLMImageManager {
       if (!config.enabled) {
         return;
       }
-      log("VLM: Creating Image");
       new VLMImage.DCLConfig(config);
     } catch (error) {
       throw error;
@@ -109,10 +108,10 @@ export abstract class VLMImageManager {
           instance.updateClickEvent(instanceConfig.clickEvent);
           break;
         case "properties":
-          instance.updateCollider(instanceConfig);
           instance.updateParent(instanceConfig.parent);
           instance.updateCustomId(instanceConfig.customId);
           instance.updateCustomRendering(instanceConfig.customRendering);
+          instance.updateCollider(instanceConfig);
           break;
         case "withCollider":
           instance.updateCollider(instanceConfig);
@@ -145,12 +144,18 @@ export abstract class VLMImageManager {
   };
 
   static removeInstance: CallableFunction = (instanceId: string) => {
-    const configId = VLMImage.instances[instanceId].configId;
-    VLMImage.configs[configId].removeInstance(instanceId);
+    const instance = VLMImage.instances[instanceId];
+    const configId = instance?.configId;
+    if (configId) {
+      VLMImage.configs[configId].removeInstance(instanceId);
+    }
   };
 
   static deleteInstance: CallableFunction = (instanceId: string) => {
-    const configId = VLMImage.instances[instanceId].configId;
-    VLMImage.configs[configId].deleteInstance(instanceId);
+    const instance = VLMImage.instances[instanceId];
+    const configId = instance?.configId;
+    if (configId) {
+      VLMImage.configs[configId].deleteInstance(instanceId);
+    }
   };
 }

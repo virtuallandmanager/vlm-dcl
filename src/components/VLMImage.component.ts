@@ -57,66 +57,89 @@ export namespace VLMImage {
         config.instances.forEach((instance: VLMInstanceConfig) => {
           this.createInstance(instance);
         });
-      } catch (e) {
-        log("VLM: Error creating image config");
-        log(e);
+      } catch (error) {
+        throw error
       }
     }
 
     // deletes the material record AND removes the VLMImage.instances from the engine
     delete: CallableFunction = () => {
-      delete configs[this.sk];
-      this.instanceIds.forEach((instanceId: string) => {
-        instances[instanceId].delete();
-      });
+      try {
+        delete configs[this.sk];
+        this.instanceIds.forEach((instanceId: string) => {
+          instances[instanceId].delete();
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     // just removes the VLMImage.instances from the engine, keeps the material record and instance records so we can bring stuff back
     remove: CallableFunction = () => {
-      this.instanceIds.forEach((instanceId: string) => {
-        instances[instanceId].remove();
-      });
+      try {
+        this.instanceIds.forEach((instanceId: string) => {
+          instances[instanceId].remove();
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     showAll: CallableFunction = () => {
-      this.instanceIds.forEach((instanceId: string) => {
-        const visible = instances[instanceId].enabled,
-          parent = instances[instanceId].parent || this.parent;
+      try {
+        this.instanceIds.forEach((instanceId: string) => {
+          const visible = instances[instanceId].enabled,
+            parent = instances[instanceId].parent || this.parent;
 
-        if (!visible) {
-          return;
-        } else if (parent) {
-          instances[instanceId].updateParent(parent);
-        } else if (!instances[instanceId].customRendering) {
-          instances[instanceId].add();
-        }
-      });
+          if (!visible) {
+            return;
+          } else if (parent) {
+            instances[instanceId].updateParent(parent);
+          } else if (!instances[instanceId].customRendering) {
+            instances[instanceId].add();
+          }
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateParent: CallableFunction = (parent: string) => {
-      this.instanceIds.forEach((instanceId: string) => {
-        if (instances[instanceId].parent === this.parent) {
-          instances[instanceId].updateParent(parent);
-        }
-      });
-      this.parent = parent;
+      try {
+        this.instanceIds.forEach((instanceId: string) => {
+          if (instances[instanceId].parent === this.parent) {
+            instances[instanceId].updateParent(parent);
+          }
+        });
+        this.parent = parent;
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateCustomId: CallableFunction = (customId: string) => {
-      if (this.customId && configs[this.customId]) {
-        delete configs[this.customId];
+      try {
+        if (this.customId && configs[this.customId]) {
+          delete configs[this.customId];
+        }
+        configs[customId] = configs[this.sk];
+        this.customId = customId;
+      } catch (error) {
+        throw error;
       }
-      configs[customId] = configs[this.sk];
-      this.customId = customId;
     };
 
     updateCustomRendering: CallableFunction = (customRendering: boolean) => {
-      this.customRendering = customRendering;
+      try {
+        this.customRendering = customRendering;
 
-      if (customRendering) {
-        this.remove();
-      } else {
-        this.showAll();
+        if (customRendering) {
+          this.remove();
+        } else {
+          this.showAll();
+        }
+      } catch (error) {
+        throw error;
       }
     };
 
@@ -147,15 +170,23 @@ export namespace VLMImage {
     };
 
     updateTransparency: CallableFunction = (isTransparent: boolean) => {
-      this.isTransparent = isTransparent;
-      this.updateTexture();
+      try {
+        this.isTransparent = isTransparent;
+        this.updateTexture();
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateClickEvent: CallableFunction = (clickEvent: VLMClickEvent.DCLConfig) => {
-      this.clickEvent = clickEvent;
-      [...this.instanceIds].forEach((instanceId: string) => {
-        instances[instanceId].updateDefaultClickEvent(this.clickEvent);
-      });
+      try {
+        this.clickEvent = clickEvent;
+        this.instanceIds.forEach((instanceId: string) => {
+          instances[instanceId].updateDefaultClickEvent(this.clickEvent);
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     createInstance: CallableFunction = (config: DCLInstanceConfig) => {
@@ -173,8 +204,12 @@ export namespace VLMImage {
     };
 
     deleteInstance: CallableFunction = (instanceId: string) => {
-      this.instanceIds = this.instanceIds.filter((id: string) => id !== instanceId);
-      instances[instanceId].delete();
+      try {
+        this.instanceIds = this.instanceIds.filter((id: string) => id !== instanceId);
+        instances[instanceId].delete();
+      } catch (error) {
+        throw error;
+      }
     };
 
     removeInstance: CallableFunction = (instanceId: string) => {
@@ -251,57 +286,81 @@ export namespace VLMImage {
           instances[this.customId] = instances[this.sk];
         }
       } catch (error) {
-        log("VLM: error in instance constructor");
-        log(error);
         throw error;
       }
     }
 
     add: CallableFunction = () => {
       try {
-        engine.addEntity(this);
+        if (this.isAddedToEngine()) {
+          return;
+        } else if (this.parent) {
+          this.updateParent(this.parent);
+        } else {
+          engine.addEntity(this);
+        }
       } catch (error) {
         throw error;
       }
     };
 
     delete: CallableFunction = () => {
-      delete instances[this.sk];
-      if (this.customId) {
-        delete instances[this.customId];
+      try {
+        delete instances[this.sk];
+        if (this.customId) {
+          delete instances[this.customId];
+        }
+        engine.removeEntity(this);
+      } catch (error) {
+        throw error;
       }
-      engine.removeEntity(this);
     };
 
     remove: CallableFunction = () => {
-      engine.removeEntity(this);
+      try {
+        engine.removeEntity(this);
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateParent: CallableFunction = (parent: string) => {
-      if (parent) {
-        this.parent = parent;
-        const instanceParent = getEntityByName(parent);
-        this.setParent(instanceParent);
-      } else {
-        this.setParent(null);
+      try {
+        if (parent) {
+          this.parent = parent;
+          const instanceParent = getEntityByName(parent);
+          this.setParent(instanceParent);
+        } else {
+          this.setParent(null);
+        }
+      } catch (error) {
+        throw error;
       }
     };
 
     updateCustomId: CallableFunction = (customId: string) => {
-      if (this.customId && instances[this.customId]) {
-        delete instances[this.customId];
+      try {
+        if (this.customId && instances[this.customId]) {
+          delete instances[this.customId];
+        }
+        instances[customId] = instances[this.sk];
+        this.customId = customId;
+      } catch (error) {
+        throw error;
       }
-      instances[customId] = instances[this.sk];
-      this.customId = customId;
     };
 
     updateCustomRendering: CallableFunction = (customRendering: boolean) => {
-      this.customRendering = customRendering;
+      try {
+        this.customRendering = customRendering;
 
-      if (customRendering) {
-        this.remove();
-      } else {
-        this.add();
+        if (customRendering) {
+          this.remove();
+        } else {
+          this.add();
+        }
+      } catch (error) {
+        throw error;
       }
     };
 
@@ -315,16 +374,19 @@ export namespace VLMImage {
           })
         );
       } catch (error) {
-        log("VLM - Error updating image transform");
         throw error;
       }
     };
 
     updateCollider: CallableFunction = (instanceConfig: DCLInstanceConfig) => {
-      this.withCollisions = instanceConfig.withCollisions;
-      const shape = new PlaneShape();
-      shape.withCollisions = this.withCollisions;
-      this.addComponentOrReplace(shape);
+      try {
+        this.withCollisions = instanceConfig.withCollisions;
+        const shape = new PlaneShape();
+        shape.withCollisions = this.withCollisions;
+        this.addComponentOrReplace(shape);
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateDefaultClickEvent: CallableFunction = (newDefaultClickEvent: VLMClickEvent.DCLConfig) => {
@@ -332,8 +394,6 @@ export namespace VLMImage {
         this.defaultClickEvent = newDefaultClickEvent;
         this.updateClickEvent();
       } catch (error) {
-        log("VLM - Error updating image instance default click event");
-        log(error);
         throw error;
       }
     };
@@ -361,8 +421,6 @@ export namespace VLMImage {
           instances[this.sk].addComponentOrReplace(clickEventObj.pointerDownEvent);
         }
       } catch (error) {
-        log("VLM - Error updating image instance click event");
-        log(error);
         throw error;
       }
     };

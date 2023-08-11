@@ -5,6 +5,7 @@ import { UserData, getUserData } from "@decentraland/Identity";
 import { VLMSession } from "../components/VLMSession.component";
 import { SceneJsonData, getParcel } from "@decentraland/ParcelIdentity";
 import { ColyClient, ColyRoom } from "../shared/interfaces";
+import { VLMNotificationManager } from "./VLMNotification.logic";
 
 export abstract class VLMSessionManager {
   static dclUserData: UserData;
@@ -33,9 +34,9 @@ export abstract class VLMSessionManager {
         this.sceneRoom = await this.joinRelayRoom(this.sessionData);
       }
       return { sceneRoom: this.sceneRoom, sessionData: this.sessionData };
-    } catch (e) {
-      log("VLM CONNECTION ERROR! :", e, this.sceneRoom);
-      throw { ...e, ...this.sceneRoom };
+    } catch (error) {
+      log("VLM CONNECTION ERROR! :", error, this.sceneRoom);
+      throw error;
     }
   };
 
@@ -67,6 +68,7 @@ export abstract class VLMSessionManager {
       }
       return json;
     } catch (error) {
+      VLMNotificationManager.addMessage("There was a problem loading this scene...please try to refresh. An error has been logged.");
       throw error;
     }
   };
@@ -91,39 +93,45 @@ export abstract class VLMSessionManager {
       }
 
       return sceneRoom;
-    } catch (e) {
-      log(e);
-      log("VLM - Error joining the relay room");
-      throw e;
+    } catch (error) {
+      VLMNotificationManager.addMessage("Virtual Land Manager could not load the scene...please try to refresh. An error has been logged.");
+      throw error;
     }
   };
 
   static reconnect: CallableFunction = () => {
-    this.connected = false;
-    this.connecting = true;
-    const sessionId = VLMSessionManager.sessionData.sessionId || "";
-    log("Attempting to reconnect to multiplayer server");
-    this.client.reconnect(this.sceneRoom.id, sessionId);
+    try {
+      this.connected = false;
+      this.connecting = true;
+      const sessionId = this.sceneRoom.sessionId || VLMSessionManager.sessionData.sessionId || "";
+      this.client.reconnect(this.sceneRoom.id, sessionId);
+    } catch (error) {
+      throw error;
+    }
   };
 
   static getPlatformData: CallableFunction = async () => {
-    let [userData, parcel, platform] = await Promise.all([getUserData(), getParcel(), getPlatform()]);
+    try {
+      let [userData, parcel, platform] = await Promise.all([getUserData(), getParcel(), getPlatform()]);
 
-    const sceneJsonData = parcel.land.sceneJsonData as VLMSceneJsonData,
-      baseParcel = sceneJsonData.scene.base,
-      sceneId = sceneJsonData?.vlm?.sceneId,
-      user = userData ? (({ avatar, ...data }) => data)(userData) : {};
+      const sceneJsonData = parcel.land.sceneJsonData as VLMSceneJsonData,
+        baseParcel = sceneJsonData.scene.base,
+        sceneId = sceneJsonData?.vlm?.sceneId,
+        user = userData ? (({ avatar, ...data }) => data)(userData) : {};
 
-    const platformData = this.platformData;
-    platformData.world = "decentraland";
-    platformData.subPlatform = platform;
-    platformData.sceneJsonData = sceneJsonData;
-    platformData.baseParcel = baseParcel;
-    platformData.sceneId = sceneId;
-    platformData.user = user as UserData;
-    platformData.worldLocation = { world: "decentraland", location: sceneJsonData?.display?.title, coordinates: baseParcel.split(",") };
-    this.dclUserData = userData as UserData;
-    return platformData;
+      const platformData = this.platformData;
+      platformData.world = "decentraland";
+      platformData.subPlatform = platform;
+      platformData.sceneJsonData = sceneJsonData;
+      platformData.baseParcel = baseParcel;
+      platformData.sceneId = sceneId;
+      platformData.user = user as UserData;
+      platformData.worldLocation = { world: "decentraland", location: sceneJsonData?.display?.title, coordinates: baseParcel.split(",") };
+      this.dclUserData = userData as UserData;
+      return platformData;
+    } catch (error) {
+      throw error;
+    }
   };
 }
 

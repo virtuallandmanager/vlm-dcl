@@ -1,4 +1,8 @@
 export namespace VLMWidget {
+  export const configs: {
+    [uuid: string]: VLMWidget.DCLConfig;
+  } = {};
+
   export class DCLConfig {
     sk?: string;
     id: string;
@@ -15,10 +19,14 @@ export namespace VLMWidget {
       this.init = config.init;
       this.delete = config.delete;
       this.update = config.update;
+
+      if (!configs[this.id]) {
+        configs[this.id] = this;
+      }
     }
   }
 
-  export class VLMConfig extends DCLConfig {}
+  export class VLMConfig extends DCLConfig { }
 
   export enum ControlType {
     NONE,

@@ -5,6 +5,7 @@ import { VLMScene } from "./VLMScene.component";
 import { VLMSession } from "./VLMSession.component";
 import { VLMSound } from "./VLMSound.component";
 import { VLMVideo } from "./VLMVideo.component";
+import { VLMWidget } from "./VLMWidget.component";
 
 @EventConstructor()
 export class VLMSystemEvent {
@@ -15,6 +16,14 @@ export class VLMSystemEvent {
     this.action = config.action;
     this.element = config.element;
     this.data = config.data;
+  }
+}
+
+@EventConstructor()
+export class VLMWidgetInitEvent {
+  configs: VLMWidget.VLMConfig[];
+  constructor(configs: VLMWidget.VLMConfig[]) {
+    this.configs = configs;
   }
 }
 
