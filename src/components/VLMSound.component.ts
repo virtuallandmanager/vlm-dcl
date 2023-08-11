@@ -63,33 +63,45 @@ export namespace VLMSound {
     }
 
     remove: CallableFunction = () => {
-      [...this.instanceIds].forEach((instanceId: string) => {
-        VLMSound.instances[instanceId].remove();
-      });
+      try {
+        this.instanceIds.forEach((instanceId: string) => {
+          VLMSound.instances[instanceId].remove();
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     delete: CallableFunction = () => {
-      engine.removeSystem(VLMSound.systems[this.sk]);
-      delete VLMSound.systems[this.sk];
-      delete VLMSound.configs[this.sk];
-      [...this.instanceIds].forEach((instanceId: string) => {
-        VLMSound.instances[instanceId].delete();
-      });
+      try {
+        engine.removeSystem(VLMSound.systems[this.sk]);
+        delete VLMSound.systems[this.sk];
+        delete VLMSound.configs[this.sk];
+        this.instanceIds.forEach((instanceId: string) => {
+          VLMSound.instances[instanceId].delete();
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     showAll: CallableFunction = () => {
-      [...this.instanceIds].forEach((instanceId: string) => {
-        const visible = VLMSound.instances[instanceId].enabled,
-          parent = VLMSound.instances[instanceId].parent || this.parent;
+      try {
+        this.instanceIds.forEach((instanceId: string) => {
+          const visible = VLMSound.instances[instanceId].enabled,
+            parent = VLMSound.instances[instanceId].parent || this.parent;
 
-        if (!visible) {
-          return;
-        } else if (parent) {
-          VLMSound.instances[instanceId].updateParent(parent);
-        } else {
-          VLMSound.instances[instanceId].add();
-        }
-      });
+          if (!visible) {
+            return;
+          } else if (parent) {
+            VLMSound.instances[instanceId].updateParent(parent);
+          } else {
+            VLMSound.instances[instanceId].add();
+          }
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     createInstance: CallableFunction = (config: VLMInstanceConfig) => {
@@ -99,10 +111,8 @@ export namespace VLMSound {
         if (config.customId) {
           instances[config.customId] = instances[config.sk];
         }
-      } catch (e) {
-        log(e);
-        log("VLM: Error creating sound instance");
-        throw e;
+      } catch (error) {
+        throw error;
       }
     };
 
@@ -120,95 +130,124 @@ export namespace VLMSound {
     };
 
     updateParent: CallableFunction = (parent: string) => {
-      [...this.instanceIds].forEach((instanceId: string) => {
-        if (VLMSound.instances[instanceId].parent === this.parent) {
-          VLMSound.instances[instanceId].updateParent(parent);
-        }
-      });
-      this.parent = parent;
+      try {
+        this.instanceIds.forEach((instanceId: string) => {
+          if (VLMSound.instances[instanceId].parent === this.parent) {
+            VLMSound.instances[instanceId].updateParent(parent);
+          }
+        });
+        this.parent = parent;
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateCustomId: CallableFunction = (customId: string) => {
-      if (this.customId && VLMSound.configs[this.customId]) {
-        delete VLMSound.configs[this.customId];
+      try {
+        if (this.customId && VLMSound.configs[this.customId]) {
+          delete VLMSound.configs[this.customId];
+        }
+        VLMSound.configs[customId] = VLMSound.configs[this.sk];
+        this.customId = customId;
+      } catch (error) {
+        throw error;
       }
-      VLMSound.configs[customId] = VLMSound.configs[this.sk];
-      this.customId = customId;
     };
 
     updateAllTransforms: CallableFunction = (newPosition?: SimpleTransform, newScale?: SimpleTransform, newRotation?: SimpleTransform) => {
-      this.instanceIds.forEach((instanceId: string) => {
-        VLMSound.instances[instanceId].updateTransform(newPosition, newScale, newRotation);
-      });
+      try {
+        this.instanceIds.forEach((instanceId: string) => {
+          VLMSound.instances[instanceId].updateTransform(newPosition, newScale, newRotation);
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateVolume: CallableFunction = (volume: number) => {
-      this.volume = volume;
-      this.audioClip!.volume = volume;
+      try {
+        this.volume = volume;
+        this.audioClip!.volume = volume;
+
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateSource: CallableFunction = (src: string) => {
-      const objThis = this;
-      this.audioPath = src || this.audioPath;
-      this.instanceIds.forEach((instanceId: string) => {
-        const instance = VLMSound.instances[instanceId];
-        if (objThis.sourceType === SourceType.STREAM && VLMSound.instances[instanceId].hasComponent(AudioSource)) {
-          VLMSound.instances[instanceId].removeComponent(AudioSource);
-        } else if (objThis.sourceType !== SourceType.STREAM && instance.hasComponent(AudioStream)) {
-          instance.removeComponent(AudioStream);
-        }
+      try {
+        const objThis = this;
+        this.audioPath = src || this.audioPath;
+        this.instanceIds.forEach((instanceId: string) => {
+          const instance = VLMSound.instances[instanceId];
+          if (objThis.sourceType === SourceType.STREAM && VLMSound.instances[instanceId].hasComponent(AudioSource)) {
+            VLMSound.instances[instanceId].removeComponent(AudioSource);
+          } else if (objThis.sourceType !== SourceType.STREAM && instance.hasComponent(AudioStream)) {
+            instance.removeComponent(AudioStream);
+          }
 
-        if (objThis.sourceType === SourceType.STREAM) {
-          objThis.audioStream = new AudioStream(src);
-          VLMSound.instances[instanceId].addComponentOrReplace(objThis.audioStream);
-          objThis.audioStream.playing = objThis.enabled && instance.enabled;
-        } else {
-          objThis.audioClip = new AudioClip(src);
-          instance.addComponentOrReplace(new AudioSource(objThis.audioClip));
-          instance.getComponent(AudioSource).playing = instance.enabled;
-          instance.getComponent(AudioSource).loop = objThis.sourceType === SourceType.LOOP;
-        }
-      });
+          if (objThis.sourceType === SourceType.STREAM) {
+            objThis.audioStream = new AudioStream(src);
+            VLMSound.instances[instanceId].addComponentOrReplace(objThis.audioStream);
+            objThis.audioStream.playing = objThis.enabled && instance.enabled;
+          } else {
+            objThis.audioClip = new AudioClip(src);
+            instance.addComponentOrReplace(new AudioSource(objThis.audioClip));
+            instance.getComponent(AudioSource).playing = instance.enabled;
+            instance.getComponent(AudioSource).loop = objThis.sourceType === SourceType.LOOP;
+          }
+        });
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateSourceType: CallableFunction = (type: SourceType) => {
-      this.sourceType = type;
-      if (type === SourceType.LOOP) {
-        this.loop = true;
-      } else {
-        this.loop = false;
-      }
+      try {
+        this.sourceType = type;
+        if (type === SourceType.LOOP) {
+          this.loop = true;
+        } else {
+          this.loop = false;
+        }
 
-      this.updateSource();
+        this.updateSource();
+      } catch (error) {
+        throw error;
+      }
     };
 
     toggleLocators: CallableFunction = () => {
-      log("toggling locators");
-      if (this.showLocators) {
-        this.showLocators = false;
-        Object.keys(VLMSound.instances).forEach((id: string) => {
-          VLMSound.instances[id].removeComponent(SphereShape);
-        });
-      } else {
-        this.showLocators = true;
-        Object.keys(VLMSound.instances).forEach((id: string) => {
-          VLMSound.instances[id].addComponentOrReplace(new SphereShape());
-          VLMSound.instances[id].getComponent(Transform).scale.setAll(0.1);
-        });
+      try {
+        log("toggling locators");
+        if (this.showLocators) {
+          this.showLocators = false;
+          Object.keys(VLMSound.instances).forEach((id: string) => {
+            VLMSound.instances[id].removeComponent(SphereShape);
+          });
+        } else {
+          this.showLocators = true;
+          Object.keys(VLMSound.instances).forEach((id: string) => {
+            VLMSound.instances[id].addComponentOrReplace(new SphereShape());
+            VLMSound.instances[id].getComponent(Transform).scale.setAll(0.1);
+          });
+        }
+      } catch (error) {
+        throw error;
       }
     };
 
-    updatePlaylist: CallableFunction = (playlist: string[] | any) => {};
+    updatePlaylist: CallableFunction = (playlist: string[] | any) => { };
 
-    start: CallableFunction = () => {};
+    start: CallableFunction = () => { };
 
-    startLive: CallableFunction = () => {};
+    startLive: CallableFunction = () => { };
 
-    startPlaylist: CallableFunction = () => {};
+    startPlaylist: CallableFunction = () => { };
 
-    playNextClip: CallableFunction = () => {};
+    playNextClip: CallableFunction = () => { };
 
-    stop: CallableFunction = () => {};
+    stop: CallableFunction = () => { };
   }
 
   export class VLMConfig extends DCLConfig {
@@ -274,60 +313,84 @@ export namespace VLMSound {
     }
 
     add: CallableFunction = () => {
-      const parent = this.parent || VLMSound.configs[this.configId].parent;
-      if (parent) {
-        this.updateParent(parent);
-      } else {
-        engine.addEntity(this);
+      try {
+        const parent = this.parent || VLMSound.configs[this.configId].parent;
+        if (parent) {
+          this.updateParent(parent);
+        } else {
+          engine.addEntity(this);
+        }
+      } catch (error) {
+        throw error;
       }
     };
 
     delete: CallableFunction = () => {
-      delete VLMSound.instances[this.sk];
-      if (this.customId) {
-        delete VLMSound.instances[this.customId];
+      try {
+        delete VLMSound.instances[this.sk];
+        if (this.customId) {
+          delete VLMSound.instances[this.customId];
+        }
+        this.remove();
+      } catch (error) {
+        throw error;
       }
-      this.remove();
     };
 
     remove: CallableFunction = () => {
-      engine.removeEntity(this);
+      try {
+        engine.removeEntity(this);
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateParent: CallableFunction = (parent: string) => {
-      if (parent) {
-        this.parent = parent;
-        const instanceParent = getEntityByName(parent);
-        this.setParent(instanceParent);
-      } else {
-        this.setParent(null);
+      try {
+        if (parent) {
+          this.parent = parent;
+          const instanceParent = getEntityByName(parent);
+          this.setParent(instanceParent);
+        } else {
+          this.setParent(null);
+        }
+      } catch (error) {
+        throw error;
       }
     };
 
     updateCustomId: CallableFunction = (customId: string) => {
-      if (this.customId && VLMSound.instances[this.customId]) {
-        delete VLMSound.instances[this.customId];
+      try {
+        if (this.customId && VLMSound.instances[this.customId]) {
+          delete VLMSound.instances[this.customId];
+        }
+        VLMSound.instances[customId] = VLMSound.instances[this.sk];
+        this.customId = customId;
+      } catch (error) {
+        throw error;
       }
-      VLMSound.instances[customId] = VLMSound.instances[this.sk];
-      this.customId = customId;
     };
 
     updateTransform: CallableFunction = (position?: SimpleTransform, scale?: SimpleTransform, rotation?: SimpleTransform) => {
-      this.position = position || this.position;
-      this.scale = scale || this.scale;
-      this.rotation = rotation || this.rotation;
+      try {
+        this.position = position || this.position;
+        this.scale = scale || this.scale;
+        this.rotation = rotation || this.rotation;
 
-      this.addComponentOrReplace(
-        new Transform({
-          position: new Vector3(this.position.x, this.position.y, this.position.z),
-          scale: new Vector3(this.scale.x, this.scale.y, this.scale.z),
-          rotation: Quaternion.Euler(this.rotation.x, this.rotation.y, this.rotation.z),
-        })
-      );
-    };
+        this.addComponentOrReplace(
+          new Transform({
+            position: new Vector3(this.position.x, this.position.y, this.position.z),
+            scale: new Vector3(this.scale.x, this.scale.y, this.scale.z),
+            rotation: Quaternion.Euler(this.rotation.x, this.rotation.y, this.rotation.z),
+          })
+        );
+      } catch (error) {
+        throw error;
+      }
+    }
   }
 
-  export class VLMInstanceConfig extends DCLInstanceConfig {}
+  export class VLMInstanceConfig extends DCLInstanceConfig { }
 
   export class DCLSoundSystem implements ISystem {
     sk: string;
@@ -344,17 +407,21 @@ export namespace VLMSound {
     stopped: boolean = false;
 
     constructor(config: DCLConfig) {
-      this.config = config;
-      this.sk = config.sk;
-      VLMSound.systems[config.sk] = this;
-      if (config.customId) {
-        this.customId = config.customId;
-        VLMSound.systems[this.customId] = this;
-      }
-      engine.addSystem(VLMSound.systems[config.sk]);
+      try {
+        this.config = config;
+        this.sk = config.sk;
+        VLMSound.systems[config.sk] = this;
+        if (config.customId) {
+          this.customId = config.customId;
+          VLMSound.systems[this.customId] = this;
+        }
+        engine.addSystem(VLMSound.systems[config.sk]);
 
-      if (this.config.customRendering) {
-        this.stop();
+        if (this.config.customRendering) {
+          this.stop();
+        }
+      } catch (error) {
+        throw error;
       }
     }
 
@@ -383,8 +450,8 @@ export namespace VLMSound {
     }
     statusCheckDelay: number = 0;
 
-    checkStreamStatus: CallableFunction = async () => {};
+    checkStreamStatus: CallableFunction = async () => { };
 
-    setLiveState: CallableFunction = (liveState: boolean) => {};
+    setLiveState: CallableFunction = (liveState: boolean) => { };
   }
 }

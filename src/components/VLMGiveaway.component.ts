@@ -114,6 +114,7 @@ export namespace VLMGiveaway {
   }
 
   export class DCLConfig {
+    sk: string;
     claimAction: string;
     requestInProgress: boolean;
     messageOptions: VLMNotification.MessageOptions;
@@ -178,7 +179,7 @@ export namespace VLMGiveaway {
     };
   }
 
-  export class VLMConfig extends DCLConfig {}
+  export class VLMConfig extends DCLConfig { }
 
   enum ClaimDeniedReason {
     BEFORE_EVENT,

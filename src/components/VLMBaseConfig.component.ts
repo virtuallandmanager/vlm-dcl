@@ -79,7 +79,7 @@ export namespace VLMBase {
       this.enabled = config.enabled || instance.enabled;
       this.customId = instance.customId;
       this.customRendering = instance.customRendering;
-      this.configId = instance.configId;
+      this.configId = instance?.configId || config.sk;
       this.parent = instance.parent;
       this.position = instance.position;
       this.rotation = instance.rotation;

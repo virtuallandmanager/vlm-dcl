@@ -1,4 +1,4 @@
-import { VLMPathClientEvent, VLMPathServerEvent, VLMSceneMessage, VLMSessionAction, VLMSessionEvent, VLMSoundStateEvent, VLMVideoStatusEvent, VLMWitnessedAction } from "../components/VLMSystemEvents.component";
+import { VLMPathClientEvent, VLMPathServerEvent, VLMSceneMessage, VLMSessionAction, VLMSessionEvent, VLMSoundStateEvent, VLMVideoStatusEvent, VLMWidgetInitEvent, VLMWitnessedAction } from "../components/VLMSystemEvents.component";
 import { VLMEventManager } from "./VLMSystemEvents.logic";
 import { Room } from "colyseus.js";
 import { VLMSceneManager } from "./VLMScene.logic";
@@ -6,7 +6,7 @@ import { VLMSession } from "../components/VLMSession.component";
 import { getPlayerData, getPlayersInScene } from "@decentraland/Players";
 import { VLMTimer } from "../components/VLMTimer.component";
 import { VLMPathManager } from "./VLMPath.logic";
-import { VLMSessionManager } from "./index";
+import { VLMSessionManager, VLMWidgetManager } from "./index";
 import { VLMVideo } from "../components/VLMVideo.component";
 import { VLMSound } from "../components/VLMSound.component";
 
@@ -19,21 +19,6 @@ export abstract class VLMEventListeners {
       this.sceneRoom = VLMSessionManager.sceneRoom;
       this.sessionData = VLMSessionManager.sessionData;
       this.sessionUser = VLMSessionManager.sessionUser;
-
-      VLMEventManager.events.addListener(VLMSessionAction, null, ({ action, metadata }) => {
-        if (this.sessionData?.sessionToken) {
-          let pathPoint = VLMPathManager.getPathPoint();
-          this.sceneRoom.send("session_action", { action, metadata, pathPoint, sessionToken: this.sessionData.sessionToken });
-        }
-      });
-
-      VLMEventManager.events.addListener(VLMSoundStateEvent, null, ({ elementData, userId }) => {
-        const id = elementData.sk;
-        log(userId, this.sessionUser, id, VLMSound.configs[id]);
-        // if (userId == this.sessionUser) {
-        VLMSound.configs[id].toggleLocators();
-        // }
-      });
 
       onIdleStateChangedObservable.add(({ isIdle }) => {
         if (isIdle) {
@@ -160,13 +145,29 @@ export abstract class VLMEventListeners {
         }
         let otherPlayers = await getPlayersInScene();
         if (userId == this.sessionUser?.connectedWallet) {
-          log("VLM | SESSION ACTION: Player Left Scene Boundaries", userId);
           VLMEventManager.events.fireEvent(new VLMSessionAction("Left Scene Boundaries", { userId, otherPlayers }));
         } else if (VLMPathManager.moving || VLMPathManager.engaged) {
-          log("VLM | SESSION ACTION: Witnessed Player Leave Scene Boundaries", userId);
           let user = await getPlayerData({ userId });
           VLMEventManager.events.fireEvent(new VLMSessionAction(`Witnessed ${user?.displayName || "Someone"} Leave Scene`, { userId, otherPlayers, witness: this.sessionUser.connectedWallet }));
         }
+      });
+
+
+
+      VLMEventManager.events.addListener(VLMSessionAction, null, ({ action, metadata }) => {
+        if (this.sessionData?.sessionToken) {
+          let pathPoint = VLMPathManager.getPathPoint();
+          this.sceneRoom.send("session_action", { action, metadata, pathPoint, sessionToken: this.sessionData.sessionToken });
+          log("VLM - LOGGED ANALYTICS ACTION - ", action, metadata);
+        }
+      });
+
+      VLMEventManager.events.addListener(VLMSoundStateEvent, null, ({ elementData, userId }) => {
+        const id = elementData.sk;
+        log(userId, this.sessionUser, id, VLMSound.configs[id]);
+        // if (userId == this.sessionUser) {
+        VLMSound.configs[id].toggleLocators();
+        // }
       });
 
       VLMEventManager.events.addListener(VLMPathClientEvent, null, (message: VLMPathClientEvent) => {
@@ -183,11 +184,8 @@ export abstract class VLMEventListeners {
       });
 
       VLMEventManager.events.addListener(VLMPathServerEvent, null, (message: VLMPathServerEvent) => {
-        log("VLM: Triggered server path event", message);
-
         switch (message.action) {
           case "path_started":
-            log("VLM: Started new path");
             const pathIds = this.sessionData.paths;
             if (message.pathId && pathIds && pathIds.indexOf(message.pathId) < 0) {
               pathIds.push(message.pathId);
@@ -201,19 +199,19 @@ export abstract class VLMEventListeners {
       });
 
       VLMEventManager.events.addListener(VLMSceneMessage, null, (message: VLMSceneMessage) => {
-        log("VLM Received Message from Server", message);
+        log("VLM - MESSAGE RECEIVED FROM SERVER", message);
         switch (message.action) {
           case "init":
             VLMSceneManager.initScenePreset(message);
             break;
           case "create":
-            VLMSceneManager.createSceneElement(message);
+            message.instance ? VLMSceneManager.createSceneElementInstance(message) : VLMSceneManager.createSceneElement(message);
             break;
           case "update":
-            VLMSceneManager.updateSceneElement(message);
+            message.instance ? VLMSceneManager.updateSceneElementInstance(message) : VLMSceneManager.updateSceneElement(message);
             break;
           case "delete":
-            VLMSceneManager.deleteSceneElement(message);
+            message.instance ? VLMSceneManager.deleteSceneElementInstance(message) : VLMSceneManager.deleteSceneElement(message);
             break;
         }
       });
@@ -223,26 +221,25 @@ export abstract class VLMEventListeners {
         if (!videoId) {
           return;
         }
+
+
         const videoConfig = VLMVideo.configs[videoId];
-        log(VLMVideo.configs);
-        log(VLMVideo.systems);
+
         if (videoConfig?.liveSrc == message.url) {
-          log("VLM: Received Video Status Update", message);
+          log("VLM - VIDEO STATE CHANGED", message);
           videoConfig.setLiveState(message.status);
         } else if (videoConfig) {
           this.sceneRoom.send("scene_video_update", { ...message, reason: "url_changed" });
         }
       });
+      
+      VLMEventManager.events.addListener(VLMWidgetInitEvent, null, async (initEvent: VLMWidgetInitEvent) => {
+        await VLMWidgetManager.configureWidgets(initEvent.configs);
+      });
 
       this.sceneRoom.onLeave(() => {
         VLMPathManager.endPath();
       });
-
-      // this.sceneRoom.onMessage("*", (message: VLMSceneMessage) => {
-      //   if (message.action) {
-      //     VLMEventManager.events.fireEvent(new VLMSceneMessage(message));
-      //   }
-      // });
 
       this.sceneRoom.onMessage("session_started", (message: VLMSessionEvent) => {
         this.sessionData = message.session;
@@ -261,7 +258,6 @@ export abstract class VLMEventListeners {
       });
 
       this.sceneRoom.onMessage("scene_sound_locator", (message: VLMSoundStateEvent) => {
-        log("got message", message);
         VLMEventManager.events.fireEvent(new VLMSoundStateEvent(message));
       });
 
@@ -270,7 +266,6 @@ export abstract class VLMEventListeners {
       });
 
       this.sceneRoom.onMessage("scene_preset_update", (message: VLMSceneMessage) => {
-        log("Message received!", message);
         if (message.action) {
           VLMEventManager.events.fireEvent(new VLMSceneMessage(message));
         }
@@ -283,7 +278,7 @@ export abstract class VLMEventListeners {
 
       this.sceneRoom.send("session_start", this.sessionData);
     } catch (e) {
-      log("VLM - Error registering event listeners", e);
+      log("VLM - ERROR - ERROR REGISTERING EVENT LISTENERS", e);
       throw e;
     }
   };

@@ -7,7 +7,12 @@ export abstract class VLMVideoManager {
         return;
       }
       videoScreens.forEach((videoScreen: VLMVideo.VLMConfig) => {
+        const existing = VLMVideo.configs[videoScreen.sk];
+        if (existing) {
+          existing.delete();
+        }
         this.create(videoScreen);
+
       });
     } catch (error) {
       throw error;
@@ -156,13 +161,13 @@ export abstract class VLMVideoManager {
     VLMVideo.configs[id].delete();
   };
 
-  static removeInstance: CallableFunction = (instanceId: string) => {
-    const configId = VLMVideo.instances[instanceId].configId;
-    VLMVideo.configs[configId].removeInstance(instanceId);
+  static removeInstance: CallableFunction = (instanceId: string, configId?: string) => {
+    const configIdA = configId || VLMVideo.instances[instanceId].configId;
+    VLMVideo.configs[configIdA].removeInstance(instanceId);
   };
 
-  static deleteInstance: CallableFunction = (instanceId: string) => {
-    const configId = VLMVideo.instances[instanceId].configId;
-    VLMVideo.configs[configId].deleteInstance(instanceId);
+  static deleteInstance: CallableFunction = (instanceId: string, configId?: string) => {
+    const configIdA = configId || VLMVideo.instances[instanceId].configId;
+    VLMVideo.configs[configIdA].deleteInstance(instanceId);
   };
 }

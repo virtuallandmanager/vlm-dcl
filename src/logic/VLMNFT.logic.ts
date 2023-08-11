@@ -13,8 +13,6 @@ export abstract class VLMNFTManager {
         this.create(nftFrame);
       });
     } catch (error) {
-      log(error);
-      log("VLM - Error initializing NFTs");
       throw error;
     }
   };
@@ -27,80 +25,91 @@ export abstract class VLMNFTManager {
       }
       new VLMNFT.DCLConfig(nftConfig);
     } catch (error) {
-      log(error);
-      log("VLM - Error creating NFT Frame")
       throw error;
     }
   };
 
   static createInstance: CallableFunction = (shape: VLMNFT.DCLConfig, instance: VLMNFT.VLMInstanceConfig) => {
-    if (!instance || !shape.enabled || !instance.enabled || !shape.sk) {
-      return;
-    }
+    try {
+      if (!instance || !shape.enabled || !instance.enabled || !shape.sk) {
+        return;
+      }
 
-    const nftId: string = shape.sk;
-    VLMNFT.configs[nftId].createInstance(instance);
+      const nftId: string = shape.sk;
+      VLMNFT.configs[nftId].createInstance(instance);
+    } catch (error) {
+      throw error;
+    }
   };
 
   static update: CallableFunction = (nftConfig: VLMNFT.VLMConfig | any, property: string, id: string) => {
-    const nft: VLMNFT.DCLConfig = VLMNFT.configs[nftConfig.sk];
+    try {
+      const nft: VLMNFT.DCLConfig = VLMNFT.configs[nftConfig.sk];
 
-    if (!nftConfig || (!nft && !nftConfig.enabled)) {
-      return;
-    } else if (!nft && nftConfig.enabled) {
-      new VLMNFT.DCLConfig(nftConfig);
-    }
+      if (!nftConfig || (!nft && !nftConfig.enabled)) {
+        return;
+      } else if (!nft && nftConfig.enabled) {
+        new VLMNFT.DCLConfig(nftConfig);
+      }
 
-    switch (property) {
-      case "enabled":
-        if (!nftConfig.enabled) {
-          this.remove(nftConfig.sk);
-        } else if (nft) {
-          this.add(nftConfig.sk);
-        }
-        break;
-      case "nftData":
-        nft.updateNft(nftConfig);
-        break;
-      case "parent":
-        nft.updateParent(nftConfig.parent);
-        break;
-      case "customId":
-        nft.updateCustomId(nftConfig.customId);
-        break;
+      switch (property) {
+        case "enabled":
+          if (!nftConfig.enabled) {
+            this.remove(nftConfig.sk);
+          } else if (nft) {
+            this.add(nftConfig.sk);
+          }
+          break;
+        case "nftData":
+          nft.updateNft(nftConfig);
+          break;
+        case "parent":
+          nft.updateParent(nftConfig.parent);
+          break;
+        case "customId":
+          nft.updateCustomId(nftConfig.customId);
+          break;
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
   static updateInstance: CallableFunction = (instanceConfig: VLMNFT.VLMInstanceConfig, property: string, id: string) => {
-    const instance = VLMNFT.instances[id],
-      configId = instance.configId,
-      material = VLMNFT.configs[configId];
+    try {
+      const instanceId = id || instanceConfig.sk,
+        instance = VLMNFT.instances[instanceId],
+        configId = instance.configId,
+        material = VLMNFT.configs[configId];
 
-    if (!material) {
-      return;
-    } else if (!instance && instanceConfig.enabled) {
-      material.createInstance(instanceConfig);
-    }
+      if (!material) {
+        return;
+      } else if (!instance && instanceConfig.enabled) {
+        material.createInstance(instanceConfig);
+      }
 
-    const { position, scale, rotation } = instanceConfig;
+      const { position, scale, rotation } = instanceConfig;
 
-    switch (property) {
-      case "enabled":
-        if (!material.enabled || !instanceConfig.enabled) {
-          material.removeInstance(instanceConfig.sk);
-        } else if (instance && instanceConfig.enabled) {
-          material.addInstance(instanceConfig.sk);
-        }
-        break;
-      case "transform":
-        instance.updateTransform(position, scale, rotation);
-        break;
-      case "collider":
-        instance.updateCollider(instanceConfig.withCollisions);
-        break;
-      case "customId":
-        instance.updateCustomId(instanceConfig.customId);
-        break;
+      switch (property) {
+        case "enabled":
+          if (!material.enabled || !instanceConfig.enabled) {
+            material.removeInstance(instanceConfig.sk);
+          } else if (instance && instanceConfig.enabled) {
+            material.addInstance(instanceConfig.sk);
+          }
+          break;
+        case "transform":
+          instance.updateTransform(position, scale, rotation);
+          break;
+        case "collider":
+          instance.updateCollider(instanceConfig.withCollisions);
+          break;
+        case "customId":
+          instance.updateCustomId(instanceConfig.customId);
+          break;
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -117,12 +126,18 @@ export abstract class VLMNFTManager {
   };
 
   static removeInstance: CallableFunction = (instanceId: string) => {
-    const shapeId = VLMNFT.instances[instanceId].configId;
-    VLMNFT.configs[shapeId].removeInstance(instanceId);
+    const instance = VLMNFT.instances[instanceId];
+    const shapeId = instance?.configId;
+    if (shapeId) {
+      VLMNFT.configs[shapeId].removeInstance(instanceId);
+    }
   };
 
   static deleteInstance: CallableFunction = (instanceId: string) => {
-    const shapeId = VLMNFT.instances[instanceId].configId;
-    VLMNFT.configs[shapeId].deleteInstance(instanceId);
+    const instance = VLMNFT.instances[instanceId];
+    const shapeId = instance?.configId;
+    if (shapeId) {
+      VLMNFT.configs[shapeId].deleteInstance(instanceId);
+    }
   };
 }

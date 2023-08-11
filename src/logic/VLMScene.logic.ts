@@ -1,4 +1,4 @@
-import { VLMSceneMessage } from "../components/VLMSystemEvents.component";
+import { VLMSceneMessage, VLMWidgetInitEvent } from "../components/VLMSystemEvents.component";
 import { VLMGiveaway } from "../components/VLMGiveaway.component";
 import { VLMImage } from "../components/VLMImage.component";
 import { VLMNFT } from "../components/VLMNFT.component";
@@ -11,6 +11,7 @@ import { VLMSoundManager } from "./VLMSound.logic";
 import { VLMWidgetManager } from "./VLMWidget.logic";
 import { VLMScene } from "../components/VLMScene.component";
 import { VLMModerationManager } from "./VLMModeration.logic";
+import { VLMEventManager } from "./VLMSystemEvents.logic";
 
 export type VLMSceneElement = VLMGiveaway.VLMConfig | VLMImage.VLMConfig | VLMNFT.VLMConfig | VLMSound.VLMConfig | VLMVideo.VLMConfig;
 export type VLMSceneElementInstance = VLMGiveaway.ClaimPoint | VLMImage.VLMInstanceConfig | VLMNFT.VLMInstanceConfig | VLMSound.VLMInstanceConfig | VLMVideo.VLMInstanceConfig;
@@ -28,7 +29,10 @@ export abstract class VLMSceneManager {
       VLMSoundManager.init(scenePreset.sounds);
 
       if (scenePreset.widgets) {
+        // set initial widget states
         VLMWidgetManager.setState(scenePreset.widgets);
+        // inform event listeners that widgets are ready to be configured
+        VLMEventManager.events.fireEvent(new VLMWidgetInitEvent(scenePreset.widgets));
       }
     } catch (error) {
       throw error;
@@ -147,21 +151,22 @@ export abstract class VLMSceneManager {
 
   static deleteSceneElement: CallableFunction = (message: VLMSceneMessage) => {
     try {
+      const id = message.elementData.sk || message.id;
       switch (message.element) {
         case "image":
-          VLMImageManager.delete(message.id);
+          VLMImageManager.delete(id);
           break;
         case "nft":
-          VLMNFTManager.delete(message.id);
+          VLMNFTManager.delete(id);
           break;
         case "video":
-          VLMVideoManager.delete(message.id);
+          VLMVideoManager.delete(id);
           break;
         case "sound":
-          VLMSoundManager.delete(message.id);
+          VLMSoundManager.delete(id);
           break;
         case "widget":
-          VLMWidgetManager.delete(message.id);
+          VLMWidgetManager.delete(id);
           break;
       }
     } catch (error) {
@@ -171,18 +176,19 @@ export abstract class VLMSceneManager {
 
   static deleteSceneElementInstance: CallableFunction = (message: VLMSceneMessage) => {
     try {
+      const id = message.elementData.sk || message.id;
       switch (message.element) {
         case "image":
-          VLMImageManager.deleteInstance(message.id);
+          VLMImageManager.deleteInstance(id);
           break;
         case "nft":
-          VLMNFTManager.deleteInstance(message.id);
+          VLMNFTManager.deleteInstance(id);
           break;
         case "video":
-          VLMVideoManager.deleteInstance(message.id);
+          VLMVideoManager.deleteInstance(id);
           break;
         case "sound":
-          VLMSoundManager.deleteInstance(message.id);
+          VLMSoundManager.deleteInstance(id);
           break;
       }
     } catch (error) {
