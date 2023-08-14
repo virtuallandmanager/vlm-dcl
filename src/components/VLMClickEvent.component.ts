@@ -25,7 +25,7 @@ export namespace VLMClickEvent {
     hasTracking?: boolean;
     trackingId?: string;
     synced?: boolean;
-    pointerDownEvent: OnPointerDown = new OnPointerDown(() => {}, { hoverText: "", showFeedback: false });
+    pointerDownEvent?: OnPointerDown;
 
     constructor(config: DCLConfig, clickable: VLMBase.Instance & IsClickable) {
       try {
@@ -42,10 +42,9 @@ export namespace VLMClickEvent {
 
         const clickEvent = config;
 
-        let id = clickable.sk,
-          customId = clickable.customId,
-          showFeedback = config.showFeedback,
-          hoverText = config.hoverText;
+        let customId = clickable.customId,
+          showFeedback = this.showFeedback,
+          hoverText = this.hoverText;
 
         if (!clickEvent || !clickable) {
           return;
@@ -60,7 +59,7 @@ export namespace VLMClickEvent {
           case Actions.TRACKING_ONLY: //tracking clicks only
             this.pointerDownEvent = new OnPointerDown(
               () => {
-                this.trackClickEvent(clickEvent, `click-event-${customId || id}`);
+                this.trackClickEvent(clickEvent, `click-event ${customId}`);
               },
               { showFeedback, hoverText }
             );
@@ -70,7 +69,7 @@ export namespace VLMClickEvent {
               () => {
                 if (clickEvent.externalLink) {
                   openExternalURL(clickEvent.externalLink);
-                  this.trackClickEvent(clickEvent, `click-event-(external-link)-${customId || id}`);
+                  this.trackClickEvent(clickEvent, `click-event-(external-link) ${customId}`);
                 }
               },
               { showFeedback, hoverText }
@@ -82,7 +81,7 @@ export namespace VLMClickEvent {
             this.pointerDownEvent = new OnPointerDown(
               () => {
                 // source.playOnce();
-                this.trackClickEvent(clickEvent, `click-event-(sound)-${customId || id}`);
+                this.trackClickEvent(clickEvent, `click-event-(sound)  ${customId}`);
               },
               { showFeedback, hoverText }
             );
@@ -92,7 +91,7 @@ export namespace VLMClickEvent {
               () => {
                 if (clickEvent.moveTo) {
                   movePlayerTo(clickEvent.moveTo.position, clickEvent.moveTo.setCameraTarget ? clickEvent.moveTo.cameraTarget : undefined);
-                  this.trackClickEvent(clickEvent, `click-event-(move-player)-${customId || id}`);
+                  this.trackClickEvent(clickEvent, `click-event-(move-player) ${customId}`);
                 }
               },
               { showFeedback, hoverText }
@@ -103,7 +102,7 @@ export namespace VLMClickEvent {
               () => {
                 if (clickEvent.teleportTo) {
                   teleportTo(clickEvent.teleportTo);
-                  this.trackClickEvent(clickEvent, `click-event-(teleport-player)-${customId || id}`);
+                  this.trackClickEvent(clickEvent, `click-event-(teleport-player)  ${customId}`);
                 }
               },
               { showFeedback, hoverText }

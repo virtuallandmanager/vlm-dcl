@@ -64,7 +64,7 @@ export abstract class VLMVideoManager {
           video.liveSrc = config.liveSrc;
           break;
         case "enableLiveStream":
-          video.enableLiveStream = config.enableLiveStream;
+          video.updateOnAirState(config.enableLiveStream);
           break;
         case "playlist":
           video.updatePlaylist(config.playlist);
@@ -76,7 +76,7 @@ export abstract class VLMVideoManager {
           video.emissiveIntensity = config.emission || 0;
           break;
         case "offType":
-          video.offType = config.offType;
+          video.updateOffType(config.offType);
           break;
         case "clickEvent":
           video.updateClickEvent(config.clickEvent);
@@ -85,7 +85,7 @@ export abstract class VLMVideoManager {
           video.updateParent(config.parent);
           video.updateCustomId(config.customId);
           video.updateCustomRendering(config.customRendering);
-        case "offImage":
+        case "offImageSrc":
           video.updateOffImage(config.offImageSrc);
           break;
         case "parent":
@@ -136,6 +136,9 @@ export abstract class VLMVideoManager {
           break;
         case "withCollider":
           instance.updateCollider(instanceConfig);
+          break;
+        case "clickEvent":
+          instance.updateClickEvent(instanceConfig.clickEvent);
           break;
         case "customRendering":
           instance.updateCustomRendering(instanceConfig.customRendering);
