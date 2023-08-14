@@ -85,7 +85,6 @@ export namespace VLMNFT {
     delete: CallableFunction = () => {
       delete configs[this.sk];
       [...this.instanceIds].forEach((instanceId: string) => {
-        log(instanceId);
         instances[instanceId].delete();
       });
     };
@@ -212,7 +211,13 @@ export namespace VLMNFT {
     };
 
     remove: CallableFunction = () => {
-      engine.removeEntity(this);
+      try {
+        if (this.isAddedToEngine()) {
+          engine.removeEntity(this);
+        }
+      } catch (error) {
+        throw error;
+      }
     };
 
     updateParent: CallableFunction = (parent: string) => {

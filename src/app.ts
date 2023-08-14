@@ -21,26 +21,34 @@ export class VLM {
 
   /**
    * Initializes the VLM library with the given configuration.
-   * @param options - The VLM initialization options.
+   * @param config - The VLM initialization options.
    * @public
    */
-  public static init: CallableFunction = async (options?: VLMInitConfig) => {
+  public static init: CallableFunction = async (config?: VLMInitConfig) => {
     onSceneReadyObservable.addOnce(async () => {
       try {
-        if (options?.widgets) {
-          VLMWidgetManager.configureWidgets(options.widgets);
+        if (config?.widgets) {
+          VLMWidgetManager.configureWidgets(config.widgets);
         }
-        await VLMEnvironment.init(options?.env || "prod");
+        await VLMEnvironment.init(config?.env || "prod");
         await VLMSessionManager.start(VLM.version);
         VLMEventListeners.init();
       } catch (error) {
-        VLMLogManager.logError(error, { message: "VLM INIT ERROR", version: VLM.version, env: options?.env || "prod", ...options });
+        VLMLogManager.logError(error, { ...config, message: "VLM INIT ERROR", version: VLM.version, env: config?.env || "prod",  });
       }
     });
   };
   public static configureWidgets: CallableFunction = async (options: VLMWidget.DCLConfig[]) => {
     return VLMWidgetManager.configureWidgets(options);
   };
+
+  public static sendMessage: CallableFunction = async (id: string, data?: unknown) => {
+    VLMEventListeners.sendMessage(id, data);
+  }
+
+  public static onMessage: CallableFunction = async (id: string, callback: CallableFunction) => {
+    VLMEventListeners.onMessage(id, callback);
+  }
 }
 
 /**
@@ -51,5 +59,3 @@ type VLMInitConfig = {
   env: "dev" | "staging" | "prod";
   widgets?: VLMWidget.DCLConfig[];
 };
-
-export type VLMWidgetConfig = VLMWidget.DCLConfig;

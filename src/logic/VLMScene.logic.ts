@@ -28,11 +28,12 @@ export abstract class VLMSceneManager {
       VLMNFTManager.init(scenePreset.nfts);
       VLMSoundManager.init(scenePreset.sounds);
 
-      if (scenePreset.widgets) {
+      if (scenePreset?.widgets?.length) {
         // set initial widget states
+        log('VLM - Widget Init', scenePreset.widgets);
         VLMWidgetManager.setState(scenePreset.widgets);
+        VLMWidgetManager.init(scenePreset.widgets);
         // inform event listeners that widgets are ready to be configured
-        VLMEventManager.events.fireEvent(new VLMWidgetInitEvent(scenePreset.widgets));
       }
     } catch (error) {
       throw error;

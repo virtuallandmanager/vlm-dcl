@@ -9,7 +9,6 @@ export namespace VLMImage {
   export const instances: { [uuid: string]: DCLInstanceConfig } = {};
 
   export class DCLConfig extends Material implements HasImageTexture, Emissive {
-    // Implement the required methods and properties
     sk: string;
     customId?: string;
     customRendering: boolean;
@@ -318,7 +317,9 @@ export namespace VLMImage {
 
     remove: CallableFunction = () => {
       try {
-        engine.removeEntity(this);
+        if (this.isAddedToEngine()) {
+          engine.removeEntity(this);
+        }
       } catch (error) {
         throw error;
       }
@@ -419,6 +420,8 @@ export namespace VLMImage {
 
         if (clickEventObj.pointerDownEvent) {
           instances[this.sk].addComponentOrReplace(clickEventObj.pointerDownEvent);
+        } else if (instances[this.sk].getComponentOrNull(OnPointerDown)) {
+          instances[this.sk].removeComponent(OnPointerDown);
         }
       } catch (error) {
         throw error;

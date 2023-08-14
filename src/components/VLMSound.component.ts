@@ -56,7 +56,6 @@ export namespace VLMSound {
           this.createInstance(instance);
         });
       } catch (e) {
-        log(e);
         log("VLM: Error creating sound config");
         throw e;
       }
@@ -219,7 +218,6 @@ export namespace VLMSound {
 
     toggleLocators: CallableFunction = () => {
       try {
-        log("toggling locators");
         if (this.showLocators) {
           this.showLocators = false;
           Object.keys(VLMSound.instances).forEach((id: string) => {
@@ -339,7 +337,9 @@ export namespace VLMSound {
 
     remove: CallableFunction = () => {
       try {
-        engine.removeEntity(this);
+        if (this.isAddedToEngine()) {
+          engine.removeEntity(this);
+        }
       } catch (error) {
         throw error;
       }

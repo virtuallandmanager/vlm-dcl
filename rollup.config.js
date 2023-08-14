@@ -12,6 +12,7 @@ export default {
   external: [/@dcl\//, /@decentraland\//],
   output: [
     {
+      exports: "named",
       file: packageJson.main,
       format: "amd",
       amd: {

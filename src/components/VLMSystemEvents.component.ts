@@ -1,3 +1,4 @@
+import { VLMSessionManager } from "../logic/VLMSession.logic";
 import { VLMSceneElement, VLMSceneElementInstance } from "../logic/VLMScene.logic";
 import { VLMModeration } from "./VLMModeration.component";
 import { VLMNotification } from "./VLMNotification.component";
@@ -20,6 +21,20 @@ export class VLMSystemEvent {
 }
 
 @EventConstructor()
+export class VLMUserMessage {
+  id: string;
+  type: "inbound" | "outbound";
+  data: unknown;
+  sessionToken?: string;
+  constructor(config: VLMUserMessage) {
+    this.id = config.id;
+    this.type = config.type;
+    this.data = config.data;
+    this.sessionToken = VLMSessionManager.sessionData.sessionToken;
+  }
+}
+
+@EventConstructor()
 export class VLMWidgetInitEvent {
   configs: VLMWidget.VLMConfig[];
   constructor(configs: VLMWidget.VLMConfig[]) {
@@ -32,10 +47,12 @@ export class VLMPathClientEvent {
   action: "path_start" | "path_segments_add" | "path_end";
   pathId?: string;
   pathSegments?: VLMSession.Path.Segment[];
+  sessionToken?: string;
   constructor(config: VLMPathClientEvent) {
     this.action = config.action;
     this.pathId = config.pathId;
     this.pathSegments = config.pathSegments;
+    this.sessionToken = VLMSessionManager.sessionData.sessionToken;
   }
 }
 
@@ -80,9 +97,11 @@ export class VLMSoundStateEvent {
 export class VLMSessionAction {
   action: string;
   metadata?: string;
+  sessionToken?: string;
   constructor(action: string, metadata?: any) {
     this.action = action;
     this.metadata = metadata;
+    this.sessionToken = VLMSessionManager.sessionData.sessionToken;
   }
 }
 
@@ -103,10 +122,12 @@ export class VLMClaimEvent {
   action: "claim" | "claim_received" | "claim_update" | "claim_error";
   claimAction: string;
   messageOptions?: VLMNotification.MessageOptions;
+  sessionToken?: string;
   constructor(config: VLMClaimEvent) {
     this.action = config.action;
     this.claimAction = config.claimAction;
     this.messageOptions = config.messageOptions;
+    this.sessionToken = VLMSessionManager.sessionData.sessionToken;
   }
 }
 
