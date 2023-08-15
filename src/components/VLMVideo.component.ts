@@ -221,15 +221,14 @@ export namespace VLMVideo {
         instances[instanceId].addComponentOrReplace(this)
       });
 
-      if ((this.textureMode == SourceTypes.IMAGE && !this.uvsFlipped) || (this.textureMode !== SourceTypes.IMAGE && this.uvsFlipped)) {
-        this.flipUvs();
-      }
+      this.correctUvs();
+
     };
 
-    flipUvs: CallableFunction = () => {
-      this.uvsFlipped = !this.uvsFlipped;
+    correctUvs: CallableFunction = () => {
+      this.uvsFlipped = this.textureMode === SourceTypes.IMAGE;
       this.instanceIds.forEach((instanceId: string) => {
-        instances[instanceId].flipUvs(this.uvsFlipped);
+        instances[instanceId].correctUvs(this.uvsFlipped);
       });
     };
 
@@ -325,7 +324,7 @@ export namespace VLMVideo {
         if (!this.isLive && this.textureMode === SourceTypes.LIVE) {
           this.stop();
           this.textureMode = this.offType;
-        } else {
+        } else if (this.isLive) {
           this.startLive();
         }
 
@@ -357,6 +356,9 @@ export namespace VLMVideo {
         this.playlistIndex += 1;
         if (this.playlistIndex > this.playlist.length - 1) {
           this.playlistIndex = 0;
+        }
+        if (!this.playlist[this.playlistIndex]) {
+          return this.playNextVideo()
         }
         this.stop();
         this.updateTexture(this.playlist[this.playlistIndex]);
@@ -400,7 +402,7 @@ export namespace VLMVideo {
     scale: SimpleTransform;
     rotation: SimpleTransform;
     withCollisions: boolean;
-    correctUvs: boolean = sdkImagesAreFlipped;
+    flipUvs: boolean = sdkImagesAreFlipped;
     uvsFlipped: boolean = false;
     defaultClickEvent: VLMClickEvent.DCLConfig;
     clickEvent: VLMClickEvent.DCLConfig;
@@ -425,9 +427,8 @@ export namespace VLMVideo {
       this.addComponent(config); //// SDK SPECIFIC ////
       this.updateTransform(this.position, this.scale, this.rotation);
       this.updateDefaultClickEvent(config.clickEvent);
-      if (config.uvsFlipped) {
-        this.flipUvs(true);
-      }
+      this.correctUvs(config.textureMode === SourceTypes.IMAGE);
+
 
       if (this.enabled) {
         this.add();
@@ -462,7 +463,7 @@ export namespace VLMVideo {
       }
     };
 
-    flipUvs: CallableFunction = (flipped: boolean) => {
+    correctUvs: CallableFunction = (flipped: boolean) => {
       try {
         const plane = this.getComponentOrNull(PlaneShape); //// SDK SPECIFIC ////
         if (!plane) {
@@ -591,7 +592,7 @@ export namespace VLMVideo {
   export class VLMInstanceConfig extends DCLInstanceConfig { }
 
   export class System implements ISystem {
-    enableDebugging: boolean = VLMEnvironment.devMode && false;
+    enableDebugging: boolean = VLMEnvironment.devMode && true;
     sk: string;
     customId?: string;
     timer: number = 0;
@@ -599,6 +600,7 @@ export namespace VLMVideo {
     video: DCLConfig;
     videoLength: number = 0;
     videoStatus: number = 0;
+    videoProgress: number = 0;
     checkingStatus: boolean = true;
     isLive: boolean = false;
     enableLiveStream: boolean = false;
@@ -725,50 +727,58 @@ export namespace VLMVideo {
 
     playlistLoop: CallableFunction = (dt: number) => {
       try {
-        if (this.video.textureMode !== SourceTypes.PLAYLIST || !this.initialized) {
-          this.playing = true;
-          this.video.startPlaylist();
-          this.initialized = true;
-          this.dbLog("VLM VIDEO SYSTEM - STATE CHANGE - START PLAYLIST");
-          return;
+        const multipleVideos = this.video.playlist?.length > 1;
+        if (multipleVideos) {
+          this.video.videoTexture.loop = true;
+        } else {
+          this.video.videoTexture.loop = false;
         }
-        if (onVideoEvent.hasObservers()) {
-          this.dbLog("VLM VIDEO SYSTEM - STATE CHANGE - PLAYLIST MODE - VIDEO PLAYING");
-          return;
-        }
-        onVideoEvent.add((data) => {
+
+        this.observer = onVideoEvent.add((data) => {
           if (data.videoClipId !== this.video.videoTexture.videoClipId) {
+            this.dbLog(`VLM VIDEO SYSTEM - VIDEO EVENT LISTENER - VIDEO CLIP ID MISMATCH - ${data.videoClipId} - ${this.video.videoTexture.videoClipId}`);
             return
           }
+          const offset = data.currentOffset,
+            totalLength = data.totalVideoLength,
+            currentPercentage = (offset / totalLength) * 100,
+            finePercentage = Math.round(currentPercentage * 100) / 100;
+
+          if (this.videoProgress === 0 && finePercentage > 0) {
+            this.videoProgress = finePercentage
+          } else if (this.videoProgress < finePercentage) {
+            this.videoProgress = finePercentage;
+          } else if (finePercentage > 99) {
+            this.videoProgress = finePercentage;
+          } else {
+            return;
+          }
+
           this.videoStatus = data.videoStatus;
           this.videoLength = Math.floor(data.totalVideoLength);
           this.timer = Math.ceil(data.currentOffset);
 
-          const videoPlaying = this.videoStatus > VideoStatus.READY,
-            videoFinished = this.timer >= (this.videoLength - dt),
-            multipleVideos = this.video.playlist?.length > 1;
+          const videoFinished = this.timer >= (this.videoLength - dt);
 
 
-          if (!videoPlaying || !this.videoLength || !this.timer) {
-            this.dbLog("VLM VIDEO SYSTEM PROCESSING - PLAYLIST MODE - NO VIDEO PLAYING YET")
-            return
-          }
-          this.dbLog(`VLM VIDEO SYSTEM - IDLE STATE - PLAYLIST MODE - VIDEO PROGRESS - VIDEO ${this.video.playlistIndex} - ${Math.floor(data.currentOffset / data.totalVideoLength * 100)}%`);
-
-          if (multipleVideos) {
-            this.video.videoTexture.loop = true;
-          } else {
-            this.video.videoTexture.loop = false;
-          }
+          this.dbLog(`VLM VIDEO SYSTEM - IDLE STATE - PLAYLIST MODE - VIDEO PROGRESS - VIDEO ${this.video.playlistIndex} - ${this.videoProgress}%`);
 
           if (multipleVideos && videoFinished) {
-            onVideoEvent.clear();
+
+            this.videoProgress = 0;
+            onVideoEvent.remove(this.observer);
             this.video.playNextVideo();
             this.dbLog("VLM VIDEO SYSTEM - STATE CHANGE - NEXT PLAYLIST VIDEO");
             return;
           }
 
         });
+        if (this.video.textureMode !== SourceTypes.PLAYLIST || !this.initialized) {
+          this.playing = true;
+          this.video.startPlaylist();
+          this.initialized = true;
+          this.dbLog("VLM VIDEO SYSTEM - STATE CHANGE - START PLAYLIST");
+        }
       } catch (error) {
         throw error
       }
