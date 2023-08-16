@@ -1,0 +1,93 @@
+
+22-January-2023
+  e7c623a || fix for image transparencies and other general enhancments || Author:Unknower
+
+20-November-2022
+  d20ca93 || Tracked click events || Author:MetaverseUnknower
+  5c627a2 || allow tracking-only click events || Author:Unknower
+  48ecc58 || Tracked click events pt 2 || Author:MetaverseUnknower
+
+18-November-2022
+  7c9ef5f || bug fixes and enhancements || Author:Unknower
+  363d2db || bug fixes and enhancements || Author:Unknower
+
+10-November-2022
+  d04eff4 || video loop improvements || Author:=
+
+09-November-2022
+  cc0cdd4 || dial in video status check timer || Author:=
+  78c237a || pull just head for video check || Author:=
+  2df06fc || improve pinging/reconnecting to websocket || Author:=
+
+07-November-2022
+  f868a75 || fix bug where nonexistant widgets will break the scene || Author:=
+
+05-November-2022
+  42447ae || bug fixes || Author:=
+  226bfed || bug fixes || Author:=
+
+03-November-2022
+  c9fc826 || play nothing if image or playlist is blank || Author:=
+  21a3471 || nullcheck || Author:=
+
+01-November-2022
+  9baf611 || add missing recordEvent data || Author:=
+  96fb34e || remove extraneous console logs, set up some null checks || Author:=
+  5b24ee7 || add displayName to recordEvent || Author:=
+
+31-October-2022
+  564f853 || fixed click event and timer issues || Author:=
+
+29-October-2022
+  206e131 || remove circular dependencies || Author:=
+  12476c9 || bug fixes and enhancements || Author:=
+
+27-October-2022
+  865d1fa || 1.1 || Author:=
+
+11-October-2022
+  ef7021e || 1.0.4 || Author:=
+  dbbd099 || 1.0.3 || Author:=
+
+09-October-2022
+  d9dcacc || 1.0.0 || Author:=
+  82669b2 || 1.0.1 || Author:=
+  49b12d3 || VLM 1.0 || Author:=
+
+20-September-2022
+  0e765c4 || rotate videos when needed, account for changes in offType || Author:=
+
+05-September-2022
+  ea3244b || working: updating parenting || Author:=
+  2f9769b || working: create video, remove video, update liveSrc, update playlist, move instance || Author:=
+
+20-August-2022
+  571279f || update npm packages || Author:=
+
+27-July-2022
+  fe94867 || 0.0.6 || Author:=
+
+21-July-2022
+  0a651b1 || enable ispreview || Author:=
+
+20-July-2022
+  692e546 || turn off useLocal || Author:=
+
+19-July-2022
+  47fd5a5 || add analytics to init || Author:=
+  272dc19 || export initScene || Author:=
+
+14-July-2022
+  5ed19a6 || add widgets || Author:=
+
+01-July-2022
+  0978b1b || 0.0.2 || Author:=
+
+27-June-2022
+  d2d54c2 || Merge branch 'master' || Author:Unknower
+  caa14f9 || remove libs || Author:Unknower
+
+26-June-2022
+  a0ef2a7 || first commit || Author:Unknower
+  3752214 || publish change || Author:Unknower
+  33603fc || publish change || Author:Unknower
