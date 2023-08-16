@@ -1,4 +1,4 @@
-import { VLMSceneMessage, VLMWidgetInitEvent } from "../components/VLMSystemEvents.component";
+import { VLMSceneInitEvent, VLMSceneMessage } from "../components/VLMSystemEvents.component";
 import { VLMGiveaway } from "../components/VLMGiveaway.component";
 import { VLMImage } from "../components/VLMImage.component";
 import { VLMNFT } from "../components/VLMNFT.component";
@@ -23,6 +23,7 @@ export abstract class VLMSceneManager {
   static initScenePreset: CallableFunction = (message: VLMSceneMessage) => {
     try {
       const scenePreset = message.scenePreset;
+      const sceneSettings = message.settingsData;
       VLMImageManager.init(scenePreset.images);
       VLMVideoManager.init(scenePreset.videos);
       VLMNFTManager.init(scenePreset.nfts);
@@ -30,11 +31,16 @@ export abstract class VLMSceneManager {
 
       if (scenePreset?.widgets?.length) {
         // set initial widget states
-        log('VLM - Widget Init', scenePreset.widgets);
         VLMWidgetManager.setState(scenePreset.widgets);
         VLMWidgetManager.init(scenePreset.widgets);
         // inform event listeners that widgets are ready to be configured
       }
+
+      if (sceneSettings?.moderation) {
+        this.updateSceneSetting({ settings: "moderation", settingsData: sceneSettings.moderation });
+      }
+
+      VLMEventManager.events.fireEvent(new VLMSceneInitEvent());
     } catch (error) {
       throw error;
     }
@@ -108,7 +114,7 @@ export abstract class VLMSceneManager {
           VLMSoundManager.update(message.elementData, message.property, message.id);
           break;
         case "widget":
-          VLMWidgetManager.update(message.elementData, message.id);
+          VLMWidgetManager.update(message.elementData, message.user);
           break;
       }
     } catch (error) {
@@ -119,9 +125,12 @@ export abstract class VLMSceneManager {
   static updateSceneSetting: CallableFunction = (message: VLMSceneMessage) => {
     try {
       if (message.settingsData === undefined) return;
-      switch (message.settings) {
+      switch (message.setting) {
+        case "localization":
+          // TODO: add localization code
+          break;
         case "moderation":
-          VLMModerationManager.updateSettings(message.settingsData);
+          VLMModerationManager.updateSettings(message.sceneSettings.moderation);
           break;
       }
     } catch (error) {

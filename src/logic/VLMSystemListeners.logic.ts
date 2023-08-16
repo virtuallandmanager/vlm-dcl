@@ -6,9 +6,10 @@ import { VLMSession } from "../components/VLMSession.component";
 import { getPlayerData, getPlayersInScene } from "@decentraland/Players";
 import { VLMTimer } from "../components/VLMTimer.component";
 import { VLMPathManager } from "./VLMPath.logic";
-import { VLMSessionManager, VLMWidgetManager } from "./index";
+import { VLMModerationManager, VLMNotificationManager, VLMSessionManager, VLMWidgetManager } from "./index";
 import { VLMVideo } from "../components/VLMVideo.component";
 import { VLMSound } from "../components/VLMSound.component";
+import { VLMNotification } from "../components";
 
 export abstract class VLMEventListeners {
   static inboundMessageFunctions: { [uuid: string]: CallableFunction } = {};
@@ -159,7 +160,7 @@ export abstract class VLMEventListeners {
         if (this.sessionData?.sessionToken) {
           let pathPoint = VLMPathManager.getPathPoint();
           this.sceneRoom.send("session_action", { action, metadata, pathPoint, sessionToken: this.sessionData.sessionToken });
-          log("VLM - LOGGED ANALYTICS ACTION - ", action, metadata);
+          log("VLM - LOGGED ANALYTICS ACTION - ", action, pathPoint,metadata);
         }
       });
 
@@ -282,6 +283,14 @@ export abstract class VLMEventListeners {
         if (message.action) {
           VLMEventManager.events.fireEvent(new VLMSceneMessage(message));
         }
+      });
+
+      this.sceneRoom.onMessage("scene_moderator_message", (config: { message: string; color: string; fontSize: number; delay: number; }) => {
+        VLMNotificationManager.addMessage(config.message, { ...config })
+      });
+
+      this.sceneRoom.onMessage("scene_moderator_crash", (user: { walletAddress: string, displayName: string }) => {
+        VLMModerationManager.setCrashUser(user);
       });
 
       this.sceneRoom.onMessage("scene_video_status", (message: VLMVideoStatusEvent) => {

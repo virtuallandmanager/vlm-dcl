@@ -4,9 +4,11 @@ export abstract class VLMWidgetManager {
 
   static configureWidgets: CallableFunction = (configs: VLMWidget.DCLConfig[]) => {
     try {
+      configs = sortConfigs(configs);
       configs.forEach((config: VLMWidget.DCLConfig) => {
         if (!VLMWidget.configs[config.id]) {
           VLMWidget.configs[config.id] = {
+            order: config.order,
             id: config.id,
             value: config.value,
             update: () => { },
@@ -22,7 +24,7 @@ export abstract class VLMWidgetManager {
           }
         }
       });
-      log('VLM - Configured Widgets', VLMWidget.configs);
+      log('VLM - Configured Widgets', configs);
     } catch (error) {
       throw error;
     }
@@ -33,12 +35,14 @@ export abstract class VLMWidgetManager {
       if (!configs) {
         return;
       }
+      configs = sortConfigs(configs);
       configs.forEach((config: VLMWidget.VLMConfig) => {
         const widget = { ...VLMWidget.configs[config.id] };
         VLMWidget.configs[config.id] = {
           ...widget,
           sk: config.sk,
           id: config.id,
+          order: config.order,
           value: config.value,
           type: config.type,
         };
@@ -50,8 +54,9 @@ export abstract class VLMWidgetManager {
   };
 
   static init: CallableFunction = () => {
-    Object.keys(VLMWidget.configs).forEach((widgetConfigId: string) => {
-      const config = VLMWidget.configs[widgetConfigId];
+    const configArray = Object.keys(VLMWidget.configs).map((key: string) => VLMWidget.configs[key]);
+    const sortedConfigs = sortConfigs(configArray);
+    sortedConfigs.forEach((config: VLMWidget.DCLConfig) => {
       if (!config || config.type === VLMWidget.ControlType.TRIGGER) {
         return VLMWidget.configs;
       } else if (config.init) {
@@ -84,7 +89,7 @@ export abstract class VLMWidgetManager {
     }
   };
 
-  static update: CallableFunction = (widget: VLMWidget.DCLConfig) => {
+  static update: CallableFunction = (widget: VLMWidget.DCLConfig, user: { connectedWallet: string, displayName: string }) => {
     try {
       if (!VLMWidget.configs[widget.id]) {
         VLMWidget.configs[widget.id] = {
@@ -95,7 +100,7 @@ export abstract class VLMWidgetManager {
         };
       }
       VLMWidget.configs[widget.id].value = widget.value;
-      VLMWidget.configs[widget.id].update(widget);
+      VLMWidget.configs[widget.id].update({ ...widget, user });
       log('VLM - Updated Widget', VLMWidget.configs[widget.id]);
     } catch (error) {
       throw error;
@@ -119,4 +124,30 @@ export abstract class VLMWidgetManager {
       throw error;
     }
   };
+}
+
+const sortConfigs = (configs: VLMWidget.DCLConfig[]) => {
+  const configsAreOrdered = configs.some((config: VLMWidget.DCLConfig) => config.hasOwnProperty('order'));
+  if (!configsAreOrdered) {
+    return configs;
+  }
+
+  const sortedConfigs = configs.sort((a: VLMWidget.DCLConfig, b: VLMWidget.DCLConfig) => {
+    if (a.order && b.order == undefined) {
+      return -1;
+    } else if (a.order == undefined && b.order) {
+      return 1;
+    }
+
+    if (a.order < b.order) {
+      return -1;
+    } else if (a.order > b.order) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+  configs = sortedConfigs;
+  log('VLM - Sorted Widgets', configs)
+  return sortedConfigs
 }

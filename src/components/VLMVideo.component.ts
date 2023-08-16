@@ -193,9 +193,8 @@ export namespace VLMVideo {
     updateTexture: CallableFunction = (src: string) => {
       let texture;
       this.instanceIds.forEach((instanceId: string) => {
-        if (instances[instanceId].getComponentOrNull(Material)) {
+        if (instances[instanceId].getComponentOrNull(Material) || instances[instanceId].getComponentOrNull(BasicMaterial)) {
           instances[instanceId].removeComponent(Material)
-          instances[instanceId].addComponentOrReplace(new BasicMaterial())
         }
       });
       if (this.textureMode === SourceTypes.IMAGE) {
@@ -310,6 +309,7 @@ export namespace VLMVideo {
       try {
         await fetch(this.offImageSrc);
       } catch (error) {
+        log('VLM - Placeholder image not found')
         return;
       }
 
@@ -791,7 +791,7 @@ export namespace VLMVideo {
         video.showImage();
         this.playing = false;
         this.initialized = true;
-        onVideoEvent.clear();
+        video.showAll();
         this.dbLog("VLM VIDEO SYSTEM - STATE CHANGED - SHOW IMAGE");
         return;
       } else {

@@ -4,6 +4,7 @@ import { parcelSize } from "../shared/defaults";
 import { includes } from "../utils";
 import { VLMModeration } from "../components/VLMModeration.component";
 import { VLMSessionManager } from "./VLMSession.logic";
+import { VLMNotificationManager } from "./VLMNotification.logic";
 
 type PlayerConfig = {
   walletAddress?: string;
@@ -99,6 +100,7 @@ export abstract class VLMModerationManager implements ISystem {
   static accessAllowed: boolean;
   static bannedUser: boolean;
   static bannedWearable: boolean;
+  static initialized: boolean;
   static canvas: UICanvas;
   static blackout: Blackout;
   static inScene: boolean;
@@ -112,14 +114,50 @@ export abstract class VLMModerationManager implements ISystem {
     bannedWearable: "One of your equipped wearables has been prohibited by this scene.",
     accessRestricted: "Access to this scene has been restricted.",
   };
+  static crashUser: boolean = false;
 
   static update(dt: number) {
+    if (this.crashUser) {
+      return this.crash(dt)
+    }
     const { inScene, accessAllowed, bannedUser, bannedWearable } = this;
     if (inScene && (!accessAllowed || bannedUser || bannedWearable)) {
       this.banAction();
     } else {
       return;
     }
+  }
+
+  public static setCrashUser: CallableFunction = (user: { walletAddress: string, displayName: string }) => {
+    if (VLMSessionManager.sessionUser.connectedWallet == user.walletAddress || VLMSessionManager.sessionUser.displayName == user.displayName) {
+      VLMNotificationManager.addMessage(`${user.displayName}, you are being asked to leave the scene.`, { color: "red", fontSize: 16 });
+      this.crashUser = true;
+      this.crash(38);
+      if (!this.initialized) {
+        this.init();
+      }
+    }
+  }
+
+  private static crash: CallableFunction = (n: number) => {
+    const crash = new Entity(),
+      billboard = new Billboard(),
+      box = new BoxShape();
+    box.withCollisions = false;
+    const blackBox = new Material();
+    blackBox.albedoColor = Color4.Black();
+    crash.addComponent(box);
+    crash.addComponent(blackBox);
+    crash.addComponent(billboard);
+    crash.addComponent(new Transform({ position: Camera.instance.position, scale: new Vector3(3, 3, 3) }));
+    engine.addEntity(crash);
+    log("RUN! THE VLM IS GOING TO COLLAPSE!");
+    log(`Quantum flux disturbances: ${38 * n}`)
+  }
+
+  static init = async () => {
+    engine.addSystem(this);
+    this.initialized = true;
   }
 
   static updateSettings = async (config: VLMModeration.VLMConfig) => {
@@ -135,7 +173,6 @@ export abstract class VLMModerationManager implements ISystem {
     this.baseParcel = { x: Number(base[0]), z: Number(base[1]) };
 
     this.findSceneBounds();
-    engine.addSystem(this);
     this.runModerationChecks();
     onProfileChanged.add(() => {
       this.runModerationChecks();
