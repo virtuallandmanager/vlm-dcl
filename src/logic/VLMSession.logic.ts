@@ -116,6 +116,7 @@ export abstract class VLMSessionManager {
 
       const sceneJsonData = parcel.land.sceneJsonData as VLMSceneJsonData,
         baseParcel = sceneJsonData.scene.base,
+        parcels = sceneJsonData.scene.parcels,
         sceneId = sceneJsonData?.vlm?.sceneId,
         user = userData ? (({ avatar, ...data }) => data)(userData) : {};
 
@@ -126,7 +127,7 @@ export abstract class VLMSessionManager {
       platformData.baseParcel = baseParcel;
       platformData.sceneId = sceneId;
       platformData.user = user as UserData;
-      platformData.worldLocation = { world: "decentraland", location: sceneJsonData?.display?.title, coordinates: baseParcel.split(",") };
+      platformData.location = { world: "decentraland", location: sceneJsonData?.display?.title, coordinates: baseParcel.split(","), parcels };
       this.dclUserData = userData as UserData;
       return platformData;
     } catch (error) {
@@ -147,5 +148,5 @@ export type PlatformData = {
   sceneId?: string;
   subPlatform?: string;
   world?: string;
-  worldLocation?: { world: string; location?: string; coordinates?: string[] | number[] };
+  location?: { world: string; location?: string; coordinates?: string[] | number[], parcels?: string[] };
 };

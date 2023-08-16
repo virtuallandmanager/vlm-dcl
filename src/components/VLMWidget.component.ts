@@ -7,7 +7,9 @@ export namespace VLMWidget {
     sk?: string;
     id: string;
     type?: ControlType;
-    value?: string | boolean;
+    value?: string | number | boolean;
+    user?: { connectedWallet: string, displayName: string };
+    order?: number;
     init?: (config: DCLConfig) => void;
     delete?: (config: DCLConfig) => void;
     update: (config: DCLConfig) => void;
@@ -16,6 +18,7 @@ export namespace VLMWidget {
       this.id = config.id;
       this.type = config.type;
       this.value = config.value;
+      this.user = config.user;
       this.init = config.init;
       this.delete = config.delete;
       this.update = config.update;

@@ -148,7 +148,7 @@ export class VLMVideoStatusEvent {
 
 type ElementName = "image" | "video" | "nft" | "sound" | "widget";
 type Action = "init" | "create" | "update" | "delete" | "trigger";
-type Settings = "moderation";
+type Setting = "localization" | "moderation" | "interoperability";
 type Property = "enabled" | "liveSrc" | "imageSrc" | "nftData" | "enableLiveStream" | "playlist" | "volume" | "emission" | "offType" | "offImage" | "transform" | "collider" | "parent" | "customId" | "clickEvent" | "transparency";
 
 @EventConstructor()
@@ -156,13 +156,15 @@ export class VLMSceneMessage {
   action: Action;
   property?: Property;
   id?: string;
-  element: ElementName;
-  instance: boolean;
-  settings: Settings;
+  element?: ElementName;
+  instance?: boolean;
+  setting?: Setting;
   elementData?: VLMSceneElement;
   instanceData?: VLMSceneElementInstance;
-  settingsData?: VLMModeration.VLMConfig;
-  scenePreset: VLMScene.Preset;
+  settingsData?: { [id: string]: VLMModeration.VLMConfig }
+  scenePreset?: VLMScene.Preset;
+  sceneSettings?: { moderation: VLMModeration.VLMConfig };
+  user?: { sk: string, connectedWallet: string, displayName: string };
 
   constructor(message: VLMSceneMessage) {
     this.action = message?.action;
@@ -170,10 +172,17 @@ export class VLMSceneMessage {
     this.id = message?.id;
     this.element = message?.element;
     this.instance = message?.instance;
-    this.settings = message?.settings;
+    this.setting = message?.setting;
     this.elementData = message?.elementData;
     this.instanceData = message?.instanceData;
     this.settingsData = message?.settingsData;
     this.scenePreset = message?.scenePreset;
+    this.user = message?.user;
+  }
+}
+
+@EventConstructor()
+export class VLMSceneInitEvent {
+  constructor() {
   }
 }

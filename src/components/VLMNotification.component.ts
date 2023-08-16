@@ -5,6 +5,7 @@ export namespace VLMNotification {
     hAlign: string = "center";
     fontSize: number = 16;
     color: Color4 = Color4.White();
+    delay: number = 3;
     outlineColor: Color4 = Color4.Black();
     outlineWidth: number = 0.125;
     adaptWidth: boolean = true;
@@ -16,10 +17,10 @@ export namespace VLMNotification {
       this.init(_value, _messageOptions);
     }
 
-    init: CallableFunction = (_value: string, _messageOptions: MessageOptions) => {
-      const color = _messageOptions.color,
-        fontSize = _messageOptions.fontSize;
-      this.value = _value;
+    init: CallableFunction = (value: string, messageOptions?: MessageOptions) => {
+      const color = messageOptions?.color || "white",
+        fontSize = messageOptions?.fontSize;
+      this.value = value;
       this.fontSize = fontSize || this.fontSize;
       if (!color) {
         return;
@@ -53,6 +54,7 @@ export namespace VLMNotification {
         case "yellow":
           this.color = Color4.Yellow();
           break;
+        case "white":
         default:
           this.color = Color4.White();
       }
@@ -62,5 +64,6 @@ export namespace VLMNotification {
   export type MessageOptions = {
     color: string;
     fontSize: number;
+    delay: number;
   };
 }
