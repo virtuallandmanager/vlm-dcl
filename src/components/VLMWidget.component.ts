@@ -38,5 +38,6 @@ export namespace VLMWidget {
     SELECTOR,
     DATETIME,
     TRIGGER,
+    SLIDER
   }
 }
