@@ -1,6 +1,6 @@
 import { VLMEnvironment } from "../environment";
 import { signedFetch } from "@decentraland/SignedFetch";
-import { getPlatform } from "@decentraland/EnvironmentAPI";
+import { getCurrentRealm, getPlatform } from "@decentraland/EnvironmentAPI";
 import { UserData, getUserData } from "@decentraland/Identity";
 import { VLMSession } from "../components/VLMSession.component";
 import { SceneJsonData, getParcel } from "@decentraland/ParcelIdentity";
@@ -112,7 +112,7 @@ export abstract class VLMSessionManager {
 
   static getPlatformData: CallableFunction = async () => {
     try {
-      let [userData, parcel, platform] = await Promise.all([getUserData(), getParcel(), getPlatform()]);
+      let [userData, parcel, platform, realm] = await Promise.all([getUserData(), getParcel(), getPlatform(), getCurrentRealm()]);
 
       const sceneJsonData = parcel.land.sceneJsonData as VLMSceneJsonData,
         baseParcel = sceneJsonData.scene.base,
@@ -127,7 +127,7 @@ export abstract class VLMSessionManager {
       platformData.baseParcel = baseParcel;
       platformData.sceneId = sceneId;
       platformData.user = user as UserData;
-      platformData.location = { world: "decentraland", location: sceneJsonData?.display?.title, coordinates: baseParcel.split(","), parcels };
+      platformData.location = { world: "decentraland", location: sceneJsonData?.display?.title, coordinates: baseParcel.split(","), parcels, realm };
       this.dclUserData = userData as UserData;
       return platformData;
     } catch (error) {
@@ -140,6 +140,21 @@ export type VLMSceneJsonData = SceneJsonData & {
   vlm?: { sceneId?: string };
 };
 
+export type RealmData = {
+  serverName?: string;
+  layer?: string;
+  displayName?: string;
+  domain?: string;
+  layerId?: string;
+  serverURL?: string;
+  usersCount?: number;
+  capacity?: number;
+  maxUsers?: number;
+  usersParcels?: string[];
+  usersCountByLayer?: { [key: string]: number };
+  usersParcelsByLayer?: { [key: string]: string[] };
+};
+
 export type PlatformData = {
   vlmVersion?: string;
   user?: UserData;
@@ -148,5 +163,5 @@ export type PlatformData = {
   sceneId?: string;
   subPlatform?: string;
   world?: string;
-  location?: { world: string; location?: string; coordinates?: string[] | number[], parcels?: string[] };
+  location?: { world: string; location?: string; coordinates?: string[] | number[], parcels?: string[], realm: RealmData };
 };
