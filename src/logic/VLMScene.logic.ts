@@ -186,7 +186,7 @@ export abstract class VLMSceneManager {
 
   static deleteSceneElementInstance: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      const id = message.elementData.sk || message.id;
+      const id = message.instanceData.sk || message.id;
       switch (message.element) {
         case "image":
           VLMImageManager.deleteInstance(id);

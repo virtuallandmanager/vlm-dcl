@@ -9,7 +9,6 @@ import { VLMPathManager } from "./VLMPath.logic";
 import { VLMModerationManager, VLMNotificationManager, VLMSessionManager, VLMWidgetManager } from "./index";
 import { VLMVideo } from "../components/VLMVideo.component";
 import { VLMSound } from "../components/VLMSound.component";
-import { VLMNotification } from "../components";
 
 export abstract class VLMEventListeners {
   static inboundMessageFunctions: { [uuid: string]: CallableFunction } = {};
@@ -160,7 +159,7 @@ export abstract class VLMEventListeners {
         if (this.sessionData?.sessionToken) {
           let pathPoint = VLMPathManager.getPathPoint();
           this.sceneRoom.send("session_action", { action, metadata, pathPoint, sessionToken: this.sessionData.sessionToken });
-          log("VLM - LOGGED ANALYTICS ACTION - ", action, pathPoint,metadata);
+          log("VLM - LOGGED ANALYTICS ACTION - ", action, pathPoint, metadata);
         }
       });
 
@@ -188,6 +187,7 @@ export abstract class VLMEventListeners {
       VLMEventManager.events.addListener(VLMPathServerEvent, null, (message: VLMPathServerEvent) => {
         switch (message.action) {
           case "path_started":
+            log("VLM - PATH STARTED MESSAGE", message)
             const pathIds = this.sessionData.paths;
             if (message.pathId && pathIds && pathIds.indexOf(message.pathId) < 0) {
               pathIds.push(message.pathId);
@@ -207,13 +207,16 @@ export abstract class VLMEventListeners {
             VLMSceneManager.initScenePreset(message);
             break;
           case "create":
-            message.instance ? VLMSceneManager.createSceneElementInstance(message) : VLMSceneManager.createSceneElement(message);
+            log("VLM - CREATE");
+            message.instance === true ? VLMSceneManager.createSceneElementInstance(message) : VLMSceneManager.createSceneElement(message);
             break;
           case "update":
-            message.instance ? VLMSceneManager.updateSceneElementInstance(message) : VLMSceneManager.updateSceneElement(message);
+            log("VLM - UPDATE");
+            message.instance === true ? VLMSceneManager.updateSceneElementInstance(message) : VLMSceneManager.updateSceneElement(message);
             break;
           case "delete":
-            message.instance ? VLMSceneManager.deleteSceneElementInstance(message) : VLMSceneManager.deleteSceneElement(message);
+            log("VLM - DELETE");
+            message.instance === true ? VLMSceneManager.deleteSceneElementInstance(message) : VLMSceneManager.deleteSceneElement(message);
             break;
         }
       });
@@ -247,11 +250,11 @@ export abstract class VLMEventListeners {
         if (!this.sessionData?.sessionStart) {
           this.sessionData.sessionStart = Date.now();
         }
-        VLMPathManager.getPathId();
+        new VLMPathManager();
       });
 
       this.sceneRoom.onMessage("user_message", (message: VLMUserMessage) => {
-        VLMEventManager.events.fireEvent(new VLMUserMessage({ ...message, type: "inbound" }));
+        VLMEventManager.events.fireEvent(new VLMUserMessage(message));
       });
 
       VLMEventManager.events.addListener(VLMUserMessage, null, async (message: VLMUserMessage) => {
@@ -260,6 +263,10 @@ export abstract class VLMEventListeners {
           this.inboundMessageFunctions[message.id]?.(message.data);
         } else if (message?.type == "outbound") {
           this.sceneRoom.send("user_message", message);
+        } else if (message?.type == "getState") {
+          this.sceneRoom.send("get_user_state", message);
+        } else if (message?.type == "setState") {
+          this.sceneRoom.send("set_user_state", message);
         }
       })
 
@@ -267,7 +274,12 @@ export abstract class VLMEventListeners {
         VLMEventManager.events.fireEvent(new VLMPathServerEvent(message));
       });
 
+      this.sceneRoom.onMessage("path_segments_added", (message: VLMPathServerEvent) => {
+        VLMEventManager.events.fireEvent(new VLMPathServerEvent(message));
+      });
+
       this.sceneRoom.onMessage("path_started", (message: VLMPathServerEvent) => {
+        log("VLM - PATH STARTED MESSAGE RECEIVED! Line 282", message)
         VLMEventManager.events.fireEvent(new VLMPathServerEvent(message));
       });
 
@@ -305,11 +317,24 @@ export abstract class VLMEventListeners {
     }
   };
 
-  static sendMessage: CallableFunction = (id: string, data: unknown) => {
+  static sendMessage: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
     VLMEventManager.events.fireEvent(new VLMUserMessage({ id, data, type: "outbound" }));
   }
 
   static onMessage: CallableFunction = (id: string, callback: CallableFunction) => {
-    this.inboundMessageFunctions[id] = callback;
+    VLMEventManager.events.fireEvent(new VLMUserMessage({ id, data: callback, type: "inbound" }))
+  }
+
+  static setState: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
+    VLMEventManager.events.fireEvent(new VLMUserMessage({ id, data, type: "setState" }));
+  }
+
+  static getState: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
+    VLMEventManager.events.fireEvent(new VLMUserMessage({ id, data, type: "getState" }));
+  }
+
+  
+  static recordAction: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
+    VLMEventManager.events.fireEvent(new VLMSessionAction(id, data));
   }
 }

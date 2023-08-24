@@ -23,8 +23,8 @@ export class VLMSystemEvent {
 @EventConstructor()
 export class VLMUserMessage {
   id: string;
-  type: "inbound" | "outbound";
-  data: unknown;
+  type: "inbound" | "outbound" | "setState" | "getState";
+  data: unknown | CallableFunction;
   sessionToken?: string;
   constructor(config: VLMUserMessage) {
     this.id = config.id;
