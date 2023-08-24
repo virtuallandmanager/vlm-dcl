@@ -73,7 +73,7 @@ export namespace VLMBase {
 
     constructor(config: MaterialConfig | AudioConfig, instance: Instance) {
       const id = instance.sk;
-      super(`${instance.name} - ${id}`);
+      super(instance?.customId || instance?.name);
       this.sk = id;
       this.name = instance.name;
       this.enabled = config.enabled || instance.enabled;
