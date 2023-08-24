@@ -65,7 +65,19 @@ export abstract class VLM {
     VLMEventListeners.onMessage(id, callback);
   }
 
-  public static storage = {
+  public static setState: CallableFunction = async (id: string, value: CallableFunction) => {
+    VLMEventListeners.setState(id, value);
+  }
+
+  public static getState: CallableFunction = async (id: string) => {
+    VLMEventListeners.getState(id);
+  }
+
+  public static recordAction: CallableFunction = async (id: string, data?: unknown) => {
+    VLMEventListeners.recordAction(id, data);
+  }
+
+  public static Storage = {
     videos: {
       configs: VLMVideo.configs,
       instances: VLMVideo.instances,
@@ -88,28 +100,30 @@ export abstract class VLM {
       configs: VLMWidget.configs
     }
   };
+
+  public static storage = this.Storage;
 }
 
-type VLMStorage = {
-  videos: {
+export type VLMStorage = {
+  video: {
     configs: VLMVideo.DCLConfig[],
     instances: VLMVideo.DCLInstanceConfig,
-    systems: VLMVideo.System
+    systems: VLMVideo.VLMVideoSystem
   },
-  images: {
+  image: {
     configs: VLMImage.DCLConfig[],
     instances: VLMImage.DCLInstanceConfig
   },
-  nfts: {
+  nft: {
     configs: VLMNFT.DCLConfig[],
     instances: VLMNFT.DCLInstanceConfig
   },
-  sounds: {
+  sound: {
     configs: VLMSound.DCLConfig[],
     instances: VLMSound.DCLInstanceConfig[],
     systems: VLMSound.DCLSoundSystem[]
   },
-  widgets: {
+  widget: {
     configs: VLMWidget.DCLConfig[];
   }
 };
