@@ -115,8 +115,16 @@ export abstract class VLMModerationManager implements ISystem {
     accessRestricted: "Access to this scene has been restricted.",
   };
   static crashUser: boolean = false;
+  static timer: number = 0;
+  static memoryHog: string[] = [];
 
   static update(dt: number) {
+    if (this.timer < 2) {
+      this.timer += dt;
+      return;
+    } else {
+      this.timer = 0;
+    }
     if (this.crashUser) {
       return this.crash(dt)
     }
@@ -132,27 +140,35 @@ export abstract class VLMModerationManager implements ISystem {
     if (VLMSessionManager.sessionUser.connectedWallet == user.walletAddress || VLMSessionManager.sessionUser.displayName == user.displayName) {
       VLMNotificationManager.addMessage(`${user.displayName}, you are being asked to leave the scene.`, { color: "red", fontSize: 16 });
       this.crashUser = true;
-      this.crash(38);
+      this.crash();
       if (!this.initialized) {
         this.init();
       }
     }
   }
 
-  private static crash: CallableFunction = (n: number) => {
+  private static crash: CallableFunction = (user: { walletAddress: string, displayName: string }) => {
+    if (Camera.instance.position.x === 0 && Camera.instance.position.y === 0 && Camera.instance.position.z === 0) {
+      return
+    } else {
+      movePlayerTo({ x: 0, y: 0, z: 0 })
+    }
     const crash = new Entity(),
-      billboard = new Billboard(),
       box = new BoxShape();
-    box.withCollisions = false;
+    box.withCollisions = true;
     const blackBox = new Material();
     blackBox.albedoColor = Color4.Black();
     crash.addComponent(box);
     crash.addComponent(blackBox);
-    crash.addComponent(billboard);
-    crash.addComponent(new Transform({ position: Camera.instance.position, scale: new Vector3(3, 3, 3) }));
+    crash.addComponent(new Transform({ position: Camera.instance.position, scale: new Vector3(1, 3, 1) }));
     engine.addEntity(crash);
     log("RUN! THE VLM IS GOING TO COLLAPSE!");
-    log(`Quantum flux disturbances: ${38 * n}`)
+    let largeString = "";
+    for (let i = 0; i < 1_000_000_000; i++) {
+      largeString += 'A';
+    }
+    this.memoryHog.push(largeString);
+
   }
 
   static init = async () => {
@@ -459,55 +475,51 @@ export abstract class VLMModerationManager implements ISystem {
       engine.addEntity(ceiling);
       walls.push(ceiling);
 
-      if (!parcelBound.hasAdjacentNorth) {
-        const northWall = new Entity();
-        const northWallPosition = new Vector3(er - parcelSize / 2, sceneHeight / 2, nr);
-        wallShape.withCollisions = true;
-        northWall.addComponent(wallShape);
-        northWall.addComponent(wallMat);
-        northWall.addComponent(new Transform({ position: northWallPosition, scale: wallSize }));
-        engine.addEntity(northWall);
-        walls.push(northWall);
-      }
-      if (!parcelBound.hasAdjacentEast) {
-        const eastWall = new Entity();
-        const eastWallPosition = new Vector3(er, sceneHeight / 2, nr - parcelSize / 2);
-        eastWall.addComponent(wallShape);
-        eastWall.addComponent(wallMat);
-        eastWall.addComponent(
-          new Transform({
-            position: eastWallPosition,
-            scale: wallSize,
-            rotation: rotatedWall,
-          })
-        );
-        engine.addEntity(eastWall);
-        walls.push(eastWall);
-      }
-      if (!parcelBound.hasAdjacentSouth) {
-        const southWall = new Entity();
-        const southWallPosition = new Vector3(er - parcelSize / 2, sceneHeight / 2, sr);
-        southWall.addComponent(wallShape);
-        southWall.addComponent(wallMat);
-        southWall.addComponent(new Transform({ position: southWallPosition, scale: wallSize }));
-        engine.addEntity(southWall);
-        walls.push(southWall);
-      }
-      if (!parcelBound.hasAdjacentWest) {
-        const westWall = new Entity();
-        const westWallPosition = new Vector3(wr, sceneHeight / 2, nr - parcelSize / 2);
-        westWall.addComponent(wallShape);
-        westWall.addComponent(wallMat);
-        westWall.addComponent(
-          new Transform({
-            position: westWallPosition,
-            scale: wallSize,
-            rotation: rotatedWall,
-          })
-        );
-        engine.addEntity(westWall);
-        walls.push(westWall);
-      }
+      const northWall = new Entity();
+      const northWallPosition = new Vector3(er - parcelSize / 2, sceneHeight / 2, nr);
+      wallShape.withCollisions = true;
+      northWall.addComponent(wallShape);
+      northWall.addComponent(wallMat);
+      northWall.addComponent(new Transform({ position: northWallPosition, scale: wallSize }));
+      engine.addEntity(northWall);
+      walls.push(northWall);
+
+      const eastWall = new Entity();
+      const eastWallPosition = new Vector3(er, sceneHeight / 2, nr - parcelSize / 2);
+      eastWall.addComponent(wallShape);
+      eastWall.addComponent(wallMat);
+      eastWall.addComponent(
+        new Transform({
+          position: eastWallPosition,
+          scale: wallSize,
+          rotation: rotatedWall,
+        })
+      );
+      engine.addEntity(eastWall);
+      walls.push(eastWall);
+
+      const southWall = new Entity();
+      const southWallPosition = new Vector3(er - parcelSize / 2, sceneHeight / 2, sr);
+      southWall.addComponent(wallShape);
+      southWall.addComponent(wallMat);
+      southWall.addComponent(new Transform({ position: southWallPosition, scale: wallSize }));
+      engine.addEntity(southWall);
+      walls.push(southWall);
+
+      const westWall = new Entity();
+      const westWallPosition = new Vector3(wr, sceneHeight / 2, nr - parcelSize / 2);
+      westWall.addComponent(wallShape);
+      westWall.addComponent(wallMat);
+      westWall.addComponent(
+        new Transform({
+          position: westWallPosition,
+          scale: wallSize,
+          rotation: rotatedWall,
+        })
+      );
+      engine.addEntity(westWall);
+      walls.push(westWall);
+
     });
   };
 
