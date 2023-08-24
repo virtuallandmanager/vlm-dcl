@@ -25,8 +25,8 @@ const hasTruthyProperty = (obj: Record<string, any>): boolean => {
 export type PathPoint = [number, number, number, number, number, number, number, -1 | 0 | 1 | 2];
 // [O, Px, Py, Pz, Rx, Ry, Rz, V]
 
-export abstract class VLMPathManager implements ISystem {
-  static enableDebugging: boolean = VLMEnvironment.devMode && true;
+export class VLMPathManager implements ISystem {
+  static enableDebugging: boolean = false;
   static motionButtonsPressed: { w: boolean; a: boolean; s: boolean; d: boolean; shift: boolean;[id: string]: boolean } = { w: false, a: false, s: false, d: false, shift: false };
   static moving: boolean = hasTruthyProperty((({ shift, ...data }) => data)(this.motionButtonsPressed));
   static walking: boolean = this.motionButtonsPressed.shift && this.moving;
@@ -42,20 +42,20 @@ export abstract class VLMPathManager implements ISystem {
   static finished: boolean = false;
   static loading: boolean = true;
   static counter: number = 0;
-  static delay: number = 0.5;
+  static delay: number = 1;
   static playerPosition?: PositionType;
   static playerRotation?: PositionType;
   static cameraPosition?: PositionType;
   static cameraRotation?: PositionType;
   static segmentChangeDebounce?: number;
-  static needsStateUpdate?: boolean;
+  static addingPaths?: boolean = false;
   static pathStarted?: boolean = false;
 
-  static getPathId: CallableFunction = () => {
-    this.sceneRoom = VLMSessionManager.sceneRoom;
-    this.sessionData = VLMSessionManager.sessionData;
+  constructor() {
+    VLMPathManager.sceneRoom = VLMSessionManager.sceneRoom;
+    VLMPathManager.sessionData = VLMSessionManager.sessionData;
     VLMEventManager.events.fireEvent(new VLMPathClientEvent({ action: "path_start" }));
-  };
+  }
 
   static startPath: CallableFunction = async (message: VLMPathServerEvent) => {
     const pathIds = this.sessionData.paths;
@@ -171,8 +171,9 @@ export abstract class VLMPathManager implements ISystem {
       this.pathSegments.unshift(newSegment);
       log("Started a new segment.", newSegment);
       log("All segments:", this.pathSegments);
-      if (this.pathSegments?.length > 25 || thousandPointPaths) {
+      if (!this.addingPaths && this.pathSegments?.length >= 25 || thousandPointPaths) {
         this.dbLog("VLM PATH TRACKING - SUBMITTING A BATCH OF PATH SEGMENTS");
+        this.addingPaths = true;
         VLMEventManager.events.fireEvent(new VLMPathClientEvent({ action: "path_segments_add", pathId: this.pathId, pathSegments: this.pathSegments }));
       }
     } catch (e) {
@@ -187,6 +188,7 @@ export abstract class VLMPathManager implements ISystem {
       this.pathSegments.splice(this.pathSegments.length - message.added);
       this.dbLog("VLM PATH TRACKING - " + message.added + " PATH SEGMENTS TRIMMED ")
     }
+    this.addingPaths = false;
   };
 
   static getPathPoint: CallableFunction = (firstPoint: boolean) => {
@@ -261,16 +263,7 @@ export abstract class VLMPathManager implements ISystem {
     } else {
       this.counter = 0;
     }
-
-    if (this.finished) {
-      engine.removeSystem(this);
-      this.dbLog("VLM PATH TRACKING - EXITED - PATH FINISHED");
-      return;
-    } else if (!this.sessionData?.sessionStart) {
-      this.dbLog("VLM PATH TRACKING - EXITED - NO SESSION STARTED");
-      return;
-    }
-
+    this.dbLog("VLM PATH TRACKING - UPDATE")
     const lastPathPoint = this.lastPathPoint(),
       lastPointOffset = lastPathPoint[0];
 
@@ -281,6 +274,7 @@ export abstract class VLMPathManager implements ISystem {
     }
 
     if (lastPathPoint && Date.now() >= lastPointOffset + 500) {
+      this.dbLog("VLM PATH TRACKING - LOGGING PATH POINT")
       this.logPathPoint();
     } else if (Date.now() < lastPointOffset + 500) {
       this.dbLog("VLM PATH TRACKING - EXITED - NOT ENOUGH TIME PASSED SINCE LAST POINT");
