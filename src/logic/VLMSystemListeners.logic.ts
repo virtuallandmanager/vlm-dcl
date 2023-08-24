@@ -95,8 +95,7 @@ export abstract class VLMEventListeners {
 
       onPlayerExpressionObservable.add(({ expressionId }) => {
         log(`VLM | SESSION ACTION: Emote triggered - ${expressionId}`);
-        const custom = expressionId.indexOf("0x") > -1;
-        VLMEventManager.events.fireEvent(new VLMSessionAction("Emote Used", { emote: expressionId, custom }));
+        VLMEventManager.events.fireEvent(new VLMSessionAction("Emote Used", { emote: expressionId }));
       });
 
       onPlayerClickedObservable.add((clickEvent) => {
@@ -110,7 +109,6 @@ export abstract class VLMEventListeners {
           let user = await getPlayerData({ userId });
           let otherPlayers = await getPlayersInScene();
           log("VLM | SESSION ACTION: Witnessed Connection", userId);
-
           VLMEventManager.events.fireEvent(new VLMWitnessedAction(`Witnessed ${user?.displayName || "Someone"} Connect`, { userId, otherPlayers }));
         }
       });
@@ -187,7 +185,6 @@ export abstract class VLMEventListeners {
       VLMEventManager.events.addListener(VLMPathServerEvent, null, (message: VLMPathServerEvent) => {
         switch (message.action) {
           case "path_started":
-            log("VLM - PATH STARTED MESSAGE", message)
             const pathIds = this.sessionData.paths;
             if (message.pathId && pathIds && pathIds.indexOf(message.pathId) < 0) {
               pathIds.push(message.pathId);
@@ -201,21 +198,17 @@ export abstract class VLMEventListeners {
       });
 
       VLMEventManager.events.addListener(VLMSceneMessage, null, (message: VLMSceneMessage) => {
-        log("VLM - MESSAGE RECEIVED FROM SERVER", message);
         switch (message.action) {
           case "init":
             VLMSceneManager.initScenePreset(message);
             break;
           case "create":
-            log("VLM - CREATE");
             message.instance === true ? VLMSceneManager.createSceneElementInstance(message) : VLMSceneManager.createSceneElement(message);
             break;
           case "update":
-            log("VLM - UPDATE");
             message.instance === true ? VLMSceneManager.updateSceneElementInstance(message) : VLMSceneManager.updateSceneElement(message);
             break;
           case "delete":
-            log("VLM - DELETE");
             message.instance === true ? VLMSceneManager.deleteSceneElementInstance(message) : VLMSceneManager.deleteSceneElement(message);
             break;
         }
@@ -274,12 +267,7 @@ export abstract class VLMEventListeners {
         VLMEventManager.events.fireEvent(new VLMPathServerEvent(message));
       });
 
-      this.sceneRoom.onMessage("path_segments_added", (message: VLMPathServerEvent) => {
-        VLMEventManager.events.fireEvent(new VLMPathServerEvent(message));
-      });
-
       this.sceneRoom.onMessage("path_started", (message: VLMPathServerEvent) => {
-        log("VLM - PATH STARTED MESSAGE RECEIVED! Line 282", message)
         VLMEventManager.events.fireEvent(new VLMPathServerEvent(message));
       });
 
@@ -287,8 +275,8 @@ export abstract class VLMEventListeners {
         VLMEventManager.events.fireEvent(new VLMSoundStateEvent(message));
       });
 
-      this.sceneRoom.onMessage("show_sound_locators", (message: VLMPathServerEvent) => {
-        VLMEventManager.events.fireEvent(new VLMPathServerEvent(message));
+      this.sceneRoom.onMessage("show_sound_locators", (message: VLMSoundStateEvent) => {
+        VLMEventManager.events.fireEvent(new VLMSoundStateEvent(message));
       });
 
       this.sceneRoom.onMessage("scene_preset_update", (message: VLMSceneMessage) => {
@@ -333,7 +321,6 @@ export abstract class VLMEventListeners {
     VLMEventManager.events.fireEvent(new VLMUserMessage({ id, data, type: "getState" }));
   }
 
-  
   static recordAction: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
     VLMEventManager.events.fireEvent(new VLMSessionAction(id, data));
   }
