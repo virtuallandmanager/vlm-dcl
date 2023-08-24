@@ -33,6 +33,7 @@ export namespace VLMGiveaway {
   }
 
   export class ClaimPoint {
+    sk?: string;
     actionId: string;
     position: { x: number; y: number; z: number };
     scale?: { x: number; y: number; z: number };

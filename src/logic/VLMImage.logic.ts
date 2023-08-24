@@ -144,17 +144,28 @@ export abstract class VLMImageManager {
   };
 
   static removeInstance: CallableFunction = (instanceId: string) => {
-    const instance = VLMImage.instances[instanceId];
-    const configId = instance?.configId;
-    if (configId) {
-      VLMImage.configs[configId].removeInstance(instanceId);
-    }
+    VLMImage.instances[instanceId].remove()
   };
 
   static deleteInstance: CallableFunction = (instanceId: string) => {
+    log("VLM - Deleting Instance - Step 1", instanceId)
+
+    const instanceids = Object.keys(VLMImage.instances).map((key) => {
+      return key
+    })
+    const instancenames = Object.keys(VLMImage.instances).map((key) => {
+      return VLMImage.instances[key].name
+    })
+    log(instanceids)
+    log(instancenames)
+
     const instance = VLMImage.instances[instanceId];
     const configId = instance?.configId;
+
+    log("VLM - Deleting Instance - Step 2", instance, instanceId)
+
     if (configId) {
+      log("VLM - Deleting Instance - Step 3", instanceId, configId)
       VLMImage.configs[configId].deleteInstance(instanceId);
     }
   };

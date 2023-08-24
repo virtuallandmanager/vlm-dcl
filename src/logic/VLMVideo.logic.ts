@@ -159,6 +159,7 @@ export abstract class VLMVideoManager {
   };
   static remove: CallableFunction = (id: string) => {
     VLMVideo.configs[id].remove();
+    VLMVideo.systems[id].kill();
   };
   static delete: CallableFunction = (id: string) => {
     VLMVideo.configs[id].delete();
