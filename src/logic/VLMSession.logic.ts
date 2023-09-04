@@ -128,8 +128,9 @@ export abstract class VLMSessionManager {
       platformData.sceneId = sceneId;
       platformData.user = user as UserData;
       platformData.location = { world: "decentraland", location: sceneJsonData?.display?.title, coordinates: baseParcel.split(","), parcels, realm };
+      platformData.environment = VLMEnvironment.devMode ? "dev" : "prod";
       this.dclUserData = userData as UserData;
-      return platformData;
+      return { ...this.platformData, ...platformData };
     } catch (error) {
       throw error;
     }
@@ -163,5 +164,6 @@ export type PlatformData = {
   sceneId?: string;
   subPlatform?: string;
   world?: string;
+  environment?: string;
   location?: { world: string; location?: string; coordinates?: string[] | number[], parcels?: string[], realm: RealmData };
 };
