@@ -18,7 +18,7 @@ import { VLMSceneInitEvent } from "./components/VLMSystemEvents.component";
  * @public
  */
 export abstract class VLM {
-  public static version: string = "0.0.1";
+  public static version: string = "0.0.2";
 
   public static activeServer: string;
 
