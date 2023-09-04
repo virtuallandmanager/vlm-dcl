@@ -169,8 +169,6 @@ export class VLMPathManager implements ISystem {
       latestSegment.path.push(newPathPoint);
       const newSegment = new VLMSession.Path.Segment({ type, path: [newPathPoint] });
       this.pathSegments.unshift(newSegment);
-      log("Started a new segment.", newSegment);
-      log("All segments:", this.pathSegments);
       if (!this.addingPaths && this.pathSegments?.length >= 25 || thousandPointPaths) {
         this.dbLog("VLM PATH TRACKING - SUBMITTING A BATCH OF PATH SEGMENTS");
         this.addingPaths = true;
