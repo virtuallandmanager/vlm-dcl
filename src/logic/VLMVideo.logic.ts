@@ -67,7 +67,7 @@ export abstract class VLMVideoManager {
           video.updateOnAirState(config.enableLiveStream);
           break;
         case "playlist":
-          video.updatePlaylist(config);
+          video.updatePlaylist(config.playlist);
           break;
         case "volume":
           video.updateVolume(config.volume);

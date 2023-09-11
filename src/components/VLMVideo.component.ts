@@ -186,18 +186,22 @@ export namespace VLMVideo {
         this.showAll();
       }
     };
+
     updateOffType: CallableFunction = (offType: SourceTypes) => {
       this.offType = offType;
       if (this.enabled && !systems[this.sk]) {
         new VLMVideoSystem(this);
       }
     };
+
     updateOnAirState: CallableFunction = (enableLiveStream: boolean) => {
       this.enableLiveStream = enableLiveStream;
+
       if (this.enableLiveStream && this.enabled && !systems[this.sk]) {
         new VLMVideoSystem(this);
       }
     };
+
     updateOffImage: CallableFunction = (offImageSrc: string) => {
       this.offImageSrc = offImageSrc;
       this.updateTexture(this.offImageSrc);
@@ -229,10 +233,6 @@ export namespace VLMVideo {
         this.emissiveTexture = texture;
         this.stop();
       } else if (this.textureMode === SourceTypes.PLAYLIST) {
-        const system = systems[this.sk];
-        if (includes(this.playlist, system?.playlist[system.playlistIndex])) {
-          return
-        }
         const url = src || this.playlist[0];
         const videoClip = new VideoClip(url);
         texture = new VideoTexture(videoClip);
@@ -264,9 +264,15 @@ export namespace VLMVideo {
       this.videoTexture!.seekTime(position);
     };
 
-    updatePlaylist: CallableFunction = (config: VLMConfig) => {
+    updatePlaylist: CallableFunction = (playlist: string[]) => {
       try {
-        this.playlist = config.playlist;
+        const videoSystem = systems[this.sk] || new VLMVideoSystem(this);
+        this.playlist = playlist;
+
+        if (this.textureMode === SourceTypes.PLAYLIST && !includes(this.playlist, videoSystem.playlist[videoSystem.playlistIndex])) {
+          videoSystem.playlistIndex = 0;
+          this.startPlaylist();
+        }
       } catch (error) {
         throw error
       }
@@ -332,7 +338,7 @@ export namespace VLMVideo {
       try {
         this.isLive = liveState;
 
-        if (!this.enabled) { return }
+        if (!this.enabled || !this.enableLiveStream) { return }
         if (!this.isLive && this.textureMode === SourceTypes.LIVE) {
           this.stop();
           this.textureMode = this.offType;
@@ -351,8 +357,7 @@ export namespace VLMVideo {
           systems[this.sk].start();
         } else if (!this.isLive && systems[this.sk]) {
           systems[this.sk].kill();
-        } else if (systems[this.sk] && this.isLive) {
-          delete systems[this.sk];
+        } else if (!systems[this.sk] && this.isLive) {
           new VLMVideoSystem(this);
         }
       } catch (error) {
@@ -663,6 +668,7 @@ export namespace VLMVideo {
       if (this.video?.customRendering) {
         this.stop();
       }
+      this.dbLog('VLM VIDEO SYSTEM - INITIALIZED SYSTEM')
     }
 
     start: CallableFunction = () => {
