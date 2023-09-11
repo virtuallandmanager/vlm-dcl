@@ -1,6 +1,6 @@
 {
   "name": "vlm-dcl",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Virtual Land Manager for Decentraland",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -39,7 +39,9 @@
     "@microsoft/api-documenter": "^7.17.11",
     "@rollup/plugin-babel": "^6.0.3",
     "@rollup/plugin-commonjs": "^21.1.0",
+    "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^13.1.3",
+    "@rollup/plugin-replace": "^5.0.2",
     "@rollup/plugin-typescript": "^8.5.0",
     "@types/jest": "^27.4.1",
     "decentraland-ecs": "latest",
@@ -58,6 +60,9 @@
     "colyseus.js": "^0.14.13"
   },
   "bundledDependencies": [
+    "colyseus.js"
+  ],
+  "bundleDependencies": [
     "colyseus.js"
   ]
 }

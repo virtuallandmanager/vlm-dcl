@@ -1,13 +1,19 @@
 {
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist"],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "dist"
+  ],
   "compilerOptions": {
     "module": "ESNext",
     "declaration": true,
     "declarationDir": "./types",
     "declarationMap": true,
     "outDir": "dist",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "extends": "./node_modules/decentraland-ecs/types/tsconfig.json"
 }
