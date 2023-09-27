@@ -20,12 +20,12 @@ export namespace VLMSession {
       this.userId = config.userId;
       this.connectedWallet = config.connectedWallet;
       this.sessionStart = config?.sessionStart || Date.now();
-      this.sessionEnd = config.sessionEnd;
-      this.sessionToken = config.sessionToken;
-      this.expires = config.expires;
-      this.sceneId = config.sceneId;
-      this.world = config.world;
-      this.worldLocation = config.worldLocation;
+      this.sessionEnd = config?.sessionEnd;
+      this.sessionToken = config?.sessionToken;
+      this.expires = config?.expires;
+      this.sceneId = config?.sceneId;
+      this.world = config?.world;
+      this.worldLocation = config?.worldLocation;
       this.ts = config.ts || this.ts;
     }
   }
