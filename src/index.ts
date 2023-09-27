@@ -1,5 +1,5 @@
 import { VLM } from "./app";
-import { VLMVideo, VLMImage, VLMNFT, VLMSound, VLMWidget } from "./components";
+import { VLMVideo, VLMImage, VLMNFT, VLMSound, VLMWidget } from "./components/index";
 
 class VideoConfig extends VLMVideo.VLMConfig { }
 class VideoInstanceConfig extends VLMVideo.VLMInstanceConfig { };
