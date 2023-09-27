@@ -4,17 +4,17 @@ import { getCurrentRealm, getPlatform } from "@decentraland/EnvironmentAPI";
 import { UserData, getUserData } from "@decentraland/Identity";
 import { VLMSession } from "../components/VLMSession.component";
 import { SceneJsonData, getParcel } from "@decentraland/ParcelIdentity";
-import { ColyClient, ColyRoom } from "../shared/interfaces";
+import { Client, Room } from "colyseus.js";
 import { VLMNotificationManager } from "./VLMNotification.logic";
 
 export abstract class VLMSessionManager {
   static dclUserData: UserData;
   static sessionUser: VLMSession.User;
   static sessionData: VLMSession.Config;
-  static client: ColyClient;
+  static client: Client;
   static playerPathId?: string;
   static eventsBound: boolean = false;
-  static sceneRoom: ColyRoom;
+  static sceneRoom: Room;
   static platformData: PlatformData = {};
   static connected: boolean;
   static connecting: boolean;
@@ -24,8 +24,9 @@ export abstract class VLMSessionManager {
     try {
       this.platformData.vlmVersion = version;
       await this.getPlatformData();
-      this.client = new ColyClient(VLMEnvironment.wssUrl);
-      this.sceneRoom = new ColyRoom("vlm_scene");
+      if (!this.platformData?.sceneId) {
+        return {};
+      }
       const { session, user } = await this.requestToken();
       this.sessionData = session;
       this.sessionUser = user;
@@ -75,9 +76,7 @@ export abstract class VLMSessionManager {
 
   static joinRelayRoom: CallableFunction = async (session?: VLMSession.Config) => {
     try {
-      log("VLM: Attempting to join the relay room");
-      this.client = new ColyClient(VLMEnvironment.wssUrl);
-      log("VLM Cient:", this.client);
+      this.client = new Client(VLMEnvironment.wssUrl);
 
       const sceneRoom = await this.client.joinOrCreate("vlm_scene", {
         ...this.platformData,
@@ -102,9 +101,6 @@ export abstract class VLMSessionManager {
   static reconnect: CallableFunction = () => {
     try {
       this.connected = false;
-      this.connecting = true;
-      const sessionId = this.sceneRoom.sessionId || VLMSessionManager.sessionData.sessionId || "";
-      this.client.reconnect(this.sceneRoom.id, sessionId);
     } catch (error) {
       throw error;
     }

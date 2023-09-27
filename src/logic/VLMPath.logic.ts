@@ -3,7 +3,7 @@ import { VLMSession } from "../components/VLMSession.component";
 import { VLMPathClientEvent, VLMPathServerEvent } from "../components/VLMSystemEvents.component";
 import { VLMSessionManager } from "./VLMSession.logic";
 import { VLMEventManager } from "./VLMSystemEvents.logic";
-import { ColyRoom } from "../shared/interfaces";
+import { Room } from "colyseus.js";
 import { FlatFetchInit, signedFetch } from "@decentraland/SignedFetch";
 import { VLMLogManager } from "./VLMLogging";
 import { VLMEnvironment } from "../environment";
@@ -34,7 +34,7 @@ export class VLMPathManager implements ISystem {
   static engaged?: boolean;
   static idle?: boolean;
   static pathId?: string;
-  static sceneRoom: ColyRoom;
+  static sceneRoom: Room;
   static sessionData: VLMSession.Config;
   static pathSegments: VLMSession.Path.Segment[] = [{ type: VLMSession.Path.SegmentType.LOADING, path: [] }];
   static pov: 0 | 1 | 2 = 2;

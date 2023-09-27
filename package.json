@@ -1,6 +1,6 @@
 {
   "name": "vlm-dcl",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Virtual Land Manager for Decentraland",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -57,12 +57,6 @@
     "yarn": "please use npm"
   },
   "dependencies": {
-    "colyseus.js": "^0.14.13"
-  },
-  "bundledDependencies": [
-    "colyseus.js"
-  ],
-  "bundleDependencies": [
-    "colyseus.js"
-  ]
+    "colyseus.js": "^0.15.14"
+  }
 }

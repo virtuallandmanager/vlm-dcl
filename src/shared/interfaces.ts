@@ -54,13 +54,13 @@ export interface Playable {
   stop: CallableFunction;
 }
 
-export class ColyClient extends Client {
+export class ColyseusClient extends Client {
   constructor(url: string) {
     super(url);
   }
 }
 
-export class ColyRoom extends Room {
+export class ColyseusRoom extends Room {
   constructor(name: string) {
     super(name);
   }
