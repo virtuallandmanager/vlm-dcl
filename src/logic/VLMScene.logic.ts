@@ -52,6 +52,9 @@ export abstract class VLMSceneManager {
 
   static createSceneElement: CallableFunction = (message: VLMSceneMessage) => {
     try {
+      if (message.instance) {
+        return this.createSceneElementInstance(message);
+      }
       switch (message.element) {
         case "image":
           VLMImageManager.create(message.elementData);
@@ -99,6 +102,8 @@ export abstract class VLMSceneManager {
     try {
       if (message.instance) {
         return this.updateSceneElementInstance(message);
+      } else if (message.setting) {
+        return this.updateSceneSetting(message);
       }
       switch (message.element) {
         case "image":
@@ -161,6 +166,10 @@ export abstract class VLMSceneManager {
 
   static deleteSceneElement: CallableFunction = (message: VLMSceneMessage) => {
     try {
+      if (message.instance) {
+        return this.deleteSceneElementInstance(message);
+      }
+
       const id = message.elementData.sk || message.id;
       switch (message.element) {
         case "image":

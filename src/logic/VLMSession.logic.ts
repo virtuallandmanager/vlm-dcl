@@ -84,6 +84,7 @@ export abstract class VLMSessionManager {
       });
 
       log("VLM Connected!", sceneRoom);
+      log("VLM Session Data", this.sessionData)
 
       if (sceneRoom) {
         this.sceneRoom = sceneRoom;

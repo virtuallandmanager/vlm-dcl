@@ -14,13 +14,13 @@ export abstract class VLMWidgetManager {
             update: () => { },
           };
           if (config.hasOwnProperty('init')) {
-            VLMWidget.configs[config.id].init = config.init;
+            VLMWidget.configs[config.id].init = config?.init;
           }
           if (config.hasOwnProperty('update')) {
-            VLMWidget.configs[config.id].update = config.update;
+            VLMWidget.configs[config.id].update = config?.update;
           }
           if (config.hasOwnProperty('delete')) {
-            VLMWidget.configs[config.id].delete = config.delete;
+            VLMWidget.configs[config.id].delete = config?.delete;
           }
         }
       });
@@ -37,6 +37,9 @@ export abstract class VLMWidgetManager {
       }
       configs = sortConfigs(configs);
       configs.forEach((config: VLMWidget.VLMConfig) => {
+        if (!VLMWidget.configs[config.id]) {
+          return;
+        }
         const widget = { ...VLMWidget.configs[config.id] };
         VLMWidget.configs[config.id] = {
           ...widget,
@@ -57,12 +60,15 @@ export abstract class VLMWidgetManager {
     const configArray = Object.keys(VLMWidget.configs).map((key: string) => VLMWidget.configs[key]);
     const sortedConfigs = sortConfigs(configArray);
     sortedConfigs.forEach((config: VLMWidget.DCLConfig) => {
+      if (!VLMWidget.configs[config.id]) {
+        return;
+      }
       if (!config || config.type === VLMWidget.ControlType.TRIGGER) {
         return VLMWidget.configs;
       } else if (config.init) {
-        config.init(config);
+        config?.init(config);
       } else {
-        config.update(config);
+        config?.update(config);
       }
     });
     return VLMWidget.configs;
@@ -114,9 +120,9 @@ export abstract class VLMWidgetManager {
       if (!config) {
         return;
       } else if (config.delete) {
-        config.delete(config);
+        config?.delete(config);
       } else {
-        config.update(config);
+        config?.update(config);
       }
       delete VLMWidget.configs[widgetId];
       log('VLM - Deleted Widget', widgetId);

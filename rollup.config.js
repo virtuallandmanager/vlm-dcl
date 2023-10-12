@@ -4,7 +4,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import typescript from "@rollup/plugin-typescript";
 import { terser } from "rollup-plugin-terser";
 import packageJson from "./package.json";
-
+const isProduction = process.env.NODE_ENV === 'production';
 export default {
   input: "src/index.ts",
   context: "globalThis",
@@ -41,6 +41,6 @@ export default {
       exclude: "node_modules",
       ignoreGlobal: true,
     }),
-    terser({ format: { comments: false } }),
-  ],
+    isProduction && terser({ format: { comments: false } }), 
+  ].filter(Boolean),  // This filters out the falsy values from the array
 };

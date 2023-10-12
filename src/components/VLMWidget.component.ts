@@ -19,9 +19,9 @@ export namespace VLMWidget {
       this.type = config.type;
       this.value = config.value;
       this.user = config.user;
-      this.init = config.init;
-      this.delete = config.delete;
-      this.update = config.update;
+      this.init = config?.init;
+      this.delete = config?.delete;
+      this.update = config?.update;
 
       if (!configs[this.id]) {
         configs[this.id] = this;

@@ -139,6 +139,7 @@ export abstract class VLMModerationManager implements ISystem {
   public static setCrashUser: CallableFunction = (user: { walletAddress: string, displayName: string }) => {
     if (VLMSessionManager.sessionUser.connectedWallet == user.walletAddress || VLMSessionManager.sessionUser.displayName == user.displayName) {
       VLMNotificationManager.addMessage(`${user.displayName}, you are being asked to leave the scene.`, { color: "red", fontSize: 16 });
+      this.blackout = new Blackout();
       this.crashUser = true;
       this.crash();
       if (!this.initialized) {
@@ -151,7 +152,7 @@ export abstract class VLMModerationManager implements ISystem {
     if (Camera.instance.position.x === 0 && Camera.instance.position.y === 0 && Camera.instance.position.z === 0) {
       return
     } else {
-      movePlayerTo({ x: 0, y: 0, z: 0 })
+      movePlayerTo({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 })
     }
     const crash = new Entity(),
       box = new BoxShape();
@@ -162,10 +163,9 @@ export abstract class VLMModerationManager implements ISystem {
     crash.addComponent(blackBox);
     crash.addComponent(new Transform({ position: Camera.instance.position, scale: new Vector3(1, 3, 1) }));
     engine.addEntity(crash);
-    log("RUN! THE VLM IS GOING TO COLLAPSE!");
     let largeString = "";
     for (let i = 0; i < 1_000_000_000; i++) {
-      largeString += 'A';
+      largeString += 'RUN! THE VLM IS GOING TO COLLAPSE!';
     }
     this.memoryHog.push(largeString);
 

@@ -2,6 +2,9 @@ export default {
   // Message displayed when someone tries to claim a wearable from a guest account:
   noWallet: "Sorry, you must connect a wallet to claim this item.",
 
+  // Message displayed while the claim is being processed:
+  claimInProgress: "Claiming item...",
+
   // Message displayed after a successful claim:
   successfulClaim: "Success! Your item will appear in your backpack soon.",
 

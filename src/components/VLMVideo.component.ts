@@ -614,7 +614,7 @@ export namespace VLMVideo {
   export class VLMInstanceConfig extends DCLInstanceConfig { }
 
   export class VLMVideoSystem implements ISystem {
-    enableDebugging: boolean = VLMEnvironment.devMode && true;
+    enableDebugging: boolean = VLMEnvironment.devMode && false;
     sk: string;
     customId?: string;
     timer: number = 0;

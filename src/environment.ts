@@ -5,17 +5,17 @@ export abstract class VLMEnvironment {
   private static wssUrls: { [env: string]: string } = {
     dev: "ws://localhost:3010",
     staging: "wss://staging-api.vlm.gg",
-    prod: "wss://api.vlm.gg",
+    prod: "wss://api2.vlm.gg",
   };
 
   private static apiUrls: { [env: string]: string } = {
     dev: "http://localhost:3010",
     staging: "https://staging-api.vlm.gg",
-    prod: "https://api.vlm.gg",
+    prod: "https://api2.vlm.gg",
   };
 
-  static apiUrl: string = "https://api.vlm.gg";
-  static wssUrl: string = "wss://api.vlm.gg";
+  static apiUrl: string = "https://api2.vlm.gg";
+  static wssUrl: string = "wss://api2.vlm.gg";
 
   static init: CallableFunction = async (env: string) => {
     try {

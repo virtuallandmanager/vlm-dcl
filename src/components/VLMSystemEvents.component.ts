@@ -7,6 +7,7 @@ import { VLMSession } from "./VLMSession.component";
 import { VLMSound } from "./VLMSound.component";
 import { VLMVideo } from "./VLMVideo.component";
 import { VLMWidget } from "./VLMWidget.component";
+import { VLMGiveaway } from "./VLMGiveaway.component";
 
 @EventConstructor()
 export class VLMSystemEvent {
@@ -30,7 +31,7 @@ export class VLMUserMessage {
     this.id = config.id;
     this.type = config.type;
     this.data = config.data;
-    this.sessionToken = VLMSessionManager.sessionData.sessionToken;
+    this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
   }
 }
 
@@ -52,7 +53,7 @@ export class VLMPathClientEvent {
     this.action = config.action;
     this.pathId = config.pathId;
     this.pathSegments = config.pathSegments;
-    this.sessionToken = VLMSessionManager.sessionData.sessionToken;
+    this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
   }
 }
 
@@ -73,8 +74,10 @@ export class VLMPathServerEvent {
 @EventConstructor()
 export class VLMSessionEvent {
   session: VLMSession.Config;
+  user: VLMSession.User;
   constructor(config: VLMSessionEvent) {
     this.session = config.session;
+    this.user = config.user;
   }
 }
 
@@ -101,7 +104,15 @@ export class VLMSessionAction {
   constructor(action: string, metadata?: any) {
     this.action = action;
     this.metadata = metadata;
-    this.sessionToken = VLMSessionManager.sessionData.sessionToken;
+    this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
+  }
+}
+
+@EventConstructor()
+export class VLMEmoteAction {
+  emote: string;
+  constructor(emote: string) {
+    this.emote = emote;
   }
 }
 
@@ -120,14 +131,14 @@ export class VLMWitnessedAction {
 @EventConstructor()
 export class VLMClaimEvent {
   action: "claim" | "claim_received" | "claim_update" | "claim_error";
-  claimAction: string;
+  giveawayId: string;
   messageOptions?: VLMNotification.MessageOptions;
   sessionToken?: string;
   constructor(config: VLMClaimEvent) {
     this.action = config.action;
-    this.claimAction = config.claimAction;
+    this.giveawayId = config.giveawayId;
     this.messageOptions = config.messageOptions;
-    this.sessionToken = VLMSessionManager.sessionData.sessionToken;
+    this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
   }
 }
 
@@ -143,6 +154,15 @@ export class VLMVideoStatusEvent {
     this.status = config.status;
     this.url = config.url;
     this.sk = config.sk;
+  }
+}
+
+@EventConstructor()
+export class VLMSettingsEvent {
+  action: "scene_settings_update" = "scene_settings_update";
+  moderation?: VLMModeration.VLMConfig;
+  constructor(config: VLMSettingsEvent) {
+    this.moderation = config.moderation;
   }
 }
 
@@ -165,6 +185,7 @@ export class VLMSceneMessage {
   scenePreset?: VLMScene.Preset;
   sceneSettings?: { moderation: VLMModeration.VLMConfig };
   user?: { sk: string, connectedWallet: string, displayName: string };
+  giveaways?: VLMGiveaway.VLMConfig[];
 
   constructor(message: VLMSceneMessage) {
     this.action = message?.action;
@@ -178,6 +199,7 @@ export class VLMSceneMessage {
     this.settingsData = message?.settingsData;
     this.scenePreset = message?.scenePreset;
     this.user = message?.user;
+    this.giveaways = message?.giveaways;
   }
 }
 
