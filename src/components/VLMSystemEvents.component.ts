@@ -165,9 +165,9 @@ export class VLMVideoStatusEvent {
 @EventConstructor()
 export class VLMSettingsEvent {
   action: "scene_settings_update" = "scene_settings_update";
-  moderation?: VLMModeration.VLMConfig;
+  settingData?: { settingValue: VLMModeration.VLMConfig };
   constructor(config: VLMSettingsEvent) {
-    this.moderation = config.moderation;
+    this.settingData = config.settingData;
   }
 }
 
@@ -186,7 +186,7 @@ export class VLMSceneMessage {
   setting?: Setting;
   elementData?: VLMSceneElement;
   instanceData?: VLMSceneElementInstance;
-  settingsData?: { [id: string]: VLMModeration.VLMConfig }
+  settingData?: { settingValue: VLMModeration.VLMConfig };
   scenePreset?: VLMScene.Preset;
   sceneSettings?: { moderation: VLMModeration.VLMConfig };
   user?: { sk: string, connectedWallet: string, displayName: string };
@@ -200,7 +200,8 @@ export class VLMSceneMessage {
     this.setting = message?.setting;
     this.elementData = message?.elementData;
     this.instanceData = message?.instanceData;
-    this.settingsData = message?.settingsData;
+    this.settingData = message?.settingData;
+    this.sceneSettings = message?.sceneSettings;
     this.scenePreset = message?.scenePreset;
     this.user = message?.user;
   }
