@@ -12,6 +12,7 @@ import { VLMSound } from "./components/VLMSound.component";
 import { VLMNotificationManager } from "./logic";
 import { VLMEventManager } from "./logic/VLMSystemEvents.logic";
 import { VLMSceneInitEvent } from "./components/VLMSystemEvents.component";
+import { configurePaths } from "./shared/paths";
 
 /**
  * The main entry point for the VLM library.
@@ -36,6 +37,9 @@ export abstract class VLM {
     return new Promise(async (resolve, reject) => {
       onSceneReadyObservable.addOnce(async () => {
         try {
+          if (config.modelFolder || config.soundFolder) {
+            configurePaths({ modelFolder: config.modelFolder, soundFolder: config.soundFolder })
+          }
           VLMEventManager.events.addListener(VLMSceneInitEvent, null, () => {
             resolve(VLM.storage);
           });
@@ -141,4 +145,6 @@ export type VLMStorage = {
 type VLMInitConfig = {
   env: "dev" | "staging" | "prod";
   widgets?: VLMWidget.DCLConfig[];
+  modelFolder?: string;
+  soundFolder?: string;
 };

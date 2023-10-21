@@ -10,7 +10,6 @@ enum EMessageState {
 export abstract class VLMNotificationManager implements ISystem {
   static messageQueue: VLMNotification.Message[] = [];
   static initialized: boolean;
-  static running: boolean;
   static timer: number = 0;
   static state: EMessageState = EMessageState.HIDDEN;
   static delay: number = 1;

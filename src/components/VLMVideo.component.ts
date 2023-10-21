@@ -436,15 +436,15 @@ export namespace VLMVideo {
       this.scale = instance.scale;
       this.rotation = instance.rotation;
       this.withCollisions = instance.withCollisions;
-      this.configId = config.sk;
+      this.configId = config?.sk;
       this.uvsFlipped = config.uvsFlipped || this.uvsFlipped;
       this.clickEvent = instance.clickEvent;
       this.defaultClickEvent = config.clickEvent;
       instances[this.sk] = this;
       const shape = new PlaneShape(); //// SDK SPECIFIC ////
       shape.withCollisions = this.withCollisions; //// SDK SPECIFIC ////
-      this.addComponent(shape); //// SDK SPECIFIC ////
-      this.addComponent(config); //// SDK SPECIFIC ////
+      this.addComponentOrReplace(shape); //// SDK SPECIFIC ////
+      this.addComponentOrReplace(config); //// SDK SPECIFIC ////
       this.updateTransform(this.position, this.scale, this.rotation);
       this.updateDefaultClickEvent(config.clickEvent);
       this.correctUvs(config.textureMode === SourceTypes.IMAGE);

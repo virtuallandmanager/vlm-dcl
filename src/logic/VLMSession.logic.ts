@@ -22,8 +22,7 @@ export abstract class VLMSessionManager {
 
   static start: CallableFunction = async (version: string) => {
     try {
-      this.platformData.vlmVersion = version;
-      await this.getPlatformData();
+      await this.getPlatformData(version);
       if (!this.platformData?.sceneId) {
         return {};
       }
@@ -107,7 +106,7 @@ export abstract class VLMSessionManager {
     }
   };
 
-  static getPlatformData: CallableFunction = async () => {
+  static getPlatformData: CallableFunction = async (packageVersion: string) => {
     try {
       let [userData, parcel, platform, realm] = await Promise.all([getUserData(), getParcel(), getPlatform(), getCurrentRealm()]);
 
@@ -124,7 +123,14 @@ export abstract class VLMSessionManager {
       platformData.baseParcel = baseParcel;
       platformData.sceneId = sceneId;
       platformData.user = user as UserData;
-      platformData.location = { world: "decentraland", location: sceneJsonData?.display?.title, coordinates: baseParcel.split(","), parcels, realm };
+      platformData.location = {
+        world: "decentraland",
+        location: sceneJsonData?.display?.title,
+        coordinates: baseParcel.split(","),
+        parcels,
+        realm,
+        integrationData: { sdkVersion: "6.12.2", packageVersion }
+      };
       platformData.environment = VLMEnvironment.devMode ? "dev" : "prod";
       this.dclUserData = userData as UserData;
       return { ...this.platformData, ...platformData };
@@ -154,7 +160,6 @@ export type RealmData = {
 };
 
 export type PlatformData = {
-  vlmVersion?: string;
   user?: UserData;
   baseParcel?: string;
   sceneJsonData?: VLMSceneJsonData;
@@ -162,5 +167,10 @@ export type PlatformData = {
   subPlatform?: string;
   world?: string;
   environment?: string;
-  location?: { world: string; location?: string; coordinates?: string[] | number[], parcels?: string[], realm: RealmData };
+  location?: { world: string; location?: string; coordinates?: string[] | number[], parcels?: string[], realm: RealmData, integrationData?: IntegrationData };
 };
+
+export type IntegrationData = {
+  sdkVersion?: string;
+  packageVersion?: string;
+}

@@ -8,4 +8,4 @@ export const getEntityByName = (name: string) =>
 export const getEntityById = (id: string) =>
   Object.keys(engine.entities)
     .map((key) => engine.entities[key])
-    .filter((entity) => (entity as VLMBase.Instance).sk === id)[0];
+    .filter((entity) => (entity as VLMBase.Instance).sk === id || (entity as VLMBase.Instance).customId == id)[0];

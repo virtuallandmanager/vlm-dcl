@@ -40,7 +40,7 @@ export namespace VLMBase {
     }
   }
 
-  export class AudioConfig extends AudioSource {
+  export class AudioConfig {
     sk: string;
     enabled: boolean;
     name: string;
@@ -50,7 +50,6 @@ export namespace VLMBase {
     customRendering?: boolean;
 
     constructor(config: AudioConfig) {
-      super(new AudioClip(""));
       this.sk = config.sk;
       this.customId = config.customId;
       this.parent = config.parent;

@@ -188,7 +188,7 @@ export namespace VLMNFT {
       this.configId = config.sk;
       this.enabled = config.enabled || instance.enabled;
       this.withCollisions = typeof instance.withCollisions === "boolean" ? instance.withCollisions : config.withCollisions;
-      this.addComponent(shape);
+      this.addComponentOrReplace(shape);
       this.updateTransform(this.position, this.scale, this.rotation);
 
       if (this.parent && this.enabled) {

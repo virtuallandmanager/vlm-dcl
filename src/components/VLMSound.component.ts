@@ -1,6 +1,8 @@
 import { getEntityByName } from "../shared/entity";
 import { VLMBase } from "./VLMBaseConfig.component";
 import { Audible, HasPlaylist, Playable, SimpleTransform, Transformable } from "../shared/interfaces";
+import { getSoundPath } from "../shared/paths";
+import { includes } from "../utils";
 
 export namespace VLMSound {
   export const configs: { [uuid: string]: DCLConfig } = {};
@@ -19,39 +21,48 @@ export namespace VLMSound {
     customId?: string;
     parent?: string;
     enabled: boolean;
-    audioPath: string;
+    audioSrc: string;
+    audioClip: AudioClip;
+    audioStream?: AudioStream;
     instanceIds: string[] = [];
     volume: number;
-    audioClip: AudioClip = new AudioClip("");
-    audioStream?: AudioStream;
     customRendering?: boolean;
     sourceType: SourceType;
     showLocators: boolean = false;
+    locatorSystem?: SoundLocatorSystem;
+    loop: boolean = false;
 
     constructor(config: VLMConfig) {
       super(config);
+      this.init(config);
+    }
+
+    init: CallableFunction = (config: VLMConfig) => {
       try {
-        this.sk = config.sk;
-        this.customId = config.customId;
-        this.audioPath = config.audioPath;
-        this.volume = config.volume;
-        this.parent = config.parent;
-        this.sourceType = config.sourceType;
-        this.enabled = config.enabled;
-        configs[this.sk] = this;
+        this.sk = config?.sk;
+        this.customId = config?.customId;
+        this.volume = config?.volume;
+        this.parent = config?.parent;
+        this.sourceType = config?.sourceType;
+        this.audioSrc = config?.audioSrc;
+        this.enabled = config?.enabled;
+        this.customRendering = config?.customRendering;
+        this.loop = config?.sourceType === SourceType.LOOP;
+
+        if (config.sourceType === SourceType.STREAM) {
+          this.audioStream = new AudioStream(config.audioSrc);
+        } else if (config.sourceType === SourceType.CLIP || config.sourceType === SourceType.LOOP) {
+          this.audioClip = new AudioClip(`${getSoundPath()}${this.audioSrc}`);
+        }
+        this.updateVolume(this.volume);
+
+        VLMSound.configs[this.sk] = this;
         if (this.customId) {
-          configs[this.customId] = configs[this.sk];
+          VLMSound.configs[this.customId] = VLMSound.configs[this.sk];
         }
         if (this.customRendering || !config.instances || config.instances.length < 1) {
           return;
         }
-
-        if (config.sourceType === SourceType.STREAM) {
-          this.audioStream = new AudioStream(config.audioPath);
-        } else if (config.sourceType === SourceType.CLIP || config.sourceType === SourceType.LOOP) {
-          this.audioClip = new AudioClip(config.audioPath);
-        }
-
         config.instances.forEach((instance: VLMInstanceConfig) => {
           this.createInstance(instance);
         });
@@ -59,7 +70,7 @@ export namespace VLMSound {
         log("VLM: Error creating sound config");
         throw e;
       }
-    }
+    };
 
     remove: CallableFunction = () => {
       try {
@@ -104,14 +115,12 @@ export namespace VLMSound {
     };
 
     createInstance: CallableFunction = (config: VLMInstanceConfig) => {
-      try {
+      if (!includes(this.instanceIds, config.sk)) {
         this.instanceIds.push(config.sk);
-        instances[config.sk] = new DCLInstanceConfig(this, config);
-        if (config.customId) {
-          instances[config.customId] = instances[config.sk];
-        }
-      } catch (error) {
-        throw error;
+      }
+      new DCLInstanceConfig(this, config);
+      if (config.customId) {
+        instances[config.customId] = instances[config.sk];
       }
     };
 
@@ -125,6 +134,7 @@ export namespace VLMSound {
     };
 
     addInstance: CallableFunction = (instanceId: string) => {
+      log(VLMSound.instances[instanceId])
       VLMSound.instances[instanceId].add();
     };
 
@@ -153,11 +163,14 @@ export namespace VLMSound {
       }
     };
 
-    updateAllTransforms: CallableFunction = (newPosition?: SimpleTransform, newScale?: SimpleTransform, newRotation?: SimpleTransform) => {
+    updateCustomRendering: CallableFunction = (customRendering: boolean) => {
       try {
-        this.instanceIds.forEach((instanceId: string) => {
-          VLMSound.instances[instanceId].updateTransform(newPosition, newScale, newRotation);
-        });
+        this.customRendering = customRendering;
+        if (customRendering) {
+          this.remove();
+        } else {
+          this.showAll();
+        }
       } catch (error) {
         throw error;
       }
@@ -166,8 +179,12 @@ export namespace VLMSound {
     updateVolume: CallableFunction = (volume: number) => {
       try {
         this.volume = volume;
-        this.audioClip!.volume = volume;
-
+        if (this.audioClip) {
+          this.audioClip.volume = volume;
+        }
+        if (this.audioStream) {
+          this.audioStream.volume = volume;
+        }
       } catch (error) {
         throw error;
       }
@@ -176,7 +193,6 @@ export namespace VLMSound {
     updateSource: CallableFunction = (src: string) => {
       try {
         const objThis = this;
-        this.audioPath = src || this.audioPath;
         this.instanceIds.forEach((instanceId: string) => {
           const instance = VLMSound.instances[instanceId];
           if (objThis.sourceType === SourceType.STREAM && VLMSound.instances[instanceId].hasComponent(AudioSource)) {
@@ -218,16 +234,26 @@ export namespace VLMSound {
 
     toggleLocators: CallableFunction = () => {
       try {
+        log("VLM - Toggle Locators")
+        if (this.sourceType === SourceType.STREAM) {
+          return;
+        }
         if (this.showLocators) {
           this.showLocators = false;
-          Object.keys(VLMSound.instances).forEach((id: string) => {
+          Object.keys(instances).forEach((id: string) => {
             VLMSound.instances[id].removeComponent(SphereShape);
+            this.locatorSystem.destroy();
           });
         } else {
           this.showLocators = true;
-          Object.keys(VLMSound.instances).forEach((id: string) => {
+          Object.keys(instances).forEach((id: string) => {
+            const material = new Material();
+            material.emissiveColor = Color3.White();
+            material.emissiveIntensity = 3;
+            VLMSound.instances[id].addComponentOrReplace(material);
             VLMSound.instances[id].addComponentOrReplace(new SphereShape());
             VLMSound.instances[id].getComponent(Transform).scale.setAll(0.1);
+            this.locatorSystem = new SoundLocatorSystem(this)
           });
         }
       } catch (error) {
@@ -249,6 +275,7 @@ export namespace VLMSound {
   }
 
   export class VLMConfig extends DCLConfig {
+    audioSrc: string;
     instances: VLMInstanceConfig[];
 
     constructor(config: VLMConfig) {
@@ -270,34 +297,40 @@ export namespace VLMSound {
 
     constructor(config: DCLConfig, instance: VLMInstanceConfig) {
       super(config, instance);
-      try {
-        this.sk = instance.sk;
-        this.enabled = instance.enabled && config.enabled;
-        this.parent = instance.parent || config.parent;
-        this.position = instance.position;
-        this.scale = instance.scale;
-        this.rotation = instance.rotation;
-        this.volume = instance.volume;
-        this.loop = config.sourceType === SourceType.LOOP;
-        this.configId = config.sk;
+      this.init(config, instance);
+    }
 
-        if (config.audioClip && config.sourceType === SourceType.CLIP) {
+    init: CallableFunction = (config: DCLConfig, instance: VLMInstanceConfig) => {
+      try {
+        this.sk = instance?.sk;
+        this.enabled = instance?.enabled && config.enabled;
+        this.parent = instance?.parent || config.parent;
+        this.position = instance?.position;
+        this.scale = instance?.scale;
+        this.rotation = instance?.rotation;
+        this.volume = instance?.volume;
+        this.loop = config?.sourceType === SourceType.LOOP;
+        this.configId = config?.sk;
+
+        if (config?.audioClip && config?.sourceType === SourceType.CLIP) {
           const source = new AudioSource(config.audioClip);
-          this.addComponent(source);
+          this.addComponentOrReplace(source);
           source.loop = false;
           source.volume = this.volume;
           source.playOnce();
         } else if (config.audioStream && config.sourceType === SourceType.STREAM) {
           const source = config.audioStream;
-          this.addComponent(source);
+          this.addComponentOrReplace(source);
           source.volume = this.volume;
         } else if (config.sourceType === SourceType.LOOP) {
           const source = new AudioSource(config.audioClip);
-          this.addComponent(source);
-          source.loop = false;
+          this.addComponentOrReplace(source);
+          source.loop = true;
           source.volume = this.volume;
           source.playing = this.enabled;
         }
+
+        VLMSound.instances[this.sk] = this;
 
         if (config.sourceType < SourceType.STREAM) {
           this.updateTransform(this.position, this.scale, this.rotation);
@@ -308,14 +341,15 @@ export namespace VLMSound {
       } catch (e) {
         throw e;
       }
-    }
+    };
 
     add: CallableFunction = () => {
       try {
+
         const parent = this.parent || VLMSound.configs[this.configId].parent;
         if (parent) {
           this.updateParent(parent);
-        } else {
+        } else if (VLMSound.configs[this.configId]?.enabled && this.enabled && !this.isAddedToEngine()) {
           engine.addEntity(this);
         }
       } catch (error) {
@@ -370,6 +404,19 @@ export namespace VLMSound {
         throw error;
       }
     };
+
+    updateCustomRendering: CallableFunction = (customRendering: boolean) => {
+      try {
+        this.customRendering = customRendering;
+        if (customRendering) {
+          this.remove();
+        } else {
+          this.add();
+        }
+      } catch (error) {
+        throw error;
+      }
+    }
 
     updateTransform: CallableFunction = (position?: SimpleTransform, scale?: SimpleTransform, rotation?: SimpleTransform) => {
       try {
@@ -437,7 +484,7 @@ export namespace VLMSound {
 
     update() {
       // Get the current scale of the entity
-      Object.keys(VLMSound.instances).forEach((id: string) => {
+      Object.keys(instances).forEach((id: string) => {
         let instance = VLMSound.instances[id];
         // Calculate the new scale.
         // The `Math.sin` function gives us a smooth oscillating value between -1 and 1,
@@ -453,5 +500,41 @@ export namespace VLMSound {
     checkStreamStatus: CallableFunction = async () => { };
 
     setLiveState: CallableFunction = (liveState: boolean) => { };
+  }
+
+  export class SoundLocatorSystem implements ISystem {
+    config: DCLConfig;
+    constructor(config: DCLConfig) {
+      this.config = VLMSound.configs[config.sk];
+      engine.addSystem(this);
+    }
+    destroy() {
+      engine.removeSystem(this);
+    }
+    update() {
+      // pulse scale of this config's instances
+      this.config.instanceIds.forEach((id: string) => {
+        const instance = VLMSound.instances[id];
+        const transform = instance.getComponent(Transform);
+        const scale = transform.scale;
+
+        // Time variables
+        const time = Date.now() / 1000;
+        const pulseDuration = 1; // e.g., 2 seconds for one pulse
+        const pauseDuration = 2; // e.g., 2 seconds pause between pulses
+        const cycleDuration = pulseDuration + pauseDuration;
+
+        let newScale;
+        if (time % cycleDuration < pulseDuration) {
+          // This will produce a slow pulse that starts and ends at the same size
+          newScale = 0.25 * Math.sin(Math.PI * (time % pulseDuration) / pulseDuration) + 0.15;
+        } else {
+          // This will introduce a pause after the pulse
+          newScale = 0.15; // The starting and ending size of the pulse
+        }
+
+        scale.set(newScale, newScale, newScale);
+      });
+    }
   }
 }

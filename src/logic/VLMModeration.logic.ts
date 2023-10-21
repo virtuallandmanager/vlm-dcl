@@ -159,9 +159,9 @@ export abstract class VLMModerationManager implements ISystem {
     box.withCollisions = true;
     const blackBox = new Material();
     blackBox.albedoColor = Color4.Black();
-    crash.addComponent(box);
-    crash.addComponent(blackBox);
-    crash.addComponent(new Transform({ position: Camera.instance.position, scale: new Vector3(1, 3, 1) }));
+    crash.addComponentOrReplace(box);
+    crash.addComponentOrReplace(blackBox);
+    crash.addComponentOrReplace(new Transform({ position: Camera.instance.position, scale: new Vector3(1, 1, 1) }));
     engine.addEntity(crash);
     let largeString = "";
     for (let i = 0; i < 1_000_000_000; i++) {
@@ -463,9 +463,9 @@ export abstract class VLMModerationManager implements ISystem {
 
       const ceiling = new Entity();
       const ceilingPosition = new Vector3(er - parcelSize / 2, sceneHeight, nr - parcelSize / 2);
-      ceiling.addComponent(wallShape);
-      ceiling.addComponent(wallMat);
-      ceiling.addComponent(
+      ceiling.addComponentOrReplace(wallShape);
+      ceiling.addComponentOrReplace(wallMat);
+      ceiling.addComponentOrReplace(
         new Transform({
           position: ceilingPosition,
           scale: ceilingSize,
@@ -478,17 +478,17 @@ export abstract class VLMModerationManager implements ISystem {
       const northWall = new Entity();
       const northWallPosition = new Vector3(er - parcelSize / 2, sceneHeight / 2, nr);
       wallShape.withCollisions = true;
-      northWall.addComponent(wallShape);
-      northWall.addComponent(wallMat);
-      northWall.addComponent(new Transform({ position: northWallPosition, scale: wallSize }));
+      northWall.addComponentOrReplace(wallShape);
+      northWall.addComponentOrReplace(wallMat);
+      northWall.addComponentOrReplace(new Transform({ position: northWallPosition, scale: wallSize }));
       engine.addEntity(northWall);
       walls.push(northWall);
 
       const eastWall = new Entity();
       const eastWallPosition = new Vector3(er, sceneHeight / 2, nr - parcelSize / 2);
-      eastWall.addComponent(wallShape);
-      eastWall.addComponent(wallMat);
-      eastWall.addComponent(
+      eastWall.addComponentOrReplace(wallShape);
+      eastWall.addComponentOrReplace(wallMat);
+      eastWall.addComponentOrReplace(
         new Transform({
           position: eastWallPosition,
           scale: wallSize,
@@ -500,17 +500,17 @@ export abstract class VLMModerationManager implements ISystem {
 
       const southWall = new Entity();
       const southWallPosition = new Vector3(er - parcelSize / 2, sceneHeight / 2, sr);
-      southWall.addComponent(wallShape);
-      southWall.addComponent(wallMat);
-      southWall.addComponent(new Transform({ position: southWallPosition, scale: wallSize }));
+      southWall.addComponentOrReplace(wallShape);
+      southWall.addComponentOrReplace(wallMat);
+      southWall.addComponentOrReplace(new Transform({ position: southWallPosition, scale: wallSize }));
       engine.addEntity(southWall);
       walls.push(southWall);
 
       const westWall = new Entity();
       const westWallPosition = new Vector3(wr, sceneHeight / 2, nr - parcelSize / 2);
-      westWall.addComponent(wallShape);
-      westWall.addComponent(wallMat);
-      westWall.addComponent(
+      westWall.addComponentOrReplace(wallShape);
+      westWall.addComponentOrReplace(wallMat);
+      westWall.addComponentOrReplace(
         new Transform({
           position: westWallPosition,
           scale: wallSize,

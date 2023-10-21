@@ -7,7 +7,7 @@ import { VLMSession } from "./VLMSession.component";
 import { VLMSound } from "./VLMSound.component";
 import { VLMVideo } from "./VLMVideo.component";
 import { VLMWidget } from "./VLMWidget.component";
-import { VLMGiveaway } from "./VLMGiveaway.component";
+import { VLMClaimPoint } from "./VLMClaimPoint.component";
 
 @EventConstructor()
 export class VLMSystemEvent {
@@ -129,14 +129,19 @@ export class VLMWitnessedAction {
 }
 
 @EventConstructor()
-export class VLMClaimEvent {
-  action: "claim" | "claim_received" | "claim_update" | "claim_error";
+export class VLMClaimEvent implements VLMClaimPoint.ClaimResponse {
+  action: "giveaway_claim" | "giveaway_claim_response";
   giveawayId: string;
+  sk?: string;
   messageOptions?: VLMNotification.MessageOptions;
+  type?: VLMClaimPoint.ClaimResponseType;
+  reason?: VLMClaimPoint.ClaimRejection;
   sessionToken?: string;
   constructor(config: VLMClaimEvent) {
+    this.sk = config.sk;
     this.action = config.action;
     this.giveawayId = config.giveawayId;
+    this.reason = config.reason;
     this.messageOptions = config.messageOptions;
     this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
   }
@@ -166,7 +171,7 @@ export class VLMSettingsEvent {
   }
 }
 
-type ElementName = "image" | "video" | "nft" | "sound" | "widget";
+type ElementName = "image" | "video" | "nft" | "sound" | "model" | "widget" | "claimpoint";
 type Action = "init" | "create" | "update" | "delete" | "trigger";
 type Setting = "localization" | "moderation" | "interoperability";
 type Property = "enabled" | "liveSrc" | "imageSrc" | "nftData" | "enableLiveStream" | "playlist" | "volume" | "emission" | "offType" | "offImage" | "transform" | "collider" | "parent" | "customId" | "clickEvent" | "transparency";
@@ -185,7 +190,6 @@ export class VLMSceneMessage {
   scenePreset?: VLMScene.Preset;
   sceneSettings?: { moderation: VLMModeration.VLMConfig };
   user?: { sk: string, connectedWallet: string, displayName: string };
-  giveaways?: VLMGiveaway.VLMConfig[];
 
   constructor(message: VLMSceneMessage) {
     this.action = message?.action;
@@ -199,7 +203,6 @@ export class VLMSceneMessage {
     this.settingsData = message?.settingsData;
     this.scenePreset = message?.scenePreset;
     this.user = message?.user;
-    this.giveaways = message?.giveaways;
   }
 }
 

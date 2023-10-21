@@ -9,7 +9,8 @@ import { VLMPathManager } from "./VLMPath.logic";
 import { VLMModerationManager, VLMNotificationManager, VLMSessionManager, VLMWidgetManager } from "./index";
 import { VLMVideo } from "../components/VLMVideo.component";
 import { VLMSound } from "../components/VLMSound.component";
-import { VLMGiveawayManager } from "./VLMGiveaway.logic";
+import { VLMClaimPointManager } from "./VLMClaimPoint.logic";
+import { VLMClaimPoint } from "../components";
 
 export abstract class VLMEventListeners {
   static inboundMessageFunctions: { [uuid: string]: CallableFunction } = {};
@@ -39,7 +40,7 @@ export abstract class VLMEventListeners {
             }
             engine.removeEntity(ent);
           });
-          ent.addComponent(delay);
+          ent.addComponentOrReplace(delay);
           engine.addEntity(ent);
         }
       });
@@ -158,11 +159,19 @@ export abstract class VLMEventListeners {
         log("VLM - LOGGED EMOTE ACTION - ", message.emote)
       });
 
-      VLMEventManager.events.addListener(VLMClaimEvent, null, (message) => {
+      VLMEventManager.events.addListener(VLMClaimEvent, null, (message: VLMClaimEvent) => {
         log("VLM - GIVEAWAY CLAIM - ", message)
-        this.sceneRoom.send("claim_giveaway", message);
+        if (message.action == "giveaway_claim") {
+          this.sceneRoom.send("giveaway_claim", { ...message, sessionToken: this.sessionData?.sessionToken, sceneId: this.sessionData?.sceneId });
+        } else if (message.action == "giveaway_claim_response") {
+          const claimPoint = VLMClaimPoint.configs[message.sk];
+          log(claimPoint)
+          if (claimPoint) {
+            claimPoint.requestInProgress = false;
+            VLMClaimPointManager.showMessage(message);
+          }
+        }
       });
-
 
       VLMEventManager.events.addListener(VLMSessionAction, null, ({ action, metadata }) => {
         if (this.sessionData?.sessionToken) {
@@ -174,7 +183,8 @@ export abstract class VLMEventListeners {
 
       VLMEventManager.events.addListener(VLMSoundStateEvent, null, ({ elementData, userId }) => {
         const id = elementData.sk;
-        log(userId, this.sessionUser, id, VLMSound.configs[id]);
+        log(id, VLMSound.configs[id]);
+        log("VLM - SOUND STATE CHANGED", userId, this.sessionUser.sk);
         if (userId == this.sessionUser.sk) {
           VLMSound.configs[id].toggleLocators();
         }
@@ -213,8 +223,6 @@ export abstract class VLMEventListeners {
           case "init":
             VLMSceneManager.initScenePreset(message);
             log("VLM - SCENE INIT", message);
-
-            VLMGiveawayManager.initGiveaways(message);
             break;
           case "create":
             VLMSceneManager.createSceneElement(message);
@@ -325,6 +333,11 @@ export abstract class VLMEventListeners {
       this.sceneRoom.onMessage("scene_settings_update", (message: VLMSettingsEvent) => {
         log("Scene Setting Updated!", message);
         VLMEventManager.events.fireEvent(new VLMSettingsEvent(message));
+      });
+
+      this.sceneRoom.onMessage("giveaway_claim_response", (message: VLMClaimEvent) => {
+        log("Claim response received", message);
+        VLMEventManager.events.fireEvent(new VLMClaimEvent({ action: "giveaway_claim_response", ...message }));
       });
 
       this.sceneRoom.send("session_start", this.sessionData);

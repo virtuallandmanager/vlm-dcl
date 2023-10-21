@@ -4,6 +4,9 @@ import commonjs from "@rollup/plugin-commonjs";
 import typescript from "@rollup/plugin-typescript";
 import { terser } from "rollup-plugin-terser";
 import packageJson from "./package.json";
+
+const projectRootPath = "../../../..";
+
 const isProduction = process.env.NODE_ENV === 'production';
 export default {
   input: "src/index.ts",
@@ -26,6 +29,7 @@ export default {
     }),
     replace({
       __VERSION__: JSON.stringify(require('./package.json').version),
+      'PROJECT_ROOT_PATH': JSON.stringify(projectRootPath),
       preventAssignment: true
     }),
     typescript({
@@ -41,6 +45,6 @@ export default {
       exclude: "node_modules",
       ignoreGlobal: true,
     }),
-    isProduction && terser({ format: { comments: false } }), 
+    isProduction && terser({ format: { comments: false } }),
   ].filter(Boolean),  // This filters out the falsy values from the array
 };
