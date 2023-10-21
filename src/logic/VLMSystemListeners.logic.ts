@@ -154,10 +154,10 @@ export abstract class VLMEventListeners {
         }
       });
 
-      VLMEventManager.events.addListener(VLMEmoteAction, null, (message) => {
-        //  triggerEmote(emote)
-        log("VLM - LOGGED EMOTE ACTION - ", message.emote)
+      VLMEventManager.events.addListener(VLMSettingsEvent, null, (message) => {
+        VLMModerationManager.updateSettings(message.settingData.settingValue);
       });
+
 
       VLMEventManager.events.addListener(VLMClaimEvent, null, (message: VLMClaimEvent) => {
         log("VLM - GIVEAWAY CLAIM - ", message)
@@ -321,7 +321,8 @@ export abstract class VLMEventListeners {
         VLMNotificationManager.addMessage(config.message, { ...config })
       });
 
-      this.sceneRoom.onMessage("scene_moderator_crash", (user: { walletAddress: string, displayName: string }) => {
+      this.sceneRoom.onMessage("scene_moderator_crash", (user: { connectedWallet: string, displayName: string }) => {
+        log("Crashing user", user)
         VLMModerationManager.setCrashUser(user);
       });
 
@@ -330,7 +331,7 @@ export abstract class VLMEventListeners {
         VLMEventManager.events.fireEvent(new VLMVideoStatusEvent(message));
       });
 
-      this.sceneRoom.onMessage("scene_settings_update", (message: VLMSettingsEvent) => {
+      this.sceneRoom.onMessage("scene_setting_update", (message: VLMSettingsEvent) => {
         log("Scene Setting Updated!", message);
         VLMEventManager.events.fireEvent(new VLMSettingsEvent(message));
       });

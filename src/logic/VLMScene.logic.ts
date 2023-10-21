@@ -26,7 +26,7 @@ export abstract class VLMSceneManager {
   static initScenePreset: CallableFunction = (message: VLMSceneMessage) => {
     try {
       const scenePreset = message.scenePreset;
-      const sceneSettings = message.settingsData;
+      const sceneSettings = message.sceneSettings;
       VLMModelManager.init(scenePreset.models);
       VLMImageManager.init(scenePreset.images);
       VLMVideoManager.init(scenePreset.videos);
@@ -42,7 +42,8 @@ export abstract class VLMSceneManager {
 
 
       if (sceneSettings?.moderation) {
-        this.updateSceneSetting({ settings: "moderation", settingsData: sceneSettings.moderation });
+        log("VLM - Moderation Settings", sceneSettings.moderation)
+        this.updateSceneSetting({ setting: "moderation", settingData: sceneSettings.moderation });
       }
 
       VLMEventManager.events.fireEvent(new VLMSceneInitEvent());
@@ -149,13 +150,14 @@ export abstract class VLMSceneManager {
 
   static updateSceneSetting: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      if (message.settingsData === undefined) return;
+      log(`VLM VLMScene.logic updateSceneSetting`, message)
+      if (!message?.settingData) return;
       switch (message.setting) {
         case "localization":
           // TODO: add localization code
           break;
         case "moderation":
-          VLMModerationManager.updateSettings(message.sceneSettings.moderation);
+          VLMModerationManager.updateSettings(message.settingData.settingValue);
           break;
       }
     } catch (error) {

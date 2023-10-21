@@ -7,7 +7,7 @@ import { VLMSessionManager } from "./VLMSession.logic";
 import { VLMNotificationManager } from "./VLMNotification.logic";
 
 type PlayerConfig = {
-  walletAddress?: string;
+  connectedWallet?: string;
   displayName?: string;
 };
 
@@ -103,12 +103,13 @@ export abstract class VLMModerationManager implements ISystem {
   static initialized: boolean;
   static canvas: UICanvas;
   static blackout: Blackout;
-  static inScene: boolean;
+  static inScene: boolean = true;
   static parcels: string[];
   static baseParcel: { x: number; z: number };
   static sceneHeight: number;
   static parcelBounds: ParcelBound[] = [];
   static walls: Entity[] = [];
+  static currentWallType: VLMModeration.BanWallType;
   static messages = {
     bannedUser: "You have been blocked from interacting with this scene.",
     bannedWearable: "One of your equipped wearables has been prohibited by this scene.",
@@ -119,12 +120,13 @@ export abstract class VLMModerationManager implements ISystem {
   static memoryHog: string[] = [];
 
   static update(dt: number) {
-    if (this.timer < 2) {
+    if (this.timer < 1) {
       this.timer += dt;
       return;
     } else {
       this.timer = 0;
     }
+    log('updating moderation')
     if (this.crashUser) {
       return this.crash(dt)
     }
@@ -136,8 +138,13 @@ export abstract class VLMModerationManager implements ISystem {
     }
   }
 
-  public static setCrashUser: CallableFunction = (user: { walletAddress: string, displayName: string }) => {
-    if (VLMSessionManager.sessionUser.connectedWallet == user.walletAddress || VLMSessionManager.sessionUser.displayName == user.displayName) {
+  public static setCrashUser: CallableFunction = (user: { connectedWallet: string, displayName: string }) => {
+    log(VLMSessionManager.sessionUser.connectedWallet, user.connectedWallet)
+    log(VLMSessionManager.sessionUser.displayName, user.displayName)
+    log(VLMSessionManager.sessionUser.connectedWallet == user.connectedWallet)
+    log(VLMSessionManager.sessionUser.displayName == user.displayName)
+    log(VLMSessionManager.sessionUser.connectedWallet == user.connectedWallet || VLMSessionManager.sessionUser.displayName == user.displayName)
+    if (VLMSessionManager.sessionUser.connectedWallet == user.connectedWallet || VLMSessionManager.sessionUser.displayName == user.displayName) {
       VLMNotificationManager.addMessage(`${user.displayName}, you are being asked to leave the scene.`, { color: "red", fontSize: 16 });
       this.blackout = new Blackout();
       this.crashUser = true;
@@ -148,24 +155,30 @@ export abstract class VLMModerationManager implements ISystem {
     }
   }
 
-  private static crash: CallableFunction = (user: { walletAddress: string, displayName: string }) => {
+  private static crash: CallableFunction = (user: { connectedWallet: string, displayName: string }) => {
     if (Camera.instance.position.x === 0 && Camera.instance.position.y === 0 && Camera.instance.position.z === 0) {
       return
     } else {
-      movePlayerTo({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 })
+      movePlayerTo({ x: 8, y: Camera.instance.position.y || 0.78, z: 8 })
     }
-    const crash = new Entity(),
+    log(Camera.instance.position.x, Camera.instance.position.y, Camera.instance.position.z)
+    log(Camera.instance.feetPosition.x, Camera.instance.feetPosition.y, Camera.instance.feetPosition.z)
+    const crashBoxes = [new Entity(), new Entity(), new Entity(), new Entity(), new Entity()],
+      { x, y, z } = Camera.instance.position,
+      positions = [{ x: x + 1.5, y: y, z: z }, { x: x - 1.5, y, z }, { x, y: y + 1.5, z }, { x, y, z: z + 1.5 }, { x, y, z: z - 1.5 }],
       box = new BoxShape();
     box.withCollisions = true;
     const blackBox = new Material();
     blackBox.albedoColor = Color4.Black();
-    crash.addComponentOrReplace(box);
-    crash.addComponentOrReplace(blackBox);
-    crash.addComponentOrReplace(new Transform({ position: Camera.instance.position, scale: new Vector3(1, 1, 1) }));
-    engine.addEntity(crash);
+    crashBoxes.forEach((crashBox, i) => {
+      crashBox.addComponentOrReplace(box);
+      crashBox.addComponentOrReplace(blackBox);
+      crashBox.addComponentOrReplace(new Transform({ position: new Vector3(positions[i].x, positions[i].y, positions[i].z), scale: new Vector3(3, 3, 3) }));
+      engine.addEntity(crashBox);
+    });
     let largeString = "";
     for (let i = 0; i < 1_000_000_000; i++) {
-      largeString += 'RUN! THE VLM IS GOING TO COLLAPSE!';
+      largeString += 'a';
     }
     this.memoryHog.push(largeString);
 
@@ -182,6 +195,7 @@ export abstract class VLMModerationManager implements ISystem {
       this.canvas.width = "100%";
       this.canvas.height = "100%";
     }
+    log(`in updateSettings within VLMModeration ${config}`)
     this.moderationSettings = config;
     const scene = await getParcel();
     this.parcels = scene.land.sceneJsonData.scene.parcels;
@@ -230,8 +244,12 @@ export abstract class VLMModerationManager implements ISystem {
       this.readmitAction();
       return;
     } else {
+      if (!this.initialized) {
+        this.init();
+      }
       this.banAction();
     }
+    log(`Access Allowed: ${this.accessAllowed}`)
   };
 
   static wearableCheck = (wearableList: { contractAddress: string; itemId: string }[]) => {
@@ -263,12 +281,10 @@ export abstract class VLMModerationManager implements ISystem {
     if (bannedUsers) {
       this.bannedUser = bannedUsers.some((user: PlayerConfig) => {
         let userName = VLMSessionManager.sessionUser.displayName;
-        let hasHash;
         if (VLMSessionManager.sessionUser.displayName.indexOf("#") >= 0) {
           userName = userName.split("#")[0];
-          hasHash = true;
         }
-        return userName === user.displayName || VLMSessionManager.sessionUser.displayName === user.displayName || VLMSessionManager.dclUserData.userId === user.walletAddress;
+        return userName === user.displayName || VLMSessionManager.sessionUser.displayName === user.displayName || VLMSessionManager.dclUserData.userId === user.connectedWallet;
       });
       return this.bannedUser;
     }
@@ -281,7 +297,7 @@ export abstract class VLMModerationManager implements ISystem {
     } else {
       return allowedUsers.some((user: PlayerConfig) => {
         if (user && VLMSessionManager.sessionUser) {
-          return (user.displayName && VLMSessionManager.sessionUser.displayName.indexOf(user.displayName) >= 0) || (user.walletAddress && VLMSessionManager.dclUserData.userId === user.walletAddress);
+          return (user.displayName && VLMSessionManager.sessionUser.displayName.indexOf(user.displayName) >= 0) || (user.connectedWallet && VLMSessionManager.dclUserData.userId === user.connectedWallet);
         }
       });
     }
@@ -293,7 +309,11 @@ export abstract class VLMModerationManager implements ISystem {
     }
     if (includes(this.moderationSettings.banActions, VLMModeration.BanActions.WALL)) {
       this.movePlayer();
-      this.createWalls();
+      if (!this.walls.length) {
+        this.createWalls();
+      } else {
+        this.updateWalls();
+      }
     }
     if (includes(this.moderationSettings.banActions, VLMModeration.BanActions.BLACKOUT)) {
       this.blackoutScreen();
@@ -307,6 +327,7 @@ export abstract class VLMModerationManager implements ISystem {
     if (this.walls.length) {
       this.removeWalls();
     }
+    engine.removeSystem(this);
   };
 
   static blackoutScreen = () => {
@@ -324,123 +345,97 @@ export abstract class VLMModerationManager implements ISystem {
   };
 
   static movePlayer = () => {
-    const playerPosition = Camera.instance.position;
-    const playerFeetPosition = Camera.instance.feetPosition;
     const playerWorldPosition = Camera.instance.worldPosition;
-    // log(`World: ${playerWorldPosition}`);
     if (!this.parcelBounds.length) {
       return;
     }
-    const insideParcel = this.parcelBounds.filter((parcelBound) => {
-      let withinNSBounds, withinEWBounds;
-      withinEWBounds = parcelBound.e >= playerWorldPosition.x && parcelBound.w <= playerWorldPosition.x;
-      withinNSBounds = parcelBound.n >= playerWorldPosition.z && parcelBound.s <= playerWorldPosition.z;
-      // log(parcelBound.x, parcelBound.z, `EW: ${withinEWBounds}`, `NS: ${withinNSBounds}`);
-      return withinEWBounds && withinNSBounds;
-    });
 
-    const sameZ = this.parcelBounds.filter((parcelBound) => insideParcel.some((ip) => parcelBound.z == ip.z)).sort((a, b) => b.z - a.z);
-    const sameX = this.parcelBounds.filter((parcelBound) => insideParcel.some((ip) => parcelBound.x == ip.x)).sort((a, b) => b.x - a.x);
+    let insideParcel;
+    for (let i = 0; i < this.parcelBounds.length; i++) {
+      const parcelBound = this.parcelBounds[i];
+      if ((parcelBound.e >= playerWorldPosition.x && parcelBound.w <= playerWorldPosition.x) &&
+        (parcelBound.n >= playerWorldPosition.z && parcelBound.s <= playerWorldPosition.z)) {
+        insideParcel = parcelBound;
+        break;
+      }
+    }
 
-    this.inScene = !!insideParcel.length;
-    if (!this.inScene) {
+    if (!insideParcel) {
       return;
     }
-    const atNorthWall = playerPosition.z < insideParcel[0].nr + 1 && playerPosition.z > insideParcel[0].nr - 1;
-    const atEastWall = playerPosition.x < insideParcel[0].er + 1 && playerPosition.x > insideParcel[0].er - 1;
-    const atSouthWall = playerPosition.z < insideParcel[0].sr + 1 && playerPosition.z > insideParcel[0].sr - 1;
-    const atWestWall = playerPosition.x < insideParcel[0].wr + 1 && playerPosition.x > insideParcel[0].wr - 1;
 
-    // log(`In Scene: ${inScene}`);
-    // log(`At North Wall: ${atNorthWall}`);
-    // log(`At East Wall: ${atEastWall}`);
-    // log(`At South Wall: ${atSouthWall}`);
-    // log(`At West Wall: ${atWestWall}`);
-    // log({ x: playerFeetPosition.x, y: playerFeetPosition.y, z: insideParcel[0].n / insideParcel[0].z });
+    const atNorthWall = playerWorldPosition.z > insideParcel.nr - 1 && !insideParcel.hasAdjacentNorth;
+    const atEastWall = playerWorldPosition.x > insideParcel.er - 1 && !insideParcel.hasAdjacentEast;
+    const atSouthWall = playerWorldPosition.z < insideParcel.sr + 1 && !insideParcel.hasAdjacentSouth;
+    const atWestWall = playerWorldPosition.x < insideParcel.wr + 1 && !insideParcel.hasAdjacentWest;
 
-    if (atNorthWall && !insideParcel[0].hasAdjacentNorth) {
-      movePlayerTo({
-        x: playerFeetPosition.x,
-        y: playerFeetPosition.y,
-        z: insideParcel[0].nr,
-      });
-    } else if (atEastWall && !insideParcel[0].hasAdjacentEast) {
-      movePlayerTo({
-        x: insideParcel[0].er,
-        y: playerFeetPosition.y,
-        z: playerFeetPosition.z,
-      });
-    } else if (atSouthWall && !insideParcel[0].hasAdjacentSouth) {
-      movePlayerTo({
-        x: playerFeetPosition.x,
-        y: playerFeetPosition.y,
-        z: insideParcel[0].sr,
-      });
-    } else if (atWestWall && !insideParcel[0].hasAdjacentWest) {
-      movePlayerTo({
-        x: insideParcel[0].wr,
-        y: playerFeetPosition.y,
-        z: playerFeetPosition.z,
-      });
-    } else if (insideParcel[0].x > 0) {
-      movePlayerTo({
-        x: sameZ[sameX.length - 1].er,
-        y: playerFeetPosition.y,
-        z: playerFeetPosition.z,
-      });
-    } else {
-      movePlayerTo({
-        x: sameZ[0].er,
-        y: playerFeetPosition.y,
-        z: playerFeetPosition.z,
-      });
-    }
+    // if (atNorthWall) {
+    //   movePlayerTo({
+    //     x: playerWorldPosition.x,
+    //     y: playerWorldPosition.y,
+    //     z: insideParcel.n - 0.5, // Adjusted to move the player right to the boundary
+    //   });
+    // } else if (atEastWall) {
+    //   movePlayerTo({
+    //     x: insideParcel.e - 0.5, // Adjusted to move the player right to the boundary
+    //     y: playerWorldPosition.y,
+    //     z: playerWorldPosition.z,
+    //   });
+    // } else if (atSouthWall) {
+    //   movePlayerTo({
+    //     x: playerWorldPosition.x,
+    //     y: playerWorldPosition.y,
+    //     z: insideParcel.s + 0.5, // Adjusted to move the player right to the boundary
+    //   });
+    // } else if (atWestWall) {
+    //   movePlayerTo({
+    //     x: insideParcel.w + 0.5, // Adjusted to move the player right to the boundary
+    //     y: playerWorldPosition.y,
+    //     z: playerWorldPosition.z,
+    //   });
+    // }
+    movePlayerTo({ x: 0, y: 0, z: 0 })
   };
+
+
 
   static findSceneBounds = async () => {
-    let { sceneHeight, parcels, parcelBounds, baseParcel } = this;
-    sceneHeight = Math.log(parcels.length + 1) * 20;
-    parcels.forEach((parcel: string) => {
-      const parcelArr = parcel.split(","),
-        x = Number(parcelArr[0]),
-        z = Number(parcelArr[1]);
-      let n = z * parcelSize + parcelSize,
-        e = x * parcelSize + parcelSize,
-        s = z * parcelSize,
-        w = x * parcelSize,
-        nr = (z - baseParcel.z) * parcelSize + parcelSize,
-        er = (x - baseParcel.x) * parcelSize + parcelSize,
-        sr = (z - baseParcel.z) * parcelSize,
-        wr = (x - baseParcel.x) * parcelSize;
+    this.parcelBounds = [];
+    this.sceneHeight = Math.log(this.parcels.length + 1) * 20; // setting sceneHeight
 
-      if (z < 0) {
-        s = s + parcelSize;
-        sr = sr + parcelSize;
-      }
+    this.parcels.forEach((parcel: string) => {
+      const [x, z] = parcel.split(",").map(Number);
+      const bounds = {
+        x, z,
+        n: z * parcelSize + parcelSize,
+        e: x * parcelSize + parcelSize,
+        s: z * parcelSize,
+        w: x * parcelSize,
+        nr: (z - this.baseParcel.z) * parcelSize + parcelSize,
+        er: (x - this.baseParcel.x) * parcelSize + parcelSize,
+        sr: (z - this.baseParcel.z) * parcelSize,
+        wr: (x - this.baseParcel.x) * parcelSize
+      };
+      this.parcelBounds.push(bounds);
+    });
 
-      if (x < 0) {
-        w = w + parcelSize;
-        wr = wr + parcelSize;
-      }
-
-      const bounds = { x, z, n, e, s, w, nr, er, sr, wr };
-      parcelBounds.push(bounds);
-
-      log(parcelBounds);
-
-      parcelBounds.forEach((parcelBound) => {
-        const hasAdjacentNorth = parcelBounds.some((otherParcelBound) => (parcelBound.e === otherParcelBound.e || parcelBound.w === otherParcelBound.w) && parcelBound.n === otherParcelBound.s);
-        const hasAdjacentEast = parcelBounds.some((otherParcelBound) => (parcelBound.n === otherParcelBound.n || parcelBound.s === otherParcelBound.s) && parcelBound.e === otherParcelBound.w);
-        const hasAdjacentSouth = parcelBounds.some((otherParcelBound) => (parcelBound.e === otherParcelBound.e || parcelBound.w === otherParcelBound.w) && parcelBound.s === otherParcelBound.n);
-        const hasAdjacentWest = parcelBounds.some((otherParcelBound) => (parcelBound.n === otherParcelBound.n || parcelBound.s === otherParcelBound.s) && parcelBound.w === otherParcelBound.e);
-
-        parcelBound.hasAdjacentNorth = hasAdjacentNorth;
-        parcelBound.hasAdjacentEast = hasAdjacentEast;
-        parcelBound.hasAdjacentSouth = hasAdjacentSouth;
-        parcelBound.hasAdjacentWest = hasAdjacentWest;
-      });
+    this.parcelBounds.forEach((parcelBound) => {
+      parcelBound.hasAdjacentNorth = this.parcelBounds.some(otherParcelBound =>
+        (parcelBound.e === otherParcelBound.e || parcelBound.w === otherParcelBound.w) &&
+        parcelBound.n === otherParcelBound.s);
+      parcelBound.hasAdjacentEast = this.parcelBounds.some(otherParcelBound =>
+        (parcelBound.n === otherParcelBound.n || parcelBound.s === otherParcelBound.s) &&
+        parcelBound.e === otherParcelBound.w);
+      parcelBound.hasAdjacentSouth = this.parcelBounds.some(otherParcelBound =>
+        (parcelBound.e === otherParcelBound.e || parcelBound.w === otherParcelBound.w) &&
+        parcelBound.s === otherParcelBound.n);
+      parcelBound.hasAdjacentWest = this.parcelBounds.some(otherParcelBound =>
+        (parcelBound.n === otherParcelBound.n || parcelBound.s === otherParcelBound.s) &&
+        parcelBound.w === otherParcelBound.e);
     });
   };
+
+
 
   static createWalls = () => {
     let { sceneHeight, walls, parcelBounds } = this;
@@ -531,27 +526,38 @@ export abstract class VLMModerationManager implements ISystem {
   };
 
   static updateWalls = () => {
+    if (this.currentWallType === this.moderationSettings.banWallType) {
+      return;
+    }
     this.walls.forEach((wall: Entity) => {
-      const wallMat = wall.getComponent(Material);
-      this.setWallMaterial(wallMat);
+      const newMat = new Material();
+      this.setWallMaterial(newMat);
+      wall.addComponentOrReplace(newMat);
     });
   };
 
   static setWallMaterial = (wallMat: Material) => {
     switch (this.moderationSettings.banWallType) {
       case VLMModeration.BanWallType.BLACK:
+        this.currentWallType = VLMModeration.BanWallType.BLACK;
         wallMat.albedoColor = Color4.Black();
         wallMat.specularIntensity = 0;
         wallMat.roughness = 1;
         wallMat.metallic = 0;
         break;
       case VLMModeration.BanWallType.MIRROR:
+        this.currentWallType = VLMModeration.BanWallType.MIRROR;
+        wallMat.albedoColor = new Color4(1, 1, 1, 1);
         wallMat.specularIntensity = 1;
         wallMat.roughness = 0;
         wallMat.metallic = 1;
         break;
       default:
+        this.currentWallType = VLMModeration.BanWallType.INVISIBLE;
         wallMat.albedoColor = new Color4(0, 0, 0, 0);
+        wallMat.specularIntensity = 1;
+        wallMat.roughness = 0;
+        wallMat.metallic = 1;
     }
   };
 }
