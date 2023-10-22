@@ -37,8 +37,8 @@ export abstract class VLM {
     return new Promise(async (resolve, reject) => {
       onSceneReadyObservable.addOnce(async () => {
         try {
-          if (config.modelFolder || config.soundFolder) {
-            configurePaths({ modelFolder: config.modelFolder, soundFolder: config.soundFolder })
+          if (config?.modelFolder || config?.soundFolder) {
+            configurePaths({ modelFolder: config?.modelFolder, soundFolder: config?.soundFolder })
           }
           VLMEventManager.events.addListener(VLMSceneInitEvent, null, () => {
             resolve(VLM.storage);
