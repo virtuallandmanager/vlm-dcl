@@ -34,7 +34,7 @@ export namespace VLMNFT {
       this.contractAddress = config.contractAddress;
       this.withCollisions = config.withCollisions || false;
       this.tokenId = config.tokenId || 0;
-      this.enabled = config.enabled || true;
+      this.enabled = config.enabled;
       configs[this.sk] = this;
 
       if (this.customId) {
@@ -186,7 +186,7 @@ export namespace VLMNFT {
       this.scale = instance.scale;
       this.rotation = instance.rotation;
       this.configId = config.sk;
-      this.enabled = config.enabled || instance.enabled;
+      this.enabled = instance.enabled;
       this.withCollisions = typeof instance.withCollisions === "boolean" ? instance.withCollisions : config.withCollisions;
       this.addComponentOrReplace(shape);
       this.updateTransform(this.position, this.scale, this.rotation);
@@ -199,7 +199,20 @@ export namespace VLMNFT {
     }
 
     add: CallableFunction = () => {
-      engine.addEntity(this);
+      try {
+        if (this.customRendering || !configs[this.configId].enabled || !this.enabled) {
+          return;
+        }
+        if (this.isAddedToEngine()) {
+          return;
+        } else if (this.parent) {
+          this.updateParent(this.parent);
+        } else if (this.enabled) {
+          engine.addEntity(this);
+        }
+      } catch (error) {
+        throw error;
+      }
     };
 
     delete: CallableFunction = () => {
@@ -259,5 +272,5 @@ export namespace VLMNFT {
       this.addComponentOrReplace(newShape);
     };
   }
-  export class VLMInstanceConfig extends DCLInstanceConfig {}
+  export class VLMInstanceConfig extends DCLInstanceConfig { }
 }

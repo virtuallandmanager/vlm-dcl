@@ -3,15 +3,17 @@ import { VLMEnvironment } from "./environment";
 import { VLMSessionManager } from "./logic/VLMSession.logic";
 import { VLMEventListeners } from "./logic/VLMSystemListeners.logic";
 import { VLMLogManager } from "./logic/VLMLogging";
-import { VLMWidget } from "./components/VLMWidget.component";
 import { VLMWidgetManager } from "./logic/VLMWidget.logic";
+import { VLMNotificationManager } from "./logic/VLMNotification.logic";
+import { VLMEventManager } from "./logic/VLMSystemEvents.logic";
+import { VLMWidget } from "./components/VLMWidget.component";
 import { VLMVideo } from "./components/VLMVideo.component";
 import { VLMImage } from "./components/VLMImage.component";
 import { VLMNFT } from "./components/VLMNFT.component";
 import { VLMSound } from "./components/VLMSound.component";
-import { VLMNotificationManager } from "./logic";
-import { VLMEventManager } from "./logic/VLMSystemEvents.logic";
 import { VLMSceneInitEvent } from "./components/VLMSystemEvents.component";
+import { VLMModel } from "./components/VLMModel.component";
+import { VLMClaimPoint } from "./components/VLMClaimPoint.component";
 import { configurePaths } from "./shared/paths";
 
 /**
@@ -97,6 +99,10 @@ export abstract class VLM {
       configs: VLMImage.configs,
       instances: VLMImage.instances
     },
+    models: {
+      configs: VLMModel.configs,
+      instances: VLMModel.instances
+    },
     nfts: {
       configs: VLMNFT.configs,
       instances: VLMNFT.instances
@@ -105,6 +111,9 @@ export abstract class VLM {
       configs: VLMSound.configs,
       instances: VLMSound.instances,
       systems: VLMSound.systems
+    },
+    claimPoints: {
+      configs: VLMClaimPoint.configs,
     },
     widgets: {
       configs: VLMWidget.configs
@@ -117,16 +126,20 @@ export abstract class VLM {
 export type VLMStorage = {
   video: {
     configs: VLMVideo.DCLConfig[],
-    instances: VLMVideo.DCLInstanceConfig,
+    instances: VLMVideo.DCLInstanceConfig[],
     systems: VLMVideo.VLMVideoSystem
   },
   image: {
     configs: VLMImage.DCLConfig[],
-    instances: VLMImage.DCLInstanceConfig
+    instances: VLMImage.DCLInstanceConfig[]
+  },
+  models: {
+    configs: VLMModel.DCLConfig[],
+    instances: VLMModel.DCLInstanceConfig[]
   },
   nft: {
     configs: VLMNFT.DCLConfig[],
-    instances: VLMNFT.DCLInstanceConfig
+    instances: VLMNFT.DCLInstanceConfig[]
   },
   sound: {
     configs: VLMSound.DCLConfig[],

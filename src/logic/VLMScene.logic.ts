@@ -115,6 +115,7 @@ export abstract class VLMSceneManager {
 
   static updateSceneElement: CallableFunction = (message: VLMSceneMessage) => {
     try {
+      log(`VLM VLMScene.logic updateSceneElement`, message)
       if (message.instance) {
         return this.updateSceneElementInstance(message);
       } else if (message.setting) {
@@ -140,6 +141,7 @@ export abstract class VLMSceneManager {
           VLMWidgetManager.update(message.elementData, message.user);
           break;
         case "claimpoint":
+          log("VLM - Update Claim Point", message.elementData)
           VLMClaimPointManager.update(message.elementData, message.property, message.id);
           break;
       }

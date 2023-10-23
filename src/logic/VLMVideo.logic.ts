@@ -21,9 +21,6 @@ export abstract class VLMVideoManager {
 
   static create: CallableFunction = (config: VLMVideo.VLMConfig) => {
     try {
-      if (!config.enabled) {
-        return;
-      }
       new VLMVideo.DCLConfig(config);
     } catch (error) {
       throw error;
@@ -44,58 +41,59 @@ export abstract class VLMVideoManager {
 
   static update: CallableFunction = (config: VLMVideo.VLMConfig, property: string, id: string) => {
     try {
-      const video: VLMVideo.DCLConfig = VLMVideo.configs[id || config.sk];
+      const storedConfig: VLMVideo.DCLConfig = VLMVideo.configs[id || config.sk];
 
-      if (!config || (!video && !config.enabled)) {
+      if (!config || (!storedConfig && !config.enabled)) {
         return;
-      } else if (!video && config.enabled) {
-        new VLMVideo.DCLConfig(config);
+      } else if (!storedConfig && config.enabled) {
+        this.create(config)
+        return this.update(config, property, id);
       }
 
       switch (property) {
         case "enabled":
           if (!config.enabled) {
             this.remove(config.sk);
-          } else if (video) {
+          } else if (storedConfig) {
             this.add(config.sk);
           }
           break;
         case "liveSrc":
-          video.liveSrc = config.liveSrc;
+          storedConfig.liveSrc = config.liveSrc;
           break;
         case "enableLiveStream":
-          video.updateOnAirState(config.enableLiveStream);
+          storedConfig.updateOnAirState(config.enableLiveStream);
           break;
         case "playlist":
-          video.updatePlaylist(config.playlist);
+          storedConfig.updatePlaylist(config.playlist);
           break;
         case "volume":
-          video.updateVolume(config.volume);
+          storedConfig.updateVolume(config.volume);
           break;
         case "emission":
-          video.emissiveIntensity = config.emission || 0;
+          storedConfig.emissiveIntensity = config.emission || 0;
           break;
         case "offType":
-          video.updateOffType(config.offType);
+          storedConfig.updateOffType(config.offType);
           break;
         case "clickEvent":
-          video.updateClickEvent(config.clickEvent);
+          storedConfig.updateClickEvent(config.clickEvent);
           break;
         case "properties":
-          video.updateParent(config.parent);
-          video.updateCustomId(config.customId);
-          video.updateCustomRendering(config.customRendering);
+          storedConfig.updateParent(config.parent);
+          storedConfig.updateCustomId(config.customId);
+          storedConfig.updateCustomRendering(config.customRendering);
         case "offImageSrc":
-          video.updateOffImage(config.offImageSrc);
+          storedConfig.updateOffImage(config.offImageSrc);
           break;
         case "parent":
-          video.updateParent(config.parent);
+          storedConfig.updateParent(config.parent);
           break;
         case "customId":
-          video.updateCustomId(config.customId);
+          storedConfig.updateCustomId(config.customId);
           break;
         case "customRendering":
-          video.updateCustomRendering(config.customRendering);
+          storedConfig.updateCustomRendering(config.customRendering);
           break;
       }
     } catch (error) {

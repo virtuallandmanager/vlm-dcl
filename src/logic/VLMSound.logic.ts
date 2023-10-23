@@ -6,15 +6,12 @@ export abstract class VLMSoundManager {
       return;
     }
     sounds.forEach((sound: VLMSound.VLMConfig) => {
-      new VLMSound.DCLConfig(sound);
+      this.create(sound);
     });
   };
 
   static create: CallableFunction = (config: VLMSound.VLMConfig) => {
     try {
-      if (!config.enabled) {
-        return;
-      }
       new VLMSound.DCLConfig(config);
     } catch (error) {
       throw error;
@@ -29,36 +26,37 @@ export abstract class VLMSoundManager {
     VLMSound.configs[soundId].createInstance(instance);
   };
 
-  static update: CallableFunction = (soundConfig: VLMSound.VLMConfig | any, property: string, id: string) => {
-    const sound: VLMSound.DCLConfig = VLMSound.configs[soundConfig.sk];
+  static update: CallableFunction = (config: VLMSound.VLMConfig | any, property: string, id: string) => {
+    const storedConfig: VLMSound.DCLConfig = VLMSound.configs[config.sk];
 
-    if (!soundConfig || (!sound && !soundConfig.enabled)) {
+    if (!config || (!storedConfig && !config.enabled)) {
       return;
-    } else if (!sound && soundConfig.enabled) {
-      new VLMSound.DCLConfig(soundConfig);
+    } else if (!storedConfig && config.enabled) {
+      this.create(config)
+      return this.update(config, property, id);
     }
 
     switch (property) {
       case "enabled":
-        if (!soundConfig.enabled) {
-          this.remove(soundConfig.sk);
-        } else if (sound) {
-          this.add(soundConfig.sk);
+        if (!config.enabled) {
+          this.remove(config.sk);
+        } else if (storedConfig) {
+          this.add(config.sk);
         }
         break;
       case "sourceType":
-        sound.updateSourceType(soundConfig.sourceType);
+        storedConfig.updateSourceType(config.sourceType);
         break;
       case "audioSrc":
-        sound.updateSource(soundConfig.audioSrc);
+        storedConfig.updateSource(config.audioSrc);
         break;
       case "volume":
-        sound.updateVolume(soundConfig.volume);
+        storedConfig.updateVolume(config.volume);
         break;
       case "properties":
-        sound.updateParent(soundConfig.parent);
-        sound.updateCustomId(soundConfig.customId);
-        sound.updateCustomRendering(soundConfig.customRendering);
+        storedConfig.updateParent(config.parent);
+        storedConfig.updateCustomId(config.customId);
+        storedConfig.updateCustomRendering(config.customRendering);
         break;
     }
   };

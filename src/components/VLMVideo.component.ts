@@ -85,7 +85,7 @@ export namespace VLMVideo {
           configs[this.customId] = configs[this.sk];
         }
 
-        if (this.customRendering) {
+        if (this.customRendering || !config.instances || config.instances.length < 1) {
           return;
         }
 
@@ -450,18 +450,22 @@ export namespace VLMVideo {
       this.correctUvs(config.textureMode === SourceTypes.IMAGE);
 
 
-      if (this.enabled) {
-        this.add();
-      }
+      this.add();
     }
 
     add: CallableFunction = () => {
-      const parent = this.parent || configs[this.configId].parent;
-      const hidden = !configs[this.configId].enabled || configs[this.configId].textureMode === SourceTypes.NONE;
-      if (parent) {
-        this.updateParent(parent);
-      } else if (!this.isAddedToEngine() && !hidden) {
-        engine.addEntity(this); //// SDK SPECIFIC ////
+      try {
+        if (this.isAddedToEngine() || this.customRendering || !configs[this.configId].enabled || !this.enabled) {
+          return;
+        }
+
+        if (this.parent) {
+          this.updateParent(this.parent);
+        } else if (this.enabled) {
+          engine.addEntity(this);
+        }
+      } catch (error) {
+        throw error;
       }
     };
 

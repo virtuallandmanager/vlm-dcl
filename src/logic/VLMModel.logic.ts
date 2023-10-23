@@ -16,9 +16,6 @@ export abstract class VLMModelManager {
 
   static create: CallableFunction = (config: VLMModel.VLMConfig) => {
     try {
-      if (!config.enabled) {
-        return;
-      }
       new VLMModel.DCLConfig(config);
     } catch (error) {
       throw error;
@@ -37,13 +34,13 @@ export abstract class VLMModelManager {
     }
   };
 
-  static update: CallableFunction = (config: VLMModel.VLMConfig | any, property: string, id: string) => {
+  static update: CallableFunction = (config: VLMModel.VLMConfig, property: string, id: string) => {
     try {
-      const model: VLMModel.DCLConfig = VLMModel.configs[config.sk || id];
+      let storedConfig: VLMModel.DCLConfig = VLMModel.configs[config.sk];
 
-      if (!config || (!model && !config.enabled)) {
+      if (!config || (!storedConfig && !config.enabled)) {
         return;
-      } else if (!model && config.enabled) {
+      } else if (!storedConfig && config.enabled) {
         new VLMModel.DCLConfig(config);
       }
 
@@ -51,23 +48,21 @@ export abstract class VLMModelManager {
         case "enabled":
           if (!config.enabled) {
             this.remove(config.sk);
-          } else if (model) {
+          } else if (storedConfig) {
             this.add(config.sk);
-          } else {
-            new VLMModel.DCLConfig(config);
           }
           break;
         case "modelSrc":
-          model.updateModelSrc(config.modelSrc);
+          storedConfig.updateModelSrc(config.modelSrc);
           break;
         case "clickEvent":
-          model.updateClickEvent(config.clickEvent);
+          storedConfig.updateClickEvent(config.clickEvent);
           break;
         case "parent":
-          model.updateParent(config.parent);
+          storedConfig.updateParent(config.parent);
           break;
         case "customId":
-          model.updateCustomId(config.customId);
+          storedConfig.updateCustomId(config.customId);
           break;
       }
     } catch (error) {
@@ -78,7 +73,7 @@ export abstract class VLMModelManager {
   static updateInstance: CallableFunction = (instanceConfig: VLMModel.VLMInstanceConfig, property: string, id: string) => {
     try {
       const instance = VLMModel.instances[instanceConfig.sk],
-        configId = instance.configId,
+        configId = instance?.configId,
         config = VLMModel.configs[configId];
 
       if (!config) {

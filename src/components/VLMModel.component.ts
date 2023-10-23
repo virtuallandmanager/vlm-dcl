@@ -1,7 +1,6 @@
 import { VLMClickEvent } from "./VLMClickEvent.component";
-import { Emissive, SimpleTransform, Transformable } from "../shared/interfaces";
+import { SimpleTransform, Transformable } from "../shared/interfaces";
 import { includes } from "../utils";
-import { VLMBase } from "./VLMBaseConfig.component";
 import { getEntityByName } from "../shared/entity";
 import { getModelPath } from "../shared/paths";
 
@@ -28,13 +27,12 @@ export namespace VLMModel {
         this.sk = config.sk;
         this.customId = config.customId;
         this.customRendering = !!config.customRendering;
-        this.parent = config.parent;
-        this.enabled = config.enabled;
-        this.modelSrc = config.modelSrc;
-        this.clickEvent = config.clickEvent;
+        this.parent = config?.parent;
+        this.enabled = config?.enabled;
+        this.modelSrc = config?.modelSrc;
+        this.clickEvent = config?.clickEvent;
 
         configs[this.sk] = this;
-
         if (this.customId) {
           configs[this.customId] = configs[this.sk];
         }
@@ -159,9 +157,6 @@ export namespace VLMModel {
         this.instanceIds.push(config.sk);
       }
       new DCLInstanceConfig(this, config);
-      if (config.customId) {
-        instances[config.customId] = instances[config.sk];
-      }
     };
 
     deleteInstance: CallableFunction = (instanceId: string) => {
@@ -223,11 +218,11 @@ export namespace VLMModel {
         this.customRendering = instance?.customRendering;
         this.configId = config?.sk;
         this.position = instance?.position;
-        this.scale = instance.scale;
-        this.rotation = instance.rotation;
-        this.enabled = instance.enabled;
-        this.clickEvent = instance.clickEvent;
-        this.defaultClickEvent = config.clickEvent;
+        this.scale = instance?.scale;
+        this.rotation = instance?.rotation;
+        this.enabled = instance?.enabled;
+        this.clickEvent = instance?.clickEvent;
+        this.defaultClickEvent = config?.clickEvent;
         instances[this.sk] = this;
         log("VLM - CREATING INSTANCE - Step 3", instances && instances[this.sk])
         const model = new GLTFShape(`${getModelPath()}${config.modelSrc}`);
@@ -235,11 +230,9 @@ export namespace VLMModel {
         this.updateTransform(this.position, this.scale, this.rotation);
         this.updateDefaultClickEvent(config.clickEvent);
 
-        if (this.parent && this.enabled && !this.customRendering) {
-          this.updateParent(this.parent);
-        } else if (this.enabled) {
-          this.add();
-        }
+
+        this.add();
+
 
         if (this.customId) {
           instances[this.customId] = instances[this.sk];
@@ -251,11 +244,13 @@ export namespace VLMModel {
 
     add: CallableFunction = () => {
       try {
-        if (this.isAddedToEngine()) {
+        if (this.isAddedToEngine() || this.customRendering || !configs[this.configId].enabled || !this.enabled) {
           return;
-        } else if (this.parent) {
+        }
+
+        if (this.parent) {
           this.updateParent(this.parent);
-        } else {
+        } else if (this.enabled) {
           engine.addEntity(this);
         }
       } catch (error) {

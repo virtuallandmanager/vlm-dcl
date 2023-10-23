@@ -1,4 +1,4 @@
-import { VLMClaimPoint, VLMNotification } from "../components";
+import { VLMClaimPoint } from "../components";
 import { VLMNotificationManager } from "./VLMNotification.logic";
 import messages from "../messages/giveaway";
 
@@ -10,7 +10,7 @@ export abstract class VLMClaimPointManager {
         return;
       }
       claimPoints.forEach((claimPoint: VLMClaimPoint.VLMConfig) => {
-        new VLMClaimPoint.DCLConfig(claimPoint);
+        this.create(claimPoint);
       });
     } catch (error) {
       throw error;
@@ -19,9 +19,6 @@ export abstract class VLMClaimPointManager {
 
   static create: CallableFunction = (config: VLMClaimPoint.VLMConfig) => {
     try {
-      if (!config.enabled) {
-        return;
-      }
       new VLMClaimPoint.DCLConfig(config);
     } catch (error) {
       throw error;
@@ -30,38 +27,38 @@ export abstract class VLMClaimPointManager {
 
   static update: CallableFunction = (config: VLMClaimPoint.VLMConfig, property: string, id: string) => {
     try {
-      const claimPoint = VLMClaimPoint.configs[config.sk];
-
-      if (!claimPoint) {
-        return;
-      }
+      const storedConfig = VLMClaimPoint.configs[config.sk];
 
       const { position, scale, rotation } = config;
+      if (!config || (!storedConfig && !config.enabled)) {
+        return;
+      } else if (!storedConfig && config.enabled) {
+        this.create(config)
+        return this.update(config, property, id);
+      }
 
       switch (property) {
         case "enabled":
-          if (!claimPoint.enabled) {
-            claimPoint.remove(config.sk);
-          } else if (claimPoint) {
-            claimPoint.add(config.sk);
-          } else {
-            new VLMClaimPoint.DCLConfig(config);
+          if (!config.enabled) {
+            this.remove(config.sk);
+          } else if (storedConfig) {
+            this.add(config.sk);
           }
           break;
         case "transform":
-          claimPoint.updateTransform(position, scale, rotation, config.properties);
+          storedConfig.updateTransform(position, scale, rotation, config.properties);
           break;
         case "properties":
-          claimPoint.updateProperties(config.properties);
+          storedConfig.updateProperties(config.properties);
           break;
         case "customId":
-          claimPoint.updateCustomId(config.customId);
+          storedConfig.updateCustomId(config.customId);
           break;
         case "customRendering":
-          claimPoint.updateCustomRendering(config.customRendering);
+          storedConfig.updateCustomRendering(config.customRendering);
           break;
         case "parent":
-          claimPoint.updateParent(config.parent);
+          storedConfig.updateParent(config.parent);
           break;
       }
     } catch (error) {
@@ -109,6 +106,10 @@ export abstract class VLMClaimPointManager {
     }
   };
 
+  static add: CallableFunction = (id: string) => {
+    VLMClaimPoint.configs[id].add();
+  };
+
   static delete: CallableFunction = (id: string) => {
     VLMClaimPoint.configs[id].delete();
   };
@@ -116,4 +117,5 @@ export abstract class VLMClaimPointManager {
   static remove: CallableFunction = (id: string) => {
     VLMClaimPoint.configs[id].remove();
   };
+
 }

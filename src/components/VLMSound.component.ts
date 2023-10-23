@@ -1,6 +1,6 @@
 import { getEntityByName } from "../shared/entity";
 import { VLMBase } from "./VLMBaseConfig.component";
-import { Audible, HasPlaylist, Playable, SimpleTransform, Transformable } from "../shared/interfaces";
+import { Audible, Playable, SimpleTransform, Transformable } from "../shared/interfaces";
 import { getSoundPath } from "../shared/paths";
 import { includes } from "../utils";
 
@@ -54,15 +54,18 @@ export namespace VLMSound {
         } else if (config.sourceType === SourceType.CLIP || config.sourceType === SourceType.LOOP) {
           this.audioClip = new AudioClip(`${getSoundPath()}${this.audioSrc}`);
         }
+
         this.updateVolume(this.volume);
 
-        VLMSound.configs[this.sk] = this;
+        configs[this.sk] = this;
         if (this.customId) {
-          VLMSound.configs[this.customId] = VLMSound.configs[this.sk];
+          configs[this.customId] = configs[this.sk];
         }
+
         if (this.customRendering || !config.instances || config.instances.length < 1) {
           return;
         }
+
         config.instances.forEach((instance: VLMInstanceConfig) => {
           this.createInstance(instance);
         });
@@ -119,9 +122,6 @@ export namespace VLMSound {
         this.instanceIds.push(config.sk);
       }
       new DCLInstanceConfig(this, config);
-      if (config.customId) {
-        instances[config.customId] = instances[config.sk];
-      }
     };
 
     removeInstance: CallableFunction = (instanceId: string) => {
@@ -303,7 +303,7 @@ export namespace VLMSound {
     init: CallableFunction = (config: DCLConfig, instance: VLMInstanceConfig) => {
       try {
         this.sk = instance?.sk;
-        this.enabled = instance?.enabled && config.enabled;
+        this.enabled = instance?.enabled;
         this.parent = instance?.parent || config.parent;
         this.position = instance?.position;
         this.scale = instance?.scale;
@@ -330,26 +330,32 @@ export namespace VLMSound {
           source.playing = this.enabled;
         }
 
-        VLMSound.instances[this.sk] = this;
+        instances[this.sk] = this;
+
+        if (config.customId) {
+          instances[this.customId] = instances[this.sk];
+        }
 
         if (config.sourceType < SourceType.STREAM) {
           this.updateTransform(this.position, this.scale, this.rotation);
         }
-        if (this.enabled) {
-          this.add();
-        }
+        this.add();
+
       } catch (e) {
         throw e;
       }
     };
 
+
     add: CallableFunction = () => {
       try {
+        if (this.isAddedToEngine() || this.customRendering || !configs[this.configId].enabled || !this.enabled) {
+          return;
+        }
 
-        const parent = this.parent || VLMSound.configs[this.configId].parent;
-        if (parent) {
-          this.updateParent(parent);
-        } else if (VLMSound.configs[this.configId]?.enabled && this.enabled && !this.isAddedToEngine()) {
+        if (this.parent) {
+          this.updateParent(this.parent);
+        } else if (this.enabled) {
           engine.addEntity(this);
         }
       } catch (error) {

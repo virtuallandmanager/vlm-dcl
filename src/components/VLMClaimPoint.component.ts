@@ -56,6 +56,15 @@ export namespace VLMClaimPoint {
       this.hoverText = config?.hoverText;
       this.requestInProgress = false;
 
+      configs[this.sk] = this;
+      if (this.customId) {
+        configs[this.customId] = configs[this.sk];
+      }
+
+      if (this.customRendering) {
+        return;
+      }
+
       this.add();
 
       this.generateClaimItem();
@@ -68,19 +77,15 @@ export namespace VLMClaimPoint {
 
       this.updateTransform(config.position, config.scale, config.rotation);
 
-      configs[this.sk] = this;
-
-      if (this.customId) {
-        configs[this.customId] = configs[this.sk];
-      }
 
     }
 
     add: CallableFunction = () => {
       try {
-        if (this.isAddedToEngine()) {
+        if (this.isAddedToEngine() || this.customRendering || !this.enabled) {
           return;
-        } else if (this.parent) {
+        }
+        if (this.parent) {
           this.updateParent(this.parent);
         } else {
           engine.addEntity(this);
@@ -194,6 +199,9 @@ export namespace VLMClaimPoint {
 
     generateClaimItem: CallableFunction = () => {
       const objThis = this;
+      if (!objThis.enabled) {
+        return
+      }
       this.claimItemEntity.setParent(objThis);
       if (this.properties.type == ClaimPointType.MODEL && this.properties.modelSrc) {
         this.claimItemEntity.addComponentOrReplace(new GLTFShape(`${getModelPath()}${this.properties.modelSrc}`));
@@ -227,6 +235,9 @@ export namespace VLMClaimPoint {
 
     generateStandardBooth: CallableFunction = () => {
       const objThis = this;
+      if (!objThis.enabled) {
+        return
+      }
       this.kioskEntities.topEntity = this.kioskEntities.topEntity || new Entity("Claim Point Top");
       this.kioskEntities.glassEntity = this.kioskEntities.glassEntity || new Entity("Claim Point Glass");
       this.kioskEntities.baseEntity = this.kioskEntities.baseEntity || new Entity("Claim Point Mid Section");

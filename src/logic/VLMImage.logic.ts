@@ -3,7 +3,7 @@ import { VLMImage } from "../components/VLMImage.component";
 export abstract class VLMImageManager {
   static init: CallableFunction = (images: VLMImage.VLMConfig[]) => {
     try {
-      if (!images) {
+      if (!images.length) {
         return;
       }
       images.forEach((image: VLMImage.VLMConfig) => {
@@ -16,9 +16,6 @@ export abstract class VLMImageManager {
 
   static create: CallableFunction = (config: VLMImage.VLMConfig) => {
     try {
-      if (!config.enabled) {
-        return;
-      }
       new VLMImage.DCLConfig(config);
     } catch (error) {
       throw error;
@@ -39,41 +36,40 @@ export abstract class VLMImageManager {
 
   static update: CallableFunction = (config: VLMImage.VLMConfig | any, property: string, id: string) => {
     try {
-      const image: VLMImage.DCLConfig = VLMImage.configs[config.sk || id];
+      const storedConfig: VLMImage.DCLConfig = VLMImage.configs[config.sk || id];
 
-      if (!config || (!image && !config.enabled)) {
+      if (!config || (!storedConfig && !config.enabled)) {
         return;
-      } else if (!image && config.enabled) {
-        new VLMImage.DCLConfig(config);
+      } else if (!storedConfig && config.enabled) {
+        this.create(config)
+        return this.update(config, property, id);
       }
 
       switch (property) {
         case "enabled":
           if (!config.enabled) {
             this.remove(config.sk);
-          } else if (image) {
+          } else if (storedConfig) {
             this.add(config.sk);
-          } else {
-            new VLMImage.DCLConfig(config);
           }
           break;
         case "imageSrc":
-          image.updateTexture(config);
+          storedConfig.updateTexture(config);
           break;
         case "emission":
-          image.emissiveIntensity = config.emission;
+          storedConfig.emissiveIntensity = config.emission;
           break;
         case "clickEvent":
-          image.updateClickEvent(config.clickEvent);
+          storedConfig.updateClickEvent(config.clickEvent);
           break;
         case "isTransparent":
-          image.updateTransparency(config.isTransparent);
+          storedConfig.updateTransparency(config.isTransparent);
           break;
         case "parent":
-          image.updateParent(config.parent);
+          storedConfig.updateParent(config.parent);
           break;
         case "customId":
-          image.updateCustomId(config.customId);
+          storedConfig.updateCustomId(config.customId);
           break;
       }
     } catch (error) {

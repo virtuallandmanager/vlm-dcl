@@ -6,7 +6,7 @@ export abstract class VLMNFTManager {
 
   static init: CallableFunction = (nftFrames: VLMNFT.DCLConfig[]) => {
     try {
-      if (!nftFrames) {
+      if (!nftFrames.length) {
         return;
       }
       nftFrames.forEach((nftFrame: VLMNFT.DCLConfig) => {

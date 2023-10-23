@@ -47,9 +47,9 @@ export namespace VLMImage {
         this.isTransparent = config.isTransparent;
         this.clickEvent = config.clickEvent;
 
-        configs[this.sk] = this;
         this.updateTexture(config);
 
+        configs[this.sk] = this;
         if (this.customId) {
           configs[this.customId] = configs[this.sk];
         }
@@ -284,12 +284,7 @@ export namespace VLMImage {
         this.addComponentOrReplace(config);
         this.updateTransform(this.position, this.scale, this.rotation);
         this.updateDefaultClickEvent(config.clickEvent);
-
-        if (this.parent && this.enabled && !this.customRendering) {
-          this.updateParent(this.parent);
-        } else if (this.enabled) {
-          this.add();
-        }
+        this.add();
 
         if (this.customId) {
           instances[this.customId] = instances[this.sk];
@@ -301,11 +296,13 @@ export namespace VLMImage {
 
     add: CallableFunction = () => {
       try {
-        if (this.isAddedToEngine()) {
+        if (this.isAddedToEngine() || this.customRendering || !configs[this.configId].enabled || !this.enabled) {
           return;
-        } else if (this.parent) {
+        }
+        
+        if (this.parent) {
           this.updateParent(this.parent);
-        } else {
+        } else if (this.enabled) {
           engine.addEntity(this);
         }
       } catch (error) {
