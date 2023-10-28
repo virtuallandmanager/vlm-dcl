@@ -121,7 +121,11 @@ export namespace VLMSound {
       if (!includes(this.instanceIds, config.sk)) {
         this.instanceIds.push(config.sk);
       }
-      new DCLInstanceConfig(this, config);
+      if (!instances[config.sk]) {
+        new DCLInstanceConfig(this, config);
+      } else {
+        instances[config.sk].init(this, config);
+      }
     };
 
     removeInstance: CallableFunction = (instanceId: string) => {

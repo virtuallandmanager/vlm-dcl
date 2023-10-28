@@ -1,6 +1,7 @@
 import { getEntityByName } from "../shared/entity";
 import { VLMBase } from "./VLMBaseConfig.component";
 import { SimpleTransform, Transformable } from "../shared/interfaces";
+import { includes } from "../utils";
 
 export namespace VLMNFT {
   export const configs: { [uuid: string]: DCLConfig } = {};
@@ -22,6 +23,10 @@ export namespace VLMNFT {
 
     constructor(config: VLMConfig) {
       super(config);
+      this.init(config);
+    }
+
+    init: CallableFunction = (config: VLMConfig) => {
       this.chain = this.getChainName(config.chain);
       this.nftLink = `${this.chain}://${config.contractAddress}/${config.tokenId}`;
       if (config.color) {
@@ -46,7 +51,7 @@ export namespace VLMNFT {
           this.createInstance(instance);
         });
       }
-    }
+    };
 
     updateNft: CallableFunction = (nftConfig: VLMConfig) => {
       let chain = this.getChainName(nftConfig.chain);
@@ -129,12 +134,14 @@ export namespace VLMNFT {
     };
 
     createInstance: CallableFunction = (config: VLMInstanceConfig) => {
-      this.instanceIds.push(config.sk);
-      instances[config.sk] = new DCLInstanceConfig(this, config);
-      if (config.customId) {
-        instances[config.customId] = instances[config.sk];
+      if (!includes(this.instanceIds, config.sk)) {
+        this.instanceIds.push(config.sk);
       }
-      instances[config.sk].add();
+      if (!instances[config.sk]) {
+        new DCLInstanceConfig(this, config);
+      } else {
+        instances[config.sk].init(this, config);
+      }
     };
 
     deleteInstance: CallableFunction = (instanceId: string) => {
@@ -174,10 +181,14 @@ export namespace VLMNFT {
     config: DCLConfig;
 
     constructor(config: DCLConfig, instance: VLMInstanceConfig) {
+      super(config, instance);
+      this.init(config, instance);
+    }
+
+    init: CallableFunction = (config: DCLConfig, instance: VLMInstanceConfig) => {
       let color = config.color;
       let style = config.style;
       const shape = new NFTShape(config.nftLink, { color: color as Color3, style });
-      super(config, instance);
       this.sk = instance.sk;
       this.customId = instance.customId;
       this.parent = instance.parent;

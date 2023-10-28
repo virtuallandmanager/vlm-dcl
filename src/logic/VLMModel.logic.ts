@@ -3,6 +3,7 @@ import { VLMModel } from "../components/VLMModel.component";
 export abstract class VLMModelManager {
   static init: CallableFunction = (models: VLMModel.VLMConfig[]) => {
     try {
+      log("VLM - Initializing Models", models)
       if (!models) {
         return;
       }

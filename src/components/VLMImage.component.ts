@@ -197,9 +197,10 @@ export namespace VLMImage {
       if (!includes(this.instanceIds, config.sk)) {
         this.instanceIds.push(config.sk);
       }
-      new DCLInstanceConfig(this, config);
-      if (config.customId) {
-        instances[config.customId] = instances[config.sk];
+      if (!instances[config.sk]) {
+        new DCLInstanceConfig(this, config);
+      } else {
+        instances[config.sk].init(this, config);
       }
     };
 
@@ -256,7 +257,7 @@ export namespace VLMImage {
       this.init(config, instance)
     }
 
-    private init: CallableFunction = (config: DCLConfig, instance: VLMInstanceConfig) => {
+    init: CallableFunction = (config: DCLConfig, instance: VLMInstanceConfig) => {
       try {
         this.sk = instance?.sk;
         this.customId = instance?.customId;
@@ -299,7 +300,7 @@ export namespace VLMImage {
         if (this.isAddedToEngine() || this.customRendering || !configs[this.configId].enabled || !this.enabled) {
           return;
         }
-        
+
         if (this.parent) {
           this.updateParent(this.parent);
         } else if (this.enabled) {

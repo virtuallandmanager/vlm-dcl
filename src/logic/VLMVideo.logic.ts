@@ -7,11 +7,12 @@ export abstract class VLMVideoManager {
         return;
       }
       videoScreens.forEach((videoScreen: VLMVideo.VLMConfig) => {
-        const existing = VLMVideo.configs[videoScreen.sk];
+        const existing = VLMVideo.configs[videoScreen?.sk];
         if (existing) {
-          existing.delete();
+          existing.init();
+        } else {
+          this.create(videoScreen);
         }
-        this.create(videoScreen);
 
       });
     } catch (error) {
@@ -29,9 +30,6 @@ export abstract class VLMVideoManager {
 
   static createInstance: CallableFunction = (config: VLMVideo.DCLConfig, instance: VLMVideo.VLMConfig) => {
     try {
-      if (!config.enabled || !instance.enabled) {
-        return;
-      }
       const videoId = config.sk;
       VLMVideo.configs[videoId].createInstance(instance);
     } catch (error) {
@@ -41,7 +39,7 @@ export abstract class VLMVideoManager {
 
   static update: CallableFunction = (config: VLMVideo.VLMConfig, property: string, id: string) => {
     try {
-      const storedConfig: VLMVideo.DCLConfig = VLMVideo.configs[id || config.sk];
+      const storedConfig: VLMVideo.DCLConfig = VLMVideo.configs[config.sk];
 
       if (!config || (!storedConfig && !config.enabled)) {
         return;
@@ -53,15 +51,16 @@ export abstract class VLMVideoManager {
       switch (property) {
         case "enabled":
           if (!config.enabled) {
-            this.remove(config.sk);
+            this.remove(config?.sk);
           } else if (storedConfig) {
-            this.add(config.sk);
+            this.add(config?.sk);
           }
           break;
         case "liveSrc":
           storedConfig.liveSrc = config.liveSrc;
           break;
         case "enableLiveStream":
+          log("enableLiveStream", config.enableLiveStream, config);
           storedConfig.updateOnAirState(config.enableLiveStream);
           break;
         case "playlist":
@@ -133,7 +132,7 @@ export abstract class VLMVideoManager {
           instance.updateCustomRendering(instanceConfig.customRendering);
           break;
         case "withCollider":
-          instance.updateCollider(instanceConfig);
+          instance.updateCollider(instanceConfig.withCollisions);
           break;
         case "clickEvent":
           instance.updateClickEvent(instanceConfig.clickEvent);

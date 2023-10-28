@@ -25,6 +25,7 @@ export abstract class VLMSceneManager {
 
   static initScenePreset: CallableFunction = (message: VLMSceneMessage) => {
     try {
+      log("VLM - Initializing Scene", message);
       const scenePreset = message.scenePreset;
       const sceneSettings = message.sceneSettings;
       VLMModelManager.init(scenePreset.models);

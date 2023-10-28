@@ -42,7 +42,9 @@ export class VLMPathManager implements ISystem {
   static finished: boolean = false;
   static loading: boolean = true;
   static counter: number = 0;
+  static updateCounter: number = 0;
   static delay: number = 1;
+  static updateDelay: number = 30;
   static playerPosition?: PositionType;
   static playerRotation?: PositionType;
   static cameraPosition?: PositionType;
@@ -122,14 +124,14 @@ export class VLMPathManager implements ISystem {
       }
 
       // make a stationary segment into a movement segment if the user moves within the first second of changing to stationary
-      if (debounced < 2500 && segmentType && segmentType >= VLMSession.Path.SegmentType.RUNNING_DISENGAGED && lastSegment.type && lastSegment.type < VLMSession.Path.SegmentType.RUNNING_DISENGAGED) {
+      if (debounced < 2500 && segmentType && segmentType >= VLMSession.Path.SegmentType.RUNNING_DISENGAGED && lastSegment?.type && latestSegment?.type && lastSegment.type < VLMSession.Path.SegmentType.RUNNING_DISENGAGED) {
         latestSegment.type = segmentType;
         this.dbLog("VLM PATH TRACKING - CHANGED SEGMENT TYPE - STARTED MOVING");
         return;
       }
 
       // merge into the previous segment if we've coverted a new segment back to the same type
-      if (lastSegment && latestSegment.type === lastSegment.type) {
+      if (lastSegment && latestSegment && latestSegment.type === lastSegment.type) {
         lastSegment.path = [...lastSegment.path, ...latestSegment.path];
         this.pathSegments.shift();
         this.dbLog("VLM PATH TRACKING - MERGED IDENTICAL SEGMENTS");
@@ -169,7 +171,7 @@ export class VLMPathManager implements ISystem {
       latestSegment.path.push(newPathPoint);
       const newSegment = new VLMSession.Path.Segment({ type, path: [newPathPoint] });
       this.pathSegments.unshift(newSegment);
-      if (!this.addingPaths && this.pathSegments?.length >= 25 || thousandPointPaths) {
+      if (!this.addingPaths && this.updateCounter >= this.updateDelay || this.pathSegments?.length >= 25 || thousandPointPaths) {
         this.dbLog("VLM PATH TRACKING - SUBMITTING A BATCH OF PATH SEGMENTS");
         this.addingPaths = true;
         VLMEventManager.events.fireEvent(new VLMPathClientEvent({ action: "path_segments_add", pathId: this.pathId, pathSegments: this.pathSegments }));
@@ -187,12 +189,13 @@ export class VLMPathManager implements ISystem {
       this.dbLog("VLM PATH TRACKING - " + message.added + " PATH SEGMENTS TRIMMED ")
     }
     this.addingPaths = false;
+    this.updateCounter = 0;
   };
 
-  static getPathPoint: CallableFunction = (firstPoint: boolean) => {
+  static getPathPoint: CallableFunction = (firstPoint: boolean): PathPoint => {
     this.approximatePathPoint();
     const offset = firstPoint ? 0 : Date.now() - (this.sessionData?.sessionStart || 0);
-    const newPathPoint = [offset, this.playerPosition?.x, this.playerPosition?.y, this.playerPosition?.z, this.cameraRotation?.x, this.cameraRotation?.y, this.cameraRotation?.z, this.pov];
+    const newPathPoint: PathPoint = [offset, this.playerPosition?.x || null, this.playerPosition?.y || null, this.playerPosition?.z || null, this.cameraRotation?.x || null, this.cameraRotation?.y || null, this.cameraRotation?.z || null, this.pov];
     this.dbLog("VLM PATH TRACKING - NEW PATH POINT \n" + JSON.stringify(newPathPoint));
     return newPathPoint
   };
@@ -244,8 +247,8 @@ export class VLMPathManager implements ISystem {
     [playerPosition, cameraPosition, cameraRotation].forEach((obj: PositionType) => {
       Object.keys(obj).forEach(() => {
         obj.x = Number(obj.x.toFixed(2));
-        obj.y = Number(obj.x.toFixed(2));
-        obj.z = Number(obj.x.toFixed(2));
+        obj.y = Number(obj.y.toFixed(2));
+        obj.z = Number(obj.z.toFixed(2));
       });
     });
 
@@ -255,6 +258,10 @@ export class VLMPathManager implements ISystem {
   };
 
   static update(dt: number) {
+    if (this.updateCounter <= this.updateDelay) {
+      this.updateCounter += dt;
+    }
+
     if (this.counter <= this.delay) {
       this.counter += dt;
       return;

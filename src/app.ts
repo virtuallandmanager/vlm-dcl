@@ -35,7 +35,7 @@ export abstract class VLM {
    * @public
    */
   public static init: CallableFunction = async (config?: VLMInitConfig) => {
-
+    log("VLM - Initializing", config)
     return new Promise(async (resolve, reject) => {
       onSceneReadyObservable.addOnce(async () => {
         try {
@@ -125,29 +125,29 @@ export abstract class VLM {
 
 export type VLMStorage = {
   video: {
-    configs: VLMVideo.DCLConfig[],
-    instances: VLMVideo.DCLInstanceConfig[],
-    systems: VLMVideo.VLMVideoSystem
+    configs: { [customId: string]: VLMVideo.DCLConfig },
+    instances: { [customId: string]: VLMVideo.DCLInstanceConfig },
+    systems: { [customId: string]: VLMVideo.VLMVideoPlaylistSystem }
   },
   image: {
-    configs: VLMImage.DCLConfig[],
-    instances: VLMImage.DCLInstanceConfig[]
+    configs: { [customId: string]: VLMImage.DCLConfig },
+    instances: { [customId: string]: VLMImage.DCLInstanceConfig }
   },
   models: {
-    configs: VLMModel.DCLConfig[],
-    instances: VLMModel.DCLInstanceConfig[]
+    configs: { [customId: string]: VLMModel.DCLConfig },
+    instances: { [customId: string]: VLMModel.DCLInstanceConfig }
   },
   nft: {
-    configs: VLMNFT.DCLConfig[],
-    instances: VLMNFT.DCLInstanceConfig[]
+    configs: { [customId: string]: VLMNFT.DCLConfig },
+    instances: { [customId: string]: VLMNFT.DCLInstanceConfig }
   },
   sound: {
-    configs: VLMSound.DCLConfig[],
-    instances: VLMSound.DCLInstanceConfig[],
-    systems: VLMSound.DCLSoundSystem[]
+    configs: { [customId: string]: VLMSound.DCLConfig },
+    instances: { [customId: string]: VLMSound.DCLInstanceConfig },
+    systems: { [customId: string]: VLMSound.DCLSoundSystem }
   },
   widget: {
-    configs: VLMWidget.DCLConfig[];
+    configs: { [customId: string]: VLMWidget.DCLConfig };
   }
 };
 

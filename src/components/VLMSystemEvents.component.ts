@@ -1,5 +1,6 @@
 import { VLMSessionManager } from "../logic/VLMSession.logic";
 import { VLMSceneElement, VLMSceneElementInstance } from "../logic/VLMScene.logic";
+import { PathPoint } from "../logic/VLMPath.logic";
 import { VLMModeration } from "./VLMModeration.component";
 import { VLMNotification } from "./VLMNotification.component";
 import { VLMScene } from "./VLMScene.component";
@@ -32,6 +33,16 @@ export class VLMUserMessage {
     this.type = config.type;
     this.data = config.data;
     this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
+  }
+}
+
+@EventConstructor()
+export class VLMPlayerPosition {
+  positionData: PathPoint;
+  userId: string;
+  constructor(config: VLMPlayerPosition) {
+    this.positionData = config.positionData;
+    this.userId = config.userId;
   }
 }
 

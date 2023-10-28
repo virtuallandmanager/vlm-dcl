@@ -1,4 +1,4 @@
-import { VLMClaimEvent, VLMEmoteAction, VLMPathClientEvent, VLMPathServerEvent, VLMSceneMessage, VLMSessionAction, VLMSessionEvent, VLMSettingsEvent, VLMSoundStateEvent, VLMUserMessage, VLMVideoStatusEvent, VLMWidgetInitEvent, VLMWitnessedAction } from "../components/VLMSystemEvents.component";
+import { VLMClaimEvent, VLMEmoteAction, VLMPathClientEvent, VLMPathServerEvent, VLMPlayerPosition, VLMSceneMessage, VLMSessionAction, VLMSessionEvent, VLMSettingsEvent, VLMSoundStateEvent, VLMUserMessage, VLMVideoStatusEvent, VLMWidgetInitEvent, VLMWitnessedAction } from "../components/VLMSystemEvents.component";
 import { VLMEventManager } from "./VLMSystemEvents.logic";
 import { Room } from "colyseus.js";
 import { VLMSceneManager } from "./VLMScene.logic";
@@ -219,6 +219,7 @@ export abstract class VLMEventListeners {
       });
 
       VLMEventManager.events.addListener(VLMSceneMessage, null, (message: VLMSceneMessage) => {
+        log("VLM - SCENE MESSAGE RECEIVED", message);
         switch (message.action) {
           case "init":
             VLMSceneManager.initScenePreset(message);
@@ -237,8 +238,9 @@ export abstract class VLMEventListeners {
       });
 
       VLMEventManager.events.addListener(VLMVideoStatusEvent, null, (message: VLMVideoStatusEvent) => {
-        const videoId = message.sk;
+        const videoId = message?.sk;
         if (!videoId) {
+          log("VLM - VIDEO STATE CHANGED - NO VIDEO ID", message)
           return;
         }
 
@@ -312,6 +314,7 @@ export abstract class VLMEventListeners {
       });
 
       this.sceneRoom.onMessage("scene_preset_update", (message: VLMSceneMessage) => {
+        log("Scene Preset Updated!", message);
         if (message.action) {
           VLMEventManager.events.fireEvent(new VLMSceneMessage(message));
         }
@@ -339,6 +342,11 @@ export abstract class VLMEventListeners {
       this.sceneRoom.onMessage("giveaway_claim_response", (message: VLMClaimEvent) => {
         log("Claim response received", message);
         VLMEventManager.events.fireEvent(new VLMClaimEvent({ action: "giveaway_claim_response", ...message }));
+      });
+
+      this.sceneRoom.onMessage("request_player_position", (message: VLMPlayerPosition) => {
+        log("Player Position Requested", message);
+        this.sceneRoom.send("send_player_position", { positionData: VLMPathManager.getPathPoint(), userId: this.sessionUser?.sk });
       });
 
       this.sceneRoom.send("session_start", this.sessionData);
