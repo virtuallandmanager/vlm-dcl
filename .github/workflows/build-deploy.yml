@@ -1,8 +1,8 @@
 on:
   push:
     branches:
-      - master
-      - main
+      - sdk6
+      - sdk7
   pull_request:
   release:
     types:
@@ -14,18 +14,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
+
       - name: install
         run: npm install
+
       - name: build
         run: npm run build
-      - name: Publish
+
+      - name: Set custom-tag for sdk6
+        if: github.ref == 'refs/heads/sdk6'
+        run: echo "CUSTOM_TAG=sdk6" >> $GITHUB_ENV
+
+      - name: Set custom-tag for sdk7
+        if: github.ref == 'refs/heads/sdk7'
+        run: echo "CUSTOM_TAG=sdk7" >> $GITHUB_ENV
+
+      - name: Publish with custom-tag
         uses: menduz/oddish-action@master
         with:
-          # cwd: ./dist
           access: public
+          custom-tag: ${{ env.CUSTOM_TAG }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish sdk7 as latest
+        if: github.ref == 'refs/heads/sdk7'
+        uses: menduz/oddish-action@master
+        with:
+          access: public
+          custom-tag: latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
