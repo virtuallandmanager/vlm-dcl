@@ -1,98 +1,62 @@
-import { getEntityByName } from "../shared/entity";
-import { SimpleTransform, Transformable } from "../shared/interfaces";
+import { Schemas, engine } from "@dcl/sdk/ecs";
 
 export namespace VLMBase {
-  export class MaterialConfig extends Material {
-    sk?: string;
-    enabled?: boolean;
-    name?: string;
-    customId?: string;
-    parent?: string;
-    customRendering?: boolean;
 
-    constructor(config: MaterialConfig) {
-      super();
-      this.sk = config.sk;
-      this.customId = config.customId;
-      this.parent = config.parent;
-      this.enabled = config.enabled || true;
-    }
-  }
+  /*
+  * @public
+  * VLM Base Config: A base config for all VLM components
+  * 
+  * Configs are used to define properties shared by multiple instances, such as materials, textures, files, etc.
+  * 
+  * @param id - the id of the config - a unique number id used by DCL's SDK
+  * @param sk - the sk of the config - a unique UUID used by VLM servers
+  * @param enabled - enables or disables the component and all of its instances
+  * @param parent - the parent component for all instances that use this config
+  * @param customId - the customId of the config - used for manual control of the config, such as custom rendering
+  * @param customRendering - disables the default rendering of the component so that it can be rendered manually in code
+  * @param name - the name of the component
+  * 
+  */
+  export const Config = engine.defineComponent(
+    "VLMBaseConfig",
+    {
+      id: Schemas.Number,
+      sk: Schemas.String,
+      enabled: Schemas.Boolean,
+      parent: Schemas.String,
+      customId: Schemas.String,
+      customRendering: Schemas.Boolean,
+      name: Schemas.String,
+    });
 
-  export class NFTConfig extends NFTShape {
-    sk: string;
-    enabled: boolean;
-    name: string;
-    contractAddress?: string;
-    tokenId?: string;
-    customId?: string;
-    parent?: string;
-    customRendering?: boolean;
+  /*
+  * @public
+  * VLM Base Instance: A base instance config for all VLM components
+  * 
+  * Instances get shared properties from a config while defining their own unique properties, such as position, rotation, scale, etc.
+  * 
+  * @param id - the id of the config - a unique number id used by DCL's SDK
+  * @param sk - the sk of the config - a unique UUID used by VLM servers
+  * @param enabled - enables or disables the component and all of its instances
+  * @param parent - the parent component for all instances that use this config
+  * @param customId - the customId of the config - used for manual control of the config, such as custom rendering
+  * @param customRendering - disables the default rendering of the component so that it can be rendered manually in code
+  * @param name - the name of the component
+  * 
+  */
 
-    constructor(config: NFTConfig) {
-      const src = `ethereum://${config.contractAddress}/${config.tokenId}`;
-      super(src);
-      this.sk = config.sk;
-      this.customId = config.customId;
-      this.name = config.name;
-      this.parent = config.parent;
-      this.enabled = config.enabled || true;
-    }
-  }
-
-  export class AudioConfig {
-    sk: string;
-    enabled: boolean;
-    name: string;
-    customId?: string;
-    liveStreamUrl?: string;
-    parent?: string;
-    customRendering?: boolean;
-
-    constructor(config: AudioConfig) {
-      this.sk = config.sk;
-      this.customId = config.customId;
-      this.parent = config.parent;
-      this.name = config.name;
-      this.enabled = config.enabled || true;
-    }
-  }
-
-  export class Instance extends Entity implements Transformable {
-    sk: string;
-    enabled?: boolean;
-    name?: string;
-    customId?: string;
-    customRendering?: boolean;
-    configId: string;
-    parent?: string;
-    position: SimpleTransform;
-    rotation: SimpleTransform;
-    scale: SimpleTransform;
-
-    constructor(config: MaterialConfig | AudioConfig, instance: Instance) {
-      const id = instance.sk;
-      super(instance?.customId || instance?.name);
-      this.sk = id;
-      this.name = instance.name;
-      this.enabled = config.enabled || instance.enabled;
-      this.customId = instance.customId;
-      this.customRendering = instance.customRendering;
-      this.configId = instance?.configId || config.sk;
-      this.parent = instance.parent;
-      this.position = instance.position;
-      this.rotation = instance.rotation;
-      this.scale = instance.scale;
-    }
-
-    updateParent: CallableFunction = (parent: string) => {
-      if (parent) {
-        this.parent = parent;
-        const instanceParent = getEntityByName(parent);
-        this.setParent(instanceParent);
-      } else {
-        this.setParent(null);
-      }
-    };
-  }
+  export const Instance = engine.defineComponent(
+    "VLMBaseInstance",
+    {
+      id: Schemas.Number,
+      sk: Schemas.String,
+      enabled: Schemas.Boolean,
+      parent: Schemas.String,
+      customId: Schemas.String,
+      customRendering: Schemas.Boolean,
+      name: Schemas.String,
+      position: Schemas.Vector3,
+      rotation: Schemas.Vector3,
+      scale: Schemas.Vector3,
+    });
 }

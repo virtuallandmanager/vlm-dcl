@@ -25,7 +25,7 @@ export abstract class VLMSceneManager {
 
   static initScenePreset: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      log("VLM - Initializing Scene", message);
+      console.log("VLM - Initializing Scene", message);
       const scenePreset = message.scenePreset;
       const sceneSettings = message.sceneSettings;
       VLMModelManager.init(scenePreset.models);
@@ -43,7 +43,7 @@ export abstract class VLMSceneManager {
 
 
       if (sceneSettings?.moderation) {
-        log("VLM - Moderation Settings", sceneSettings.moderation)
+        console.log("VLM - Moderation Settings", sceneSettings.moderation)
         this.updateSceneSetting({ setting: "moderation", settingData: sceneSettings.moderation });
       }
 
@@ -116,7 +116,7 @@ export abstract class VLMSceneManager {
 
   static updateSceneElement: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      log(`VLM VLMScene.logic updateSceneElement`, message)
+      console.log(`VLM VLMScene.logic updateSceneElement`, message)
       if (message.instance) {
         return this.updateSceneElementInstance(message);
       } else if (message.setting) {
@@ -142,7 +142,7 @@ export abstract class VLMSceneManager {
           VLMWidgetManager.update(message.elementData, message.user);
           break;
         case "claimpoint":
-          log("VLM - Update Claim Point", message.elementData)
+          console.log("VLM - Update Claim Point", message.elementData)
           VLMClaimPointManager.update(message.elementData, message.property, message.id);
           break;
       }
@@ -153,7 +153,7 @@ export abstract class VLMSceneManager {
 
   static updateSceneSetting: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      log(`VLM VLMScene.logic updateSceneSetting`, message)
+      console.log(`VLM VLMScene.logic updateSceneSetting`, message)
       if (!message?.settingData) return;
       switch (message.setting) {
         case "localization":

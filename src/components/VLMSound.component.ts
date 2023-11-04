@@ -70,7 +70,7 @@ export namespace VLMSound {
           this.createInstance(instance);
         });
       } catch (e) {
-        log("VLM: Error creating sound config");
+        console.log("VLM: Error creating sound config");
         throw e;
       }
     };
@@ -138,7 +138,7 @@ export namespace VLMSound {
     };
 
     addInstance: CallableFunction = (instanceId: string) => {
-      log(VLMSound.instances[instanceId])
+      console.log(VLMSound.instances[instanceId])
       VLMSound.instances[instanceId].add();
     };
 
@@ -238,7 +238,7 @@ export namespace VLMSound {
 
     toggleLocators: CallableFunction = () => {
       try {
-        log("VLM - Toggle Locators")
+        console.log("VLM - Toggle Locators")
         if (this.sourceType === SourceType.STREAM) {
           return;
         }

@@ -24,11 +24,11 @@ export abstract class VLMEnvironment {
         env = "prod";
       }
 
-      log(`VLM: Initializing ${env} environment`);
+      console.log(`VLM: Initializing ${env} environment`);
       this.apiUrl = this.apiUrls[env];
-      log("VLM: HTTPS Server set to " + this.apiUrl);
+      console.log("VLM: HTTPS Server set to " + this.apiUrl);
       this.wssUrl = this.wssUrls[env];
-      log("VLM: WebSocket Server set to " + this.wssUrl);
+      console.log("VLM: WebSocket Server set to " + this.wssUrl);
     } catch (error) {
       throw error;
     }

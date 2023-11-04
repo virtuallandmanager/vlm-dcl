@@ -70,7 +70,7 @@ export abstract class VLMClaimPointManager {
     if (!VLMNotificationManager.initialized) {
       VLMNotificationManager.init();
     }
-    log(response)
+    console.log(response)
     const claimPoint = VLMClaimPoint.configs[response.sk],
       messageOptions = claimPoint.messageOptions || null;
     if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_ACCEPTED) {

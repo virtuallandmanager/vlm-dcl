@@ -1,8 +1,8 @@
+import { Entity, Transform, engine } from '@dcl/sdk/ecs'
 import messages from "../messages/giveaway";
 import { VLMNotificationManager } from "../logic/VLMNotification.logic";
 import { VLMNotification } from "./VLMNotification.component";
 import { VLMSessionManager } from "../logic/VLMSession.logic";
-import { VLMClaimEvent } from "./VLMSystemEvents.component";
 import { VLMEventManager } from "../logic/VLMSystemEvents.logic";
 import { SimpleTransform } from "../shared/interfaces";
 import { getEntityByName } from "../shared/entity";
@@ -10,17 +10,17 @@ import { getModelPath } from "../shared/paths";
 
 export namespace VLMClaimPoint {
   export const configs: { [uuid: string]: VLMClaimPoint.DCLConfig } = {};
-  export class DCLConfig extends Entity {
-    sk?: string;
+  export class DCLConfig {
+    sk: string;
     enabled?: boolean = true;
     itemId?: string;
     customId?: string;
     customRendering?: boolean;
     parent?: string;
-    properties?: ClaimPointProperties = {};
-    position: { x: number; y: number; z: number };
-    scale: { x: number; y: number; z: number };
-    rotation: { x: number; y: number; z: number };
+    properties: ClaimPointProperties = {};
+    position?: { x: number; y: number; z: number };
+    scale?: { x: number; y: number; z: number };
+    rotation?: { x: number; y: number; z: number };
     modelSrc?: string;
     imgSrc?: string;
     hoverText?: string;
@@ -29,24 +29,24 @@ export namespace VLMClaimPoint {
     requestInProgress: boolean = false;
     giveawayId?: string;
     messageOptions?: VLMNotification.MessageOptions;
-    claimItemEntity?: Entity = new Entity("Giveaway Item");
+    mainEntity?: Entity;
+    claimItemEntity?: Entity = engine.addEntity();
     kioskEntities: { [uuid: string]: Entity } = {};
 
     constructor(config: Partial<VLMConfig>) {
-      super(config.name || "Claim Point");
-      log("Claim Point Config", config)
-      this.sk = config?.sk;
+      console.log("Claim Point Config", config)
+      this.sk = config.sk || "";
       this.init(config);
     }
 
     init: CallableFunction = (config: Partial<VLMConfig>) => {
-      this.sk = config?.sk;
+      this.sk = config.sk || "";
       this.enabled = config?.enabled;
       this.customId = config?.customId;
       this.customRendering = config?.customRendering;
       this.messageOptions = config?.messageOptions || { color: "white", fontSize: 12, delay: 5 };
       this.parent = config?.parent;
-      this.properties = config?.properties;
+      this.properties = config.properties || this.properties;
       this.position = config?.position;
       this.scale = config?.scale;
       this.rotation = config?.rotation;
@@ -69,7 +69,7 @@ export namespace VLMClaimPoint {
 
       this.generateClaimItem();
 
-      if (this.properties.enableKiosk && this.properties.type < ClaimPointType.MANNEQUIN) {
+      if (this.properties && this.properties.enableKiosk && this.properties.type && this.properties.type < ClaimPointType.MANNEQUIN) {
         this.generateStandardBooth();
       } else {
         this.generateMannequinBooth();
@@ -82,13 +82,14 @@ export namespace VLMClaimPoint {
 
     add: CallableFunction = () => {
       try {
-        if (this.isAddedToEngine() || this.customRendering || !this.enabled) {
+        const exists = engine.getEntityOrNullByName(this.sk);
+        if (exists || this.customRendering || !this.enabled) {
           return;
         }
         if (this.parent) {
           this.updateParent(this.parent);
         } else {
-          engine.addEntity(this);
+          this.mainEntity = engine.addEntity();
         }
       } catch (error) {
         throw error;
@@ -97,10 +98,13 @@ export namespace VLMClaimPoint {
 
     updateParent: CallableFunction = (parent: string) => {
       try {
-        if (parent) {
+        if (this.mainEntity && parent) {
           this.parent = parent;
           const instanceParent = configs[parent] || getEntityByName(parent);
           this.setParent(instanceParent); //// SDK SPECIFIC ////
+          Transform.create(this.mainEntity, {
+            parent: instanceParent,
+          })
         } else {
           this.setParent(null); //// SDK SPECIFIC ////
         }
@@ -123,7 +127,7 @@ export namespace VLMClaimPoint {
 
     remove: CallableFunction = () => {
       try {
-        if (this.isAddedToEngine()) {
+        if (engine.getEntityOrNullByName(this.sk)) {
           engine.removeEntity(this);
         }
       } catch (error) {
@@ -356,7 +360,7 @@ export namespace VLMClaimPoint {
     claim: CallableFunction = async () => {
       const sk = this.sk
       const giveawayId = this.giveawayId;
-      log(sk, giveawayId);
+      console.log(sk, giveawayId);
       if (!VLMSessionManager.sessionUser.hasConnectedWeb3) {
         VLMNotificationManager.addMessage(messages.noWallet);
         return;
@@ -367,15 +371,15 @@ export namespace VLMClaimPoint {
       this.requestInProgress = true;
 
       VLMNotificationManager.addMessage(messages.claimSubmitted);
-      log(sk, giveawayId)
-      VLMEventManager.events.fireEvent(new VLMClaimEvent({ action: "giveaway_claim", giveawayId, sk: sk || "" }));
+      console.log(sk, giveawayId)
+      VLMEventManager.events.emit('VLMClaimEvent', { action: "giveaway_claim", giveawayId, sk: sk || "" });
     };
   }
 
   export class VLMConfig extends DCLConfig { }
 
   export interface ClaimResponse {
-    sk?: string;
+    sk: string;
     giveawayId?: string;
     responseType?: ClaimResponseType;
     reason?: ClaimRejection;

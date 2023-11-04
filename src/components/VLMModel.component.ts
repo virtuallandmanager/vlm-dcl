@@ -165,7 +165,7 @@ export namespace VLMModel {
 
     deleteInstance: CallableFunction = (instanceId: string) => {
       try {
-        log("VLM - DELETING INSTANCE - Step 4", instanceId)
+        console.log("VLM - DELETING INSTANCE - Step 4", instanceId)
         this.instanceIds = this.instanceIds.filter((id: string) => id !== instanceId);
         instances[instanceId].delete();
       } catch (error) {
@@ -228,7 +228,7 @@ export namespace VLMModel {
         this.clickEvent = instance?.clickEvent;
         this.defaultClickEvent = config?.clickEvent;
         instances[this.sk] = this;
-        log("VLM - CREATING INSTANCE - Step 3", instances && instances[this.sk])
+        console.log("VLM - CREATING INSTANCE - Step 3", instances && instances[this.sk])
         const model = new GLTFShape(`${getModelPath()}${config.modelSrc}`);
         this.addComponentOrReplace(model);
         this.updateTransform(this.position, this.scale, this.rotation);

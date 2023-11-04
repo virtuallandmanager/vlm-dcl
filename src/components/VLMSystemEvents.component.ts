@@ -10,7 +10,7 @@ import { VLMVideo } from "./VLMVideo.component";
 import { VLMWidget } from "./VLMWidget.component";
 import { VLMClaimPoint } from "./VLMClaimPoint.component";
 
-@EventConstructor()
+
 export class VLMSystemEvent {
   action: "init" | "create" | "update" | "delete" | "trigger";
   element: "image" | "imageInstance" | "video" | "videoInstance" | "nft" | "nftInstance" | "sound" | "soundInstance" | "widget";
@@ -22,7 +22,7 @@ export class VLMSystemEvent {
   }
 }
 
-@EventConstructor()
+
 export class VLMUserMessage {
   id: string;
   type: "inbound" | "outbound" | "setState" | "getState";
@@ -36,7 +36,7 @@ export class VLMUserMessage {
   }
 }
 
-@EventConstructor()
+
 export class VLMPlayerPosition {
   positionData: PathPoint;
   userId: string;
@@ -46,7 +46,7 @@ export class VLMPlayerPosition {
   }
 }
 
-@EventConstructor()
+
 export class VLMWidgetInitEvent {
   configs: VLMWidget.VLMConfig[];
   constructor(configs: VLMWidget.VLMConfig[]) {
@@ -54,7 +54,7 @@ export class VLMWidgetInitEvent {
   }
 }
 
-@EventConstructor()
+
 export class VLMPathClientEvent {
   action: "path_start" | "path_segments_add" | "path_end";
   pathId?: string;
@@ -68,7 +68,7 @@ export class VLMPathClientEvent {
   }
 }
 
-@EventConstructor()
+
 export class VLMPathServerEvent {
   action: "path_started" | "path_segments_added";
   pathId?: string;
@@ -82,7 +82,7 @@ export class VLMPathServerEvent {
   }
 }
 
-@EventConstructor()
+
 export class VLMSessionEvent {
   session: VLMSession.Config;
   user: VLMSession.User;
@@ -92,7 +92,7 @@ export class VLMSessionEvent {
   }
 }
 
-@EventConstructor()
+
 export class VLMSoundStateEvent {
   action: "scene_sound_locators" = "scene_sound_locators";
   elementData: VLMSound.DCLConfig;
@@ -107,7 +107,7 @@ export class VLMSoundStateEvent {
   }
 }
 
-@EventConstructor()
+
 export class VLMSessionAction {
   action: string;
   metadata?: string;
@@ -119,7 +119,7 @@ export class VLMSessionAction {
   }
 }
 
-@EventConstructor()
+
 export class VLMEmoteAction {
   emote: string;
   constructor(emote: string) {
@@ -127,7 +127,7 @@ export class VLMEmoteAction {
   }
 }
 
-@EventConstructor()
+
 export class VLMWitnessedAction {
   action: string;
   witnessed: boolean;
@@ -139,11 +139,10 @@ export class VLMWitnessedAction {
   }
 }
 
-@EventConstructor()
 export class VLMClaimEvent implements VLMClaimPoint.ClaimResponse {
   action: "giveaway_claim" | "giveaway_claim_response";
   giveawayId: string;
-  sk?: string;
+  sk: string;
   messageOptions?: VLMNotification.MessageOptions;
   type?: VLMClaimPoint.ClaimResponseType;
   reason?: VLMClaimPoint.ClaimRejection;
@@ -158,7 +157,7 @@ export class VLMClaimEvent implements VLMClaimPoint.ClaimResponse {
   }
 }
 
-@EventConstructor()
+
 export class VLMVideoStatusEvent {
   action: "scene_video_status" = "scene_video_status";
   sceneId?: string;
@@ -173,10 +172,10 @@ export class VLMVideoStatusEvent {
   }
 }
 
-@EventConstructor()
+
 export class VLMSettingsEvent {
   action: "scene_settings_update" = "scene_settings_update";
-  settingData?: { settingValue: VLMModeration.VLMConfig };
+  settingData: { settingValue: VLMModeration.VLMConfig };
   constructor(config: VLMSettingsEvent) {
     this.settingData = config.settingData;
   }
@@ -187,7 +186,7 @@ type Action = "init" | "create" | "update" | "delete" | "trigger";
 type Setting = "localization" | "moderation" | "interoperability";
 type Property = "enabled" | "liveSrc" | "imageSrc" | "nftData" | "enableLiveStream" | "playlist" | "volume" | "emission" | "offType" | "offImage" | "transform" | "collider" | "parent" | "customId" | "clickEvent" | "transparency";
 
-@EventConstructor()
+
 export class VLMSceneMessage {
   action: Action;
   property?: Property;
@@ -218,7 +217,7 @@ export class VLMSceneMessage {
   }
 }
 
-@EventConstructor()
+
 export class VLMSceneInitEvent {
   constructor() {
   }

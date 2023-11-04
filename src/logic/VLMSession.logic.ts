@@ -1,7 +1,7 @@
 import { VLMEnvironment } from "../environment";
 import { signedFetch } from "@decentraland/SignedFetch";
 import { getCurrentRealm, getPlatform } from "@decentraland/EnvironmentAPI";
-import { UserData, getUserData } from "@decentraland/Identity";
+import { UserData, getUserData } from "~system/UserIdentity";
 import { VLMSession } from "../components/VLMSession.component";
 import { SceneJsonData, getParcel } from "@decentraland/ParcelIdentity";
 import { Client, Room } from "colyseus.js";
@@ -35,7 +35,7 @@ export abstract class VLMSessionManager {
       }
       return { sceneRoom: this.sceneRoom, sessionData: this.sessionData };
     } catch (error) {
-      log("VLM CONNECTION ERROR! :", error, this.sceneRoom);
+      console.log("VLM CONNECTION ERROR! :", error, this.sceneRoom);
       throw error;
     }
   };
@@ -82,8 +82,8 @@ export abstract class VLMSessionManager {
         ...session,
       });
 
-      log("VLM Connected!", sceneRoom);
-      log("VLM Session Data", this.sessionData)
+      console.log("VLM Connected!", sceneRoom);
+      console.log("VLM Session Data", this.sessionData)
 
       if (sceneRoom) {
         this.sceneRoom = sceneRoom;

@@ -1,4 +1,4 @@
-import { UserData } from "@decentraland/Identity";
+import { UserData } from "~system/UserIdentity";
 import { VLMEnvironment } from "./environment";
 import { VLMSessionManager } from "./logic/VLMSession.logic";
 import { VLMEventListeners } from "./logic/VLMSystemListeners.logic";
@@ -35,7 +35,7 @@ export abstract class VLM {
    * @public
    */
   public static init: CallableFunction = async (config?: VLMInitConfig) => {
-    log("VLM - Initializing", config)
+    console.log("VLM - Initializing", config)
     return new Promise(async (resolve, reject) => {
       onSceneReadyObservable.addOnce(async () => {
         try {
@@ -52,7 +52,7 @@ export abstract class VLM {
           await VLMNotificationManager.init();
           const session = await VLMSessionManager.start(VLM.version);
           if (!session?.sceneRoom) {
-            log("VLM INIT ERROR: Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file.")
+            console.log("VLM INIT ERROR: Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file.")
             resolve({ error: "Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file." });
             return;
           }

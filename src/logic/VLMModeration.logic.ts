@@ -126,7 +126,7 @@ export abstract class VLMModerationManager implements ISystem {
     } else {
       this.timer = 0;
     }
-    log('updating moderation')
+    console.log('updating moderation')
     if (this.crashUser) {
       return this.crash(dt)
     }
@@ -139,11 +139,11 @@ export abstract class VLMModerationManager implements ISystem {
   }
 
   public static setCrashUser: CallableFunction = (user: { connectedWallet: string, displayName: string }) => {
-    log(VLMSessionManager.sessionUser.connectedWallet, user.connectedWallet)
-    log(VLMSessionManager.sessionUser.displayName, user.displayName)
-    log(VLMSessionManager.sessionUser.connectedWallet == user.connectedWallet)
-    log(VLMSessionManager.sessionUser.displayName == user.displayName)
-    log(VLMSessionManager.sessionUser.connectedWallet == user.connectedWallet || VLMSessionManager.sessionUser.displayName == user.displayName)
+    console.log(VLMSessionManager.sessionUser.connectedWallet, user.connectedWallet)
+    console.log(VLMSessionManager.sessionUser.displayName, user.displayName)
+    console.log(VLMSessionManager.sessionUser.connectedWallet == user.connectedWallet)
+    console.log(VLMSessionManager.sessionUser.displayName == user.displayName)
+    console.log(VLMSessionManager.sessionUser.connectedWallet == user.connectedWallet || VLMSessionManager.sessionUser.displayName == user.displayName)
     if (VLMSessionManager.sessionUser.connectedWallet == user.connectedWallet || VLMSessionManager.sessionUser.displayName == user.displayName) {
       VLMNotificationManager.addMessage(`${user.displayName}, you are being asked to leave the scene.`, { color: "red", fontSize: 16 });
       this.blackout = new Blackout();
@@ -161,8 +161,8 @@ export abstract class VLMModerationManager implements ISystem {
     } else {
       movePlayerTo({ x: 8, y: Camera.instance.position.y || 0.78, z: 8 })
     }
-    log(Camera.instance.position.x, Camera.instance.position.y, Camera.instance.position.z)
-    log(Camera.instance.feetPosition.x, Camera.instance.feetPosition.y, Camera.instance.feetPosition.z)
+    console.log(Camera.instance.position.x, Camera.instance.position.y, Camera.instance.position.z)
+    console.log(Camera.instance.feetPosition.x, Camera.instance.feetPosition.y, Camera.instance.feetPosition.z)
     const crashBoxes = [new Entity(), new Entity(), new Entity(), new Entity(), new Entity()],
       { x, y, z } = Camera.instance.position,
       positions = [{ x: x + 1.5, y: y, z: z }, { x: x - 1.5, y, z }, { x, y: y + 1.5, z }, { x, y, z: z + 1.5 }, { x, y, z: z - 1.5 }],
@@ -195,7 +195,7 @@ export abstract class VLMModerationManager implements ISystem {
       this.canvas.width = "100%";
       this.canvas.height = "100%";
     }
-    log(`in updateSettings within VLMModeration ${config}`)
+    console.log(`in updateSettings within VLMModeration ${config}`)
     this.moderationSettings = config;
     const scene = await getParcel();
     this.parcels = scene.land.sceneJsonData.scene.parcels;
@@ -249,7 +249,7 @@ export abstract class VLMModerationManager implements ISystem {
       }
       this.banAction();
     }
-    log(`Access Allowed: ${this.accessAllowed}`)
+    console.log(`Access Allowed: ${this.accessAllowed}`)
   };
 
   static wearableCheck = (wearableList: { contractAddress: string; itemId: string }[]) => {
@@ -401,7 +401,7 @@ export abstract class VLMModerationManager implements ISystem {
 
   static findSceneBounds = async () => {
     this.parcelBounds = [];
-    this.sceneHeight = Math.log(this.parcels.length + 1) * 20; // setting sceneHeight
+    this.sceneHeight = Math.console.log(this.parcels.length + 1) * 20; // setting sceneHeight
 
     this.parcels.forEach((parcel: string) => {
       const [x, z] = parcel.split(",").map(Number);

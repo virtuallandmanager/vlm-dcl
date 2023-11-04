@@ -60,7 +60,7 @@ export abstract class VLMVideoManager {
           storedConfig.liveSrc = config.liveSrc;
           break;
         case "enableLiveStream":
-          log("enableLiveStream", config.enableLiveStream, config);
+          console.log("enableLiveStream", config.enableLiveStream, config);
           storedConfig.updateOnAirState(config.enableLiveStream);
           break;
         case "playlist":

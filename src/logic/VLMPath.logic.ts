@@ -25,7 +25,7 @@ const hasTruthyProperty = (obj: Record<string, any>): boolean => {
 export type PathPoint = [number, number, number, number, number, number, number, -1 | 0 | 1 | 2];
 // [O, Px, Py, Pz, Rx, Ry, Rz, V]
 
-export class VLMPathManager implements ISystem {
+export class VLMPathManager {
   static enableDebugging: boolean = false;
   static motionButtonsPressed: { w: boolean; a: boolean; s: boolean; d: boolean; shift: boolean;[id: string]: boolean } = { w: false, a: false, s: false, d: false, shift: false };
   static moving: boolean = hasTruthyProperty((({ shift, ...data }) => data)(this.motionButtonsPressed));
@@ -56,7 +56,7 @@ export class VLMPathManager implements ISystem {
   constructor() {
     VLMPathManager.sceneRoom = VLMSessionManager.sceneRoom;
     VLMPathManager.sessionData = VLMSessionManager.sessionData;
-    VLMEventManager.events.fireEvent(new VLMPathClientEvent({ action: "path_start" }));
+    VLMEventManager.events.emit('VLMPathClientEvent', { action: "path_start" });
   }
 
   static startPath: CallableFunction = async (message: VLMPathServerEvent) => {
@@ -366,7 +366,7 @@ export class VLMPathManager implements ISystem {
 
   private static dbLog: CallableFunction = (message: string) => {
     if (this.enableDebugging) {
-      log(message);
+      console.log(message);
     }
   }
 }

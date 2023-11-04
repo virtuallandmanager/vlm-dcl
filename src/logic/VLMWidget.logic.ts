@@ -24,7 +24,7 @@ export abstract class VLMWidgetManager {
           }
         }
       });
-      log('VLM - Configured Widgets', configs);
+      console.log('VLM - Configured Widgets', configs);
     } catch (error) {
       throw error;
     }
@@ -50,7 +50,7 @@ export abstract class VLMWidgetManager {
           type: config.type,
         };
       });
-      log('VLM - Set Widget State', VLMWidget.configs)
+      console.log('VLM - Set Widget State', VLMWidget.configs)
     } catch (error) {
       throw error;
     }
@@ -89,7 +89,7 @@ export abstract class VLMWidgetManager {
       if (typeof VLMWidget.configs[widget.id].init === "function") {
         VLMWidget.configs[widget.id].init(widget);
       }
-      log('VLM - Created Widget', VLMWidget.configs[widget.id]);
+      console.log('VLM - Created Widget', VLMWidget.configs[widget.id]);
     } catch (error) {
       throw error;
     }
@@ -107,7 +107,7 @@ export abstract class VLMWidgetManager {
       }
       VLMWidget.configs[widget.id].value = widget.value;
       VLMWidget.configs[widget.id].update({ ...widget, user });
-      log('VLM - Updated Widget', VLMWidget.configs[widget.id]);
+      console.log('VLM - Updated Widget', VLMWidget.configs[widget.id]);
     } catch (error) {
       throw error;
     }
@@ -125,7 +125,7 @@ export abstract class VLMWidgetManager {
         config?.update(config);
       }
       delete VLMWidget.configs[widgetId];
-      log('VLM - Deleted Widget', widgetId);
+      console.log('VLM - Deleted Widget', widgetId);
     } catch (error) {
       throw error;
     }
@@ -154,6 +154,6 @@ const sortConfigs = (configs: VLMWidget.DCLConfig[]) => {
     }
   });
   configs = sortedConfigs;
-  log('VLM - Sorted Widgets', configs)
+  console.log('VLM - Sorted Widgets', configs)
   return sortedConfigs
 }

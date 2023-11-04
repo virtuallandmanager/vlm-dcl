@@ -3,7 +3,7 @@ import { VLMModel } from "../components/VLMModel.component";
 export abstract class VLMModelManager {
   static init: CallableFunction = (models: VLMModel.VLMConfig[]) => {
     try {
-      log("VLM - Initializing Models", models)
+      console.log("VLM - Initializing Models", models)
       if (!models) {
         return;
       }
@@ -136,7 +136,7 @@ export abstract class VLMModelManager {
   };
 
   static deleteInstance: CallableFunction = (instanceId: string) => {
-    log("VLM - Deleting Instance - Step 1", instanceId)
+    console.log("VLM - Deleting Instance - Step 1", instanceId)
 
     const instanceids = Object.keys(VLMModel.instances).map((key) => {
       return key
@@ -144,16 +144,16 @@ export abstract class VLMModelManager {
     const instancenames = Object.keys(VLMModel.instances).map((key) => {
       return VLMModel.instances[key].name
     })
-    log(instanceids)
-    log(instancenames)
+    console.log(instanceids)
+    console.log(instancenames)
 
     const instance = VLMModel.instances[instanceId];
     const configId = instance?.configId;
 
-    log("VLM - Deleting Instance - Step 2", instance, instanceId)
+    console.log("VLM - Deleting Instance - Step 2", instance, instanceId)
 
     if (configId) {
-      log("VLM - Deleting Instance - Step 3", instanceId, configId)
+      console.log("VLM - Deleting Instance - Step 3", instanceId, configId)
       VLMModel.configs[configId].deleteInstance(instanceId);
     }
   };

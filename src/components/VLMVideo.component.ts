@@ -5,6 +5,8 @@ import { VLMClickEvent } from "./VLMClickEvent.component";
 import { Audible, Emissive, HasHybridTexture, HasPlaylist, Playable, SimpleTransform, Transformable } from "../shared/interfaces";
 import { VLMEnvironment } from "../environment";
 import { includes } from "../utils";
+import { Material, engine } from "@dcl/sdk/ecs";
+import { } from "@dcl/sdk/math";
 
 export namespace VLMVideo {
   export const configs: { [uuid: string]: DCLConfig } = {};
@@ -252,7 +254,7 @@ export namespace VLMVideo {
           instances[instanceId].addComponentOrReplace(this)
         });
       } catch (error) {
-        log("VLM - Error updating texture", error);
+        console.log("VLM - Error updating texture", error);
       }
 
       try {
@@ -262,7 +264,7 @@ export namespace VLMVideo {
 
         this.correctUvs();
       } catch (error) {
-        log('VLM - Placeholder image not found')
+        console.log('VLM - Placeholder image not found')
         this.remove();
         return;
       }
@@ -381,7 +383,7 @@ export namespace VLMVideo {
           videoSystem.playlistIndex = 0;
         }
         if (!this.playlist[videoSystem.playlistIndex]) {
-          log("VLM - No video found in playlist")
+          console.log("VLM - No video found in playlist")
           return this.playNextVideo()
         }
         this.updateTexture(this.playlist[videoSystem.playlistIndex]);
@@ -804,7 +806,7 @@ export namespace VLMVideo {
 
     private dbLog: CallableFunction = (message: string) => {
       if (this.enableDebugging) {
-        log(message);
+        console.log(message);
       }
     }
   }

@@ -28,11 +28,11 @@ export abstract class VLMLogManager {
         method: "POST",
         body: JSON.stringify({ error: "Connection to the server could not be established.", metadata: { ...platformData, ts: Date.now() } }),
       };
-      log("VLM: Connection error. Attempting to report to server.");
+      console.log("VLM: Connection error. Attempting to report to server.");
       await signedFetch("https://alerts.vlm.gg/report/outage", payload);
-      log("VLM: Message successfully sent to inform VLM of outage.");
+      console.log("VLM: Message successfully sent to inform VLM of outage.");
     } catch (error) {
-      log("VLM: Could not connect to VLM's alert service either. Internet outage likely.");
+      console.log("VLM: Could not connect to VLM's alert service either. Internet outage likely.");
     }
   };
 }

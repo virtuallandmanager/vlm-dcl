@@ -146,7 +146,7 @@ export abstract class VLMImageManager {
   };
 
   static deleteInstance: CallableFunction = (instanceId: string) => {
-    log("VLM - Deleting Instance - Step 1", instanceId)
+    console.log("VLM - Deleting Instance - Step 1", instanceId)
 
     const instanceids = Object.keys(VLMImage.instances).map((key) => {
       return key
@@ -154,16 +154,16 @@ export abstract class VLMImageManager {
     const instancenames = Object.keys(VLMImage.instances).map((key) => {
       return VLMImage.instances[key].name
     })
-    log(instanceids)
-    log(instancenames)
+    console.log(instanceids)
+    console.log(instancenames)
 
     const instance = VLMImage.instances[instanceId];
     const configId = instance?.configId;
 
-    log("VLM - Deleting Instance - Step 2", instance, instanceId)
+    console.log("VLM - Deleting Instance - Step 2", instance, instanceId)
 
     if (configId) {
-      log("VLM - Deleting Instance - Step 3", instanceId, configId)
+      console.log("VLM - Deleting Instance - Step 3", instanceId, configId)
       VLMImage.configs[configId].deleteInstance(instanceId);
     }
   };

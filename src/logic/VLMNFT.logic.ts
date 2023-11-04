@@ -19,7 +19,7 @@ export abstract class VLMNFTManager {
 
   static create: CallableFunction = (nftConfig: VLMNFT.VLMConfig) => {
     try {
-      log('VLM: Creating NFT Frame')
+      console.log('VLM: Creating NFT Frame')
       if (!nftConfig.enabled) {
         return;
       }
