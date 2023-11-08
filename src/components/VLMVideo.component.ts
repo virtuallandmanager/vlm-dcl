@@ -2,15 +2,15 @@ import { sdkImagesAreFlipped } from "../shared/defaults";
 import { getEntityByName } from "../shared/entity";
 import { VLMBase } from "./VLMBaseConfig.component";
 import { VLMClickEvent } from "./VLMClickEvent.component";
-import { Audible, Emissive, HasHybridTexture, HasPlaylist, Playable, SimpleTransform, Transformable } from "../shared/interfaces";
+import { SimpleTransform, Transformable } from "../shared/interfaces";
 import { VLMEnvironment } from "../environment";
 import { includes } from "../utils";
 import { Material, engine } from "@dcl/sdk/ecs";
 import { } from "@dcl/sdk/math";
 
 export namespace VLMVideo {
-  export const configs: { [uuid: string]: DCLConfig } = {};
-  export const instances: { [uuid: string]: DCLInstanceConfig } = {};
+  export const configs: { [uuid: string]: Config } = {};
+  export const instances: { [uuid: string]: Instance } = {};
   export const systems: { [uuid: string]: VLMVideoPlaylistSystem } = {};
 
   export enum SourceTypes {
@@ -27,7 +27,7 @@ export namespace VLMVideo {
     LIVE,
   }
 
-  export class DCLConfig extends VLMBase.MaterialConfig implements HasHybridTexture, Emissive, Audible, HasPlaylist, Playable {
+  export class Config extends VLMBase.Config {
     sk: string;
     parent?: string;
     enabled: boolean;
@@ -56,7 +56,6 @@ export namespace VLMVideo {
     uvsFlipped: boolean = false;
 
     constructor(config: VLMConfig) {
-      super(config);
       this.init(config);
     }
 
@@ -408,7 +407,7 @@ export namespace VLMVideo {
     };
   }
 
-  export class VLMConfig extends DCLConfig {
+  export class VLMConfig extends Config {
     instances: VLMInstanceConfig[];
     emission?: number;
 
@@ -419,7 +418,7 @@ export namespace VLMVideo {
     }
   }
 
-  export class DCLInstanceConfig extends VLMBase.Instance implements Transformable {
+  export class Instance {
     sk: string;
     configId: string;
     parent?: string;
@@ -433,12 +432,11 @@ export namespace VLMVideo {
     defaultClickEvent: VLMClickEvent.DCLConfig;
     clickEvent: VLMClickEvent.DCLConfig;
 
-    constructor(config: DCLConfig, instance: VLMInstanceConfig) {
-      super(config, instance);
+    constructor(config: Config, instance: Instance) {
       this.init(config, instance);
     }
 
-    init(config: DCLConfig, instance: VLMInstanceConfig) {
+    init(config: Config, instance: Instance) {
       this.sk = instance.sk;
       this.parent = instance.parent || config.parent;
       this.enabled = config.enabled ? instance.enabled : false;
@@ -501,9 +499,9 @@ export namespace VLMVideo {
 
     remove: CallableFunction = () => {
       try {
-        if (this.isAddedToEngine()) {
-          engine.removeEntity(this);
-        }
+        // if (this.isAddedToEngine()) {
+          // engine.removeEntity(this);
+        // }
       } catch (error) {
         throw error;
       }
@@ -511,7 +509,8 @@ export namespace VLMVideo {
 
     correctUvs: CallableFunction = (flipped: boolean) => {
       try {
-        const plane = this.getComponentOrNull(PlaneShape); //// SDK SPECIFIC ////
+        // const plane = this.getComponentOrNull(PlaneShape); //// SDK SPECIFIC ///
+        
         if (!plane) {
           return;
         }
@@ -529,10 +528,10 @@ export namespace VLMVideo {
       try {
         if (parent) {
           this.parent = parent;
-          const instanceParent = getEntityByName(parent);
-          this.setParent(instanceParent); //// SDK SPECIFIC ////
+          // const instanceParent = getEntityByName(parent);
+          // this.setParent(instanceParent); //// SDK SPECIFIC ////
         } else {
-          this.setParent(null); //// SDK SPECIFIC ////
+          // this.setParent(null); //// SDK SPECIFIC ////
         }
       } catch (error) {
         throw error;

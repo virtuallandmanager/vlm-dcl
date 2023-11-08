@@ -1,11 +1,6 @@
-import { VLMClickEvent } from "./VLMClickEvent.component";
-import { Emissive, HasImageTexture, SimpleTransform, Transformable } from "../shared/interfaces";
-import { sdkImagesAreFlipped } from "../shared/defaults";
-import { includes } from "../utils";
 import { VLMBase } from "./VLMBaseConfig.component";
-import { getEntityByName } from "../shared/entity";
-import { Material, engine } from "@dcl/sdk/ecs";
-import { } from "@dcl/sdk/math";
+import { Material, MeshRenderer, PBMaterial_PbrMaterial, Transform, engine } from "@dcl/sdk/ecs";
+import { Quaternion } from "@dcl/sdk/math";
 
 export namespace VLMImage {
   export const configs: { [uuid: string]: Config } = {};
@@ -17,33 +12,61 @@ export namespace VLMImage {
   *
   * Configs are used to define properties shared by multiple instances, such as materials, textures, files, etc.
   * 
-  * @param id - the id of the config - a unique number id used by DCL's SDK
-  * @param sk - the sk of the config - a unique UUID used by VLM servers
-  * @param enabled - enables or disables the component and all of its instances
-  * @param parent - the parent component for all instances that use this config
-  * @param customId - the customId of the config - used for manual control of the config, such as custom rendering
-  * @param customRendering - disables the default rendering of the component so that it can be rendered manually in code
-  * @param name - the name of the component
-  * @param imageSrc - the image source for the image
-  * @param clickEvent - the click event for the image
-  * @param instanceIds - the ids of the instances that use this config
+  * @param textureOptions - an object of textures for the image
+  * 
+  * @constructor - creates a new config
+  * @returns void
   */
-  export class Config {
-    sk: string;
-    customId?: string;
-    imageSrc?: string;
-    clickEvent?: VLMClickEvent.Config;
-    instanceIds: string[] = [];
+  export class Config extends VLMBase.Config {
+    textureOptions: PBMaterial_PbrMaterial = {};
 
-    constructor(config: Config) {
-      this.sk = config.sk;
-      this.customId = config.customId;
-      this.imageSrc = config.imageSrc;
+    constructor(config: VLMConfig) {
+      super(config);
+      this.init(config);
+    }
 
-      configs[this.sk] = this;
+    /**
+     * @public init
+     * Initializes the config
+     * @returns void
+     */
+    init: CallableFunction = (config: VLMConfig) => {
+      try {
+        Object.assign(this, config);
 
-      if (this.customId) {
-        configs[this.customId] = configs[this.sk];
+        this.buildMaterial(config);
+
+        configs[this.sk] = this;
+
+        if (this.customId) {
+          configs[this.customId] = configs[this.sk];
+        }
+
+        if (this.customRendering || !config.instances || config.instances.length < 1) {
+          return;
+        }
+
+        config.instances.forEach((instance: Partial<Instance>) => {
+          this.createOrReplaceInstance(instance);
+        });
+      } catch (error) {
+        throw error
+      }
+    }
+
+    /**
+     * @public addAll
+     * Adds all of the config's instances to the engine
+     * @returns void
+     */
+
+    addAll: CallableFunction = () => {
+      try {
+        this.instanceIds.forEach((instanceId: string) => {
+          instances[instanceId].add();
+        });
+      } catch (error) {
+        throw error;
       }
     }
 
@@ -84,17 +107,50 @@ export namespace VLMImage {
      * @param config - the instance config
      * @returns void
      */
-    createInstance: CallableFunction = (config: Instance) => {
-      if (!includes(this.instanceIds, config.sk)) {
+    createOrReplaceInstance: CallableFunction = (config: Instance) => {
+      if (!this.instanceIds.includes(config.sk)) {
         this.instanceIds.push(config.sk);
       }
-      if (!instances[config.sk]) {
-        new Instance(this, config);
-      } else {
-        // delete and recreate
+      if (instances[config.sk]) {
+        engine.removeEntity(instances[config.sk].entity);
+        delete instances[config.sk];
       }
+      new Instance(this, config);
     };
+
+    /**
+     * @public buildMaterials
+     * Builds the materials for the config
+     * @returns void
+     */
+    buildMaterial: CallableFunction = (config: VLMConfig) => {
+      try {
+        const { textureSrc, bumpSrc, emissiveSrc, alphaSrc, emission } = config;
+
+        if (textureSrc) {
+          this.textureOptions.texture = Material.Texture.Common({ src: textureSrc });
+        }
+        if (bumpSrc) {
+          this.textureOptions.bumpTexture = Material.Texture.Common({ src: bumpSrc });
+        }
+        if (emissiveSrc) {
+          this.textureOptions.emissiveTexture = Material.Texture.Common({ src: emissiveSrc });
+        }
+        if (alphaSrc) {
+          this.textureOptions.alphaTexture = Material.Texture.Common({ src: alphaSrc });
+        }
+        if (emission) {
+          this.textureOptions.emissiveIntensity = emission;
+        }
+      } catch (error) {
+        throw error;
+      }
+    }
   }
+
+  export type VLMConfig = Config & VLMBase.VLMConfig & {
+    textureSrc?: string, bumpSrc?: string, emissiveSrc?: string, alphaSrc?: string, emission?: number,
+  };
 
   /**
    * @public Instance
@@ -102,47 +158,82 @@ export namespace VLMImage {
    * 
    * Instances get shared properties from a config while defining their own unique properties, such as position, rotation, scale, etc.
    * 
-   * @param id - the id of the config - a unique number id used by DCL's SDK
-   * @param sk - the sk of the config - a unique UUID used by VLM servers
-   * @param enabled - enables or disables the component and all of its instances
-   * @param parent - the parent component for all instances that use this config
-   * @param customId - the customId of the config - used for manual control of the config, such as custom rendering
-   * @param customRendering - disables the default rendering of the component so that it can be rendered manually in code
-   * @param name - the name of the component
-   * @param imageSrc - the image source for the image
-   * @param clickEvent - the click event for the image
-   * @param instanceIds - the ids of the instances that use this config
-   * @param position - the position of the instance
-   * @param rotation - the rotation of the instance
-   * @param scale - the scale of the instance
-   * @param defaultClickEvent - the default click event for the instance
-   * @param correctUvs - whether or not the instance's uvs are correct
-   * @param emissiveIntensity - the emissive intensity of the instance
-   * @param emissiveColor - the emissive color of the instance
-   * @param emissiveTexture - the emissive texture of the instance
-   * @param albedoTexture - the albedo texture of the instance
-   * @param alphaTexture - the alpha texture of the instance
-   * @param transparencyMode - the transparency mode of the instance
-   * @param withCollisions - whether or not the instance has collisions
-   * @param material - the material of the instance
-   * @param plane - the plane of the instance
+   * @constructor - creates a new instance
+   * @returns void
     */
-  export class Instance {
-    id: number;
-    sk: string;
-    customId?: string;
-    clickEvent?: VLMClickEvent.Config;
+  export class Instance extends VLMBase.Instance {
     constructor(config: Config, instanceConfig: Instance) {
-      this.id = engine.addEntity();
-      this.sk = instanceConfig.sk;
-      this.customId = instanceConfig.customId;
+      super(config, instanceConfig);
+    }
+
+    /**
+     * @public init
+     * initializes the instance
+     * @returns void
+     */
+    init: CallableFunction = (config: Config, instanceConfig: Instance) => {
+      Object.assign(this, instanceConfig);
 
       instances[this.sk] = this;
 
+      MeshRenderer.setPlane(this.entity);
+
+      Material.setPbrMaterial(this.entity, config.textureOptions);
+
+      Transform.createOrReplace(this.entity, {
+        position: this.position,
+        scale: this.scale,
+        rotation: Quaternion.fromEulerDegrees(this.rotation.x, this.rotation.y, this.rotation.z)
+      });
+
       if (this.customId) {
-        instances[this.customId] = instances[this.id];
+        instances[this.customId] = instances[this.sk];
       }
     }
+    /**
+     * @public add
+     * Adds the instance to the engine
+     * @returns void
+     */
+
+    add: CallableFunction = () => {
+      try {
+        if (instances[this.sk]) {
+          engine.addEntity();
+        }
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    /** 
+     * @public remove
+     *  Removes the config's instances from the engine, keeps the config and instance records so we can bring stuff back
+     *  @returns void
+     */
+    remove: CallableFunction = () => {
+      try {
+
+      } catch (error) {
+        throw error;
+      }
+    };
+
+    /**
+     * @public delete
+     * Deletes the config's material record AND removes the config's instances from the engine
+     * @returns void
+     */
+    delete: CallableFunction = () => {
+      try {
+        if (instances[this.sk]) {
+          engine.removeEntity(instances[this.sk].entity);
+          delete instances[this.sk];
+        }
+      } catch (error) {
+        throw error;
+      }
+    };
   }
 
   // export class DCLConfig implements HasImageTexture, Emissive {
