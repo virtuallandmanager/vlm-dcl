@@ -76,7 +76,7 @@ export abstract class VLMEventListeners {
         VLMPathManager.updateMovingState("shift", true);
       });
       input.subscribe("BUTTON_DOWN", ActionButton.JUMP, false, (e) => {
-        VLMEventManager.events.fireEvent(new VLMSessionAction("Player Jumped"));
+        VLMEventManager.events.fireEvent(new VLMSessionAction("Jumped"));
       });
       // End Movement events
       input.subscribe("BUTTON_UP", ActionButton.FORWARD, false, (e) => {
@@ -97,7 +97,7 @@ export abstract class VLMEventListeners {
 
       onPlayerExpressionObservable.add(({ expressionId }) => {
         log(`VLM | SESSION ACTION: Emote triggered - ${expressionId}`);
-        VLMEventManager.events.fireEvent(new VLMSessionAction("Emote Used", { emote: expressionId }));
+        VLMEventManager.events.fireEvent(new VLMSessionAction("Used An Emote", { emote: expressionId }));
         VLMEventManager.events.fireEvent(new VLMEmoteAction(expressionId));
       });
 
@@ -133,7 +133,7 @@ export abstract class VLMEventListeners {
         let otherPlayers = await getPlayersInScene();
         if (userId == this.sessionUser?.connectedWallet) {
           log("VLM | SESSION ACTION: Player Entered Scene Boundaries", userId);
-          VLMEventManager.events.fireEvent(new VLMSessionAction("Player Entered Scene Boundaries", { userId, otherPlayers }));
+          VLMEventManager.events.fireEvent(new VLMSessionAction("Entered Scene Boundaries", { userId, otherPlayers }));
         } else if (VLMPathManager.moving || VLMPathManager.engaged) {
           log("VLM | SESSION ACTION: Witnessed Player Enter Scene Boundaries", userId);
           let user = await getPlayerData({ userId });
