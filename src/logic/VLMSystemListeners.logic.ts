@@ -46,11 +46,12 @@ export abstract class VLMEventListeners {
       });
 
       onPointerLockedStateChange.add(({ locked }) => {
-        if (locked) {
+        log("VLM - POINTER LOCKED STATE CHANGE - Locked:", locked, " Engaged:", VLMPathManager.engaged);
+        if (locked && !VLMPathManager.engaged) {
           VLMPathManager.engaged = true;
           VLMPathManager.startStationaryEngaged();
           VLMEventManager.events.fireEvent(new VLMSessionAction("Engaged Cursor"));
-        } else {
+        } else if (!locked && VLMPathManager.engaged) {
           VLMPathManager.engaged = false;
           VLMPathManager.startStationaryDisengaged();
           VLMEventManager.events.fireEvent(new VLMSessionAction("Disengaged Cursor"));
@@ -224,6 +225,7 @@ export abstract class VLMEventListeners {
           case "init":
             VLMSceneManager.initScenePreset(message);
             log("VLM - SCENE INIT", message);
+            VLMEventManager.events.fireEvent(new VLMSessionAction("Loaded Scene"));
             break;
           case "create":
             VLMSceneManager.createSceneElement(message);
