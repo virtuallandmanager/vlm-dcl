@@ -1,24 +1,25 @@
 export namespace VLMWidget {
   export const configs: {
-    [uuid: string]: VLMWidget.DCLConfig;
+    [uuid: string]: VLMWidget.Config;
   } = {};
 
-  export class DCLConfig {
+  export class Config {
     sk?: string;
     id: string;
     type?: ControlType;
     value?: string | number | boolean;
     user?: { connectedWallet: string, displayName: string };
     order?: number;
-    init?: (config: DCLConfig) => void;
-    delete?: (config: DCLConfig) => void;
-    update: (config: DCLConfig) => void;
-    constructor(config: DCLConfig) {
+    init?: (config: Config) => void;
+    delete?: (config: Config) => void;
+    update: (config: Config) => void;
+    constructor(config: Config) {
       this.sk = config.sk;
       this.id = config.id;
       this.type = config.type;
       this.value = config.value;
       this.user = config.user;
+      this.order = config.order;
       this.init = config?.init;
       this.delete = config?.delete;
       this.update = config?.update;
@@ -29,7 +30,7 @@ export namespace VLMWidget {
     }
   }
 
-  export class VLMConfig extends DCLConfig { }
+  export class VLMConfig extends Config { }
 
   export enum ControlType {
     NONE,

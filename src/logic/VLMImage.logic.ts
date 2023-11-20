@@ -1,170 +1,142 @@
-import { VLMImage } from "../components/VLMImage.component";
+import { VLMImage } from '../components/VLMImage.component'
+import { VLMDebug } from './VLMDebug.logic'
 
 export abstract class VLMImageManager {
   static init: CallableFunction = (images: VLMImage.VLMConfig[]) => {
     try {
+      VLMDebug.log('Initializing Images', images)
       if (!images.length) {
-        return;
+        return
       }
       images.forEach((image: VLMImage.VLMConfig) => {
-        this.create(image);
-      });
+        const existing = VLMImage.configs[image?.sk]
+        if (existing) {
+          existing.init()
+        } else {
+          this.create(image)
+        }
+      })
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static create: CallableFunction = (config: VLMImage.VLMConfig) => {
     try {
-      new VLMImage.DCLConfig(config);
+      new VLMImage.Config(config)
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
-  static createInstance: CallableFunction = (config: VLMImage.VLMConfig, instance: VLMImage.VLMInstanceConfig) => {
+  static createInstance: CallableFunction = (config: VLMImage.VLMConfig, instance: VLMImage.Instance) => {
     try {
       if (!config.enabled || !instance.enabled) {
-        return;
+        return
       }
-      const imageId = config.sk;
-      VLMImage.configs[imageId].createInstance(instance);
+      const imageId = config.sk
+      VLMImage.configs[imageId].createOrReplaceInstance(instance)
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static update: CallableFunction = (config: VLMImage.VLMConfig | any, property: string, id: string) => {
     try {
-      const storedConfig: VLMImage.DCLConfig = VLMImage.configs[config.sk || id];
+      const storedConfig: VLMImage.Config = VLMImage.configs[config.sk || id]
 
       if (!config || (!storedConfig && !config.enabled)) {
-        return;
+        return
       } else if (!storedConfig && config.enabled) {
         this.create(config)
-        return this.update(config, property, id);
+        return this.update(config, property, id)
       }
 
       switch (property) {
-        case "enabled":
+        case 'enabled':
           if (!config.enabled) {
-            this.remove(config.sk);
+            this.remove(config.sk)
           } else if (storedConfig) {
-            this.add(config.sk);
+            this.add(config.sk)
           }
-          break;
-        case "imageSrc":
-          storedConfig.updateTexture(config);
-          break;
-        case "emission":
-          storedConfig.emissiveIntensity = config.emission;
-          break;
-        case "clickEvent":
-          storedConfig.updateClickEvent(config.clickEvent);
-          break;
-        case "isTransparent":
-          storedConfig.updateTransparency(config.isTransparent);
-          break;
-        case "parent":
-          storedConfig.updateParent(config.parent);
-          break;
-        case "customId":
-          storedConfig.updateCustomId(config.customId);
-          break;
+          break
+        case 'clickEvent':
+          storedConfig.updateDefaultClickEvent(config.clickEvent)
+          break
+        default:
+          storedConfig.init(config)
       }
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
-  static updateInstance: CallableFunction = (instanceConfig: VLMImage.VLMInstanceConfig, property: string, id: string) => {
+  static updateInstance: CallableFunction = (instanceConfig: VLMImage.Instance, property: string, id: string) => {
     try {
       const instance = VLMImage.instances[instanceConfig.sk],
         configId = instance.configId,
-        config = VLMImage.configs[configId];
+        config = VLMImage.configs[configId]
 
       if (!config) {
-        return;
-      } else if (!instance && instanceConfig.enabled) {
-        config.createInstance(instanceConfig);
+        VLMDebug.log(
+          'error',
+          `ERROR! - Config not found for instance ${instanceConfig.sk} -\n
+        Please send us this error via Discord or by sending an email to support@vlm.gg`,
+          '{ Instance config, property, id:',
+          instanceConfig,
+          property,
+          id,
+          '}',
+        )
+        return
       }
 
-      const { position, scale, rotation } = instanceConfig;
+      const { position, scale, rotation } = instanceConfig
 
       switch (property) {
-        case "enabled":
+        case 'enabled':
           if (!config.enabled || !instanceConfig.enabled) {
-            config.removeInstance(instanceConfig.sk);
+            config.removeInstance(instanceConfig)
           } else if (instance && instanceConfig.enabled) {
-            config.addInstance(instanceConfig.sk);
+            config.createOrReplaceInstance(instanceConfig)
           }
-          break;
-        case "transform":
-          instance.updateTransform(position, scale, rotation);
-          break;
-        case "clickEvent":
-          instance.updateClickEvent(instanceConfig.clickEvent);
-          break;
-        case "properties":
-          instance.updateParent(instanceConfig.parent);
-          instance.updateCustomId(instanceConfig.customId);
-          instance.updateCustomRendering(instanceConfig.customRendering);
-          instance.updateCollider(instanceConfig);
-          break;
-        case "withCollider":
-          instance.updateCollider(instanceConfig);
-          break;
-        case "customId":
-          instance.updateCustomId(instanceConfig.customId);
-          break;
-        case "customRendering":
-          instance.updateCustomRendering(instanceConfig.customRendering);
-          break;
-        case "parent":
-          instance.updateParent(instanceConfig.parent);
-          break;
+          break
+        case 'transform':
+          instance.updateTransform(position, scale, rotation)
+          break
+        case 'clickEvent':
+          instance.updateClickEvent(instanceConfig.clickEvent)
+          break
+        default:
+          instance.init(config, instanceConfig)
       }
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static add: CallableFunction = (id: string) => {
-    VLMImage.configs[id].showAll();
-  };
+    VLMImage.configs[id].addAll()
+  }
 
   static delete: CallableFunction = (id: string) => {
-    VLMImage.configs[id].delete();
-  };
+    VLMImage.configs[id].delete()
+  }
 
   static remove: CallableFunction = (id: string) => {
-    VLMImage.configs[id].remove();
-  };
+    VLMImage.configs[id].remove()
+  }
 
   static removeInstance: CallableFunction = (instanceId: string) => {
     VLMImage.instances[instanceId].remove()
-  };
+  }
 
   static deleteInstance: CallableFunction = (instanceId: string) => {
-    console.log("VLM - Deleting Instance - Step 1", instanceId)
-
-    const instanceids = Object.keys(VLMImage.instances).map((key) => {
-      return key
-    })
-    const instancenames = Object.keys(VLMImage.instances).map((key) => {
-      return VLMImage.instances[key].name
-    })
-    console.log(instanceids)
-    console.log(instancenames)
-
-    const instance = VLMImage.instances[instanceId];
-    const configId = instance?.configId;
-
-    console.log("VLM - Deleting Instance - Step 2", instance, instanceId)
+    const instance = VLMImage.instances[instanceId]
+    const configId = instance?.configId
 
     if (configId) {
-      console.log("VLM - Deleting Instance - Step 3", instanceId, configId)
-      VLMImage.configs[configId].deleteInstance(instanceId);
+      VLMImage.configs[configId].deleteInstance(instanceId)
     }
-  };
+  }
 }

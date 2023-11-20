@@ -1,46 +1,46 @@
-import { VLMWidget } from "../components/VLMWidget.component";
+import { VLMWidget } from '../components/VLMWidget.component'
+import { VLMDebug } from './VLMDebug.logic'
 
 export abstract class VLMWidgetManager {
-
-  static configureWidgets: CallableFunction = (configs: VLMWidget.DCLConfig[]) => {
+  static configureWidgets: CallableFunction = (configs: VLMWidget.Config[]) => {
     try {
-      configs = sortConfigs(configs);
-      configs.forEach((config: VLMWidget.DCLConfig) => {
+      configs = sortConfigs(configs)
+      configs.forEach((config: VLMWidget.Config) => {
         if (!VLMWidget.configs[config.id]) {
           VLMWidget.configs[config.id] = {
             order: config.order,
             id: config.id,
             value: config.value,
-            update: () => { },
-          };
+            update: () => {},
+          }
           if (config.hasOwnProperty('init')) {
-            VLMWidget.configs[config.id].init = config?.init;
+            VLMWidget.configs[config.id].init = config?.init
           }
           if (config.hasOwnProperty('update')) {
-            VLMWidget.configs[config.id].update = config?.update;
+            VLMWidget.configs[config.id].update = config?.update
           }
           if (config.hasOwnProperty('delete')) {
-            VLMWidget.configs[config.id].delete = config?.delete;
+            VLMWidget.configs[config.id].delete = config?.delete
           }
         }
-      });
-      console.log('VLM - Configured Widgets', configs);
+      })
+      VLMDebug.log('widget', 'Configured Widgets', configs)
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static setState: CallableFunction = (configs: VLMWidget.VLMConfig[]) => {
     try {
       if (!configs) {
-        return;
+        return
       }
-      configs = sortConfigs(configs);
+      configs = sortConfigs(configs)
       configs.forEach((config: VLMWidget.VLMConfig) => {
         if (!VLMWidget.configs[config.id]) {
-          return;
+          return
         }
-        const widget = { ...VLMWidget.configs[config.id] };
+        const widget = { ...VLMWidget.configs[config.id] }
         VLMWidget.configs[config.id] = {
           ...widget,
           sk: config.sk,
@@ -48,112 +48,112 @@ export abstract class VLMWidgetManager {
           order: config.order,
           value: config.value,
           type: config.type,
-        };
-      });
-      console.log('VLM - Set Widget State', VLMWidget.configs)
+        }
+      })
+      VLMDebug.log('Set Widget State', VLMWidget.configs)
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static init: CallableFunction = () => {
-    const configArray = Object.keys(VLMWidget.configs).map((key: string) => VLMWidget.configs[key]);
-    const sortedConfigs = sortConfigs(configArray);
-    sortedConfigs.forEach((config: VLMWidget.DCLConfig) => {
+    const configArray = Object.keys(VLMWidget.configs).map((key: string) => VLMWidget.configs[key])
+    const sortedConfigs = sortConfigs(configArray)
+    sortedConfigs.forEach((config: VLMWidget.Config) => {
       if (!VLMWidget.configs[config.id]) {
-        return;
+        return
       }
       if (!config || config.type === VLMWidget.ControlType.TRIGGER) {
-        return VLMWidget.configs;
+        return VLMWidget.configs
       } else if (config.init) {
-        config?.init(config);
+        config?.init(config)
       } else {
-        config?.update(config);
+        config?.update(config)
       }
-    });
-    return VLMWidget.configs;
-  };
+    })
+    return VLMWidget.configs
+  }
 
-  static create: CallableFunction = (widget: VLMWidget.DCLConfig) => {
+  static create: CallableFunction = (widget: VLMWidget.Config) => {
     try {
       if (!VLMWidget.configs[widget.id]) {
         VLMWidget.configs[widget.id] = {
           sk: widget.sk,
           id: widget.id,
           value: widget.value,
-          update: () => { },
-        };
+          update: () => {},
+        }
       }
-      VLMWidget.configs[widget.id].value = widget.value;
+      VLMWidget.configs[widget.id].value = widget.value
+      VLMWidget.configs[widget.id]?.init?.(widget)
 
-      if (typeof VLMWidget.configs[widget.id].init === "function") {
-        VLMWidget.configs[widget.id].init(widget);
-      }
-      console.log('VLM - Created Widget', VLMWidget.configs[widget.id]);
+      VLMDebug.log('widget', 'Created Widget', VLMWidget.configs[widget.id])
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
-  static update: CallableFunction = (widget: VLMWidget.DCLConfig, user: { connectedWallet: string, displayName: string }) => {
+  static update: CallableFunction = (widget: VLMWidget.Config, user: { connectedWallet: string; displayName: string }) => {
     try {
       if (!VLMWidget.configs[widget.id]) {
         VLMWidget.configs[widget.id] = {
           sk: widget.sk,
           id: widget.id,
           value: widget.value,
-          update: () => { },
-        };
+          update: () => {},
+        }
       }
-      VLMWidget.configs[widget.id].value = widget.value;
-      VLMWidget.configs[widget.id].update({ ...widget, user });
-      console.log('VLM - Updated Widget', VLMWidget.configs[widget.id]);
+      VLMWidget.configs[widget.id].value = widget.value
+      VLMWidget.configs[widget.id].update({ ...widget, user })
+      VLMDebug.log('widget', 'Updated Widget', VLMWidget.configs[widget.id])
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static delete: CallableFunction = (widgetId: string) => {
     try {
-      const config = VLMWidget.configs[widgetId];
-      config.value = false;
+      const config = VLMWidget.configs[widgetId]
+      config.value = false
       if (!config) {
-        return;
+        return
       } else if (config.delete) {
-        config?.delete(config);
+        config?.delete(config)
       } else {
-        config?.update(config);
+        config?.update(config)
       }
-      delete VLMWidget.configs[widgetId];
-      console.log('VLM - Deleted Widget', widgetId);
+      delete VLMWidget.configs[widgetId]
+      VLMDebug.log('widget', 'Deleted Widget', widgetId)
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 }
 
-const sortConfigs = (configs: VLMWidget.DCLConfig[]) => {
-  const configsAreOrdered = configs.some((config: VLMWidget.DCLConfig) => config.hasOwnProperty('order'));
+const sortConfigs = (configs: VLMWidget.Config[]) => {
+  const configsAreOrdered = configs.some((config: VLMWidget.Config) => config.hasOwnProperty('order'))
   if (!configsAreOrdered) {
-    return configs;
+    return configs
   }
 
-  const sortedConfigs = configs.sort((a: VLMWidget.DCLConfig, b: VLMWidget.DCLConfig) => {
+  const sortedConfigs = configs.sort((a: VLMWidget.Config, b: VLMWidget.Config) => {
     if (a.order && b.order == undefined) {
-      return -1;
+      return -1
     } else if (a.order == undefined && b.order) {
-      return 1;
+      return 1
+    } else if ((a.order == undefined && b.order == undefined) || a.order == null || b.order == null) {
+      return 0
     }
 
     if (a.order < b.order) {
-      return -1;
+      return -1
     } else if (a.order > b.order) {
-      return 1;
+      return 1
     } else {
-      return 0;
+      return 0
     }
-  });
-  configs = sortedConfigs;
-  console.log('VLM - Sorted Widgets', configs)
+  })
+  configs = sortedConfigs
+  VLMDebug.log('widget', 'Sorted Widgets', configs)
   return sortedConfigs
 }

@@ -2,13 +2,16 @@ import { VLMSessionManager } from "../logic/VLMSession.logic";
 import { VLMSceneElement, VLMSceneElementInstance } from "../logic/VLMScene.logic";
 import { PathPoint } from "../logic/VLMPath.logic";
 import { VLMModeration } from "./VLMModeration.component";
-import { VLMNotification } from "./VLMNotification.component";
+// import { VLMNotification } from "./VLMNotification.component";
 import { VLMScene } from "./VLMScene.component";
 import { VLMSession } from "./VLMSession.component";
-import { VLMSound } from "./VLMSound.component";
+// import { VLMSound } from "./VLMSound.component";
 import { VLMVideo } from "./VLMVideo.component";
 import { VLMWidget } from "./VLMWidget.component";
-import { VLMClaimPoint } from "./VLMClaimPoint.component";
+// import { VLMClaimPoint } from "./VLMClaimPoint.component";
+import { VLMSound } from "./VLMSound.component";
+import { StreamState } from "../shared/interfaces";
+// import { VLMClaimPoint } from "./VLMClaimPoint.component";
 
 
 export class VLMSystemEvent {
@@ -95,8 +98,8 @@ export class VLMSessionEvent {
 
 export class VLMSoundStateEvent {
   action: "scene_sound_locators" = "scene_sound_locators";
-  elementData: VLMSound.DCLConfig;
-  instanceData: VLMSound.DCLInstanceConfig;
+  elementData: VLMSound.Config;
+  instanceData: VLMSound.Instance;
   showLocators: boolean;
   userId: string;
   constructor(config: VLMSoundStateEvent) {
@@ -139,29 +142,29 @@ export class VLMWitnessedAction {
   }
 }
 
-export class VLMClaimEvent implements VLMClaimPoint.ClaimResponse {
-  action: "giveaway_claim" | "giveaway_claim_response";
-  giveawayId: string;
-  sk: string;
-  messageOptions?: VLMNotification.MessageOptions;
-  type?: VLMClaimPoint.ClaimResponseType;
-  reason?: VLMClaimPoint.ClaimRejection;
-  sessionToken?: string;
-  constructor(config: VLMClaimEvent) {
-    this.sk = config.sk;
-    this.action = config.action;
-    this.giveawayId = config.giveawayId;
-    this.reason = config.reason;
-    this.messageOptions = config.messageOptions;
-    this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
-  }
-}
+// export class VLMClaimEvent implements VLMClaimPoint.ClaimResponse {
+//   action: "giveaway_claim" | "giveaway_claim_response";
+//   giveawayId: string;
+//   sk: string;
+//   // messageOptions?: VLMNotification.MessageOptions;
+//   // type?: VLMClaimPoint.ClaimResponseType;
+//   // reason?: VLMClaimPoint.ClaimRejection;
+//   sessionToken?: string;
+//   constructor(config: VLMClaimEvent) {
+//     this.sk = config.sk;
+//     this.action = config.action;
+//     this.giveawayId = config.giveawayId;
+//     // this.reason = config.reason;
+//     // this.messageOptions = config.messageOptions;
+//     this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
+//   }
+// }
 
 
 export class VLMVideoStatusEvent {
   action: "scene_video_status" = "scene_video_status";
   sceneId?: string;
-  status?: VLMVideo.StreamState;
+  status?: StreamState;
   url?: string;
   sk?: string;
   constructor(config: VLMVideoStatusEvent) {
@@ -214,11 +217,5 @@ export class VLMSceneMessage {
     this.sceneSettings = message?.sceneSettings;
     this.scenePreset = message?.scenePreset;
     this.user = message?.user;
-  }
-}
-
-
-export class VLMSceneInitEvent {
-  constructor() {
   }
 }

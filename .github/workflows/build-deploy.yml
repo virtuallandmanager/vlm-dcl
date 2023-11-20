@@ -1,7 +1,6 @@
 on:
   push:
     branches:
-      - sdk6
       - sdk7
   pull_request:
   release:
@@ -25,10 +24,6 @@ jobs:
 
       - name: build
         run: npm run build
-
-      - name: Set custom-tag for sdk6
-        if: github.ref == 'refs/heads/sdk6'
-        run: echo "CUSTOM_TAG=sdk6" >> $GITHUB_ENV
 
       - name: Set custom-tag for sdk7
         if: github.ref == 'refs/heads/sdk7'

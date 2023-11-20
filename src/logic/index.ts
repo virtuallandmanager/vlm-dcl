@@ -1,6 +1,5 @@
 export * from "./VLMImage.logic";
 export * from "./VLMModeration.logic";
-export * from "./VLMNFT.logic";
 export * from "./VLMNotification.logic";
 export * from "./VLMSound.logic";
 export * from "./VLMVideo.logic";

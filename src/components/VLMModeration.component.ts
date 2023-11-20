@@ -10,7 +10,7 @@ export namespace VLMModeration {
     MIRROR,
   }
 
-  export class DCLConfig {
+  export class Config {
     sk: string;
     allowCertainWearables?: boolean;
     banCertainWearables?: boolean;
@@ -42,5 +42,5 @@ export namespace VLMModeration {
       this.banWallType = config.banWallType || this.banWallType;
     }
   }
-  export class VLMConfig extends DCLConfig {}
+  export class VLMConfig extends Config { }
 }

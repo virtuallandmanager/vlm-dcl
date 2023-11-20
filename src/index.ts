@@ -1,15 +1,20 @@
 import { VLM } from "./app";
-import { VLMVideo, VLMImage, VLMNFT, VLMSound, VLMWidget } from "./components/index";
+import { VLMVideo, VLMImage, VLMSound, VLMWidget } from "./components/index";
+import "xmlhttprequest-polyfill";
 
-class VideoConfig extends VLMVideo.VLMConfig { }
-class VideoInstanceConfig extends VLMVideo.VLMInstanceConfig { };
-class ImageConfig extends VLMImage.VLMConfig { };
-class ImageInstanceConfig extends VLMImage.VLMInstanceConfig { };
-class NFTConfig extends VLMNFT.VLMConfig { };
-class NFTInstanceConfig extends VLMNFT.VLMInstanceConfig { };
-class SoundConfig extends VLMSound.VLMConfig { };
-class SoundInstanceConfig extends VLMSound.VLMInstanceConfig { };
-class WidgetConfig extends VLMWidget.VLMConfig { };
+// @ts-ignore
+import { URL } from "whatwg-url-without-unicode";
+
+// @ts-ignore
+globalThis['URL'] = URL;
+
+class VideoConfig extends VLMVideo.Config { }
+class VideoInstanceConfig extends VLMVideo.Instance { };
+class ImageConfig extends VLMImage.Config { };
+class ImageInstanceConfig extends VLMImage.Instance { };
+class SoundConfig extends VLMSound.Config { };
+class SoundInstanceConfig extends VLMSound.Instance { };
+class WidgetConfig extends VLMWidget.Config { };
 
 export default VLM;
-export { VideoConfig, VideoInstanceConfig, ImageConfig, ImageInstanceConfig, NFTConfig, NFTInstanceConfig, SoundConfig, SoundInstanceConfig, WidgetConfig }
+export { VLM, VideoConfig, VideoInstanceConfig, ImageConfig, ImageInstanceConfig, SoundConfig, SoundInstanceConfig, WidgetConfig }
