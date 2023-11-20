@@ -2,66 +2,168 @@
 ///<reference lib="es2015.symbol.wellknown" />
 ///<reference lib="es2015.collection" />
 ///<reference lib="es2015.iterable" />
-import { Room, Client } from "colyseus.js";
+import { Vector3 } from '@dcl/sdk/math'
+import { Room, Client } from 'colyseus.js'
+import { EndpointSettings } from 'colyseus.js/lib/Client'
+import { VLMClickEvent } from '../components/VLMClickEvent.component'
 
-export type SimpleTransform = {
-  x: number;
-  y: number;
-  z: number;
-};
+// integration interfaces - these define properties and methods that are used by this package
+
+export interface BaseProperties {
+  pk?: string
+  sk?: string
+  customId?: string
+  customRendering?: boolean
+  enabled?: boolean
+  parent?: string
+  instanceIds: string[]
+  init?: CallableFunction
+}
+
+export interface Clickable {
+  clickEvent?: VLMClickEvent.Config
+}
 
 export interface Transformable {
-  parent?: string;
-  position: SimpleTransform;
-  scale: SimpleTransform;
-  rotation: SimpleTransform;
-  updateParent: CallableFunction;
-}
-
-interface HasTexture {
-  texture?: Texture;
-  updateTexture: CallableFunction;
-}
-
-export interface HasVideoTexture extends HasTexture {
-  videoTexture?: VideoTexture;
-}
-
-export interface HasImageTexture extends HasTexture {
-  imageTexture?: Texture;
-}
-
-export interface HasHybridTexture extends HasVideoTexture, HasImageTexture {}
-
-export interface Emissive {
-  emissiveIntensity?: number;
-  emission?: number;
+  parent?: string
+  position: Vector3
+  scale: Vector3
+  rotation: Vector3
+  updateTransform: CallableFunction
 }
 
 export interface Audible {
-  volume: number;
-  updateVolume: CallableFunction;
-}
-export interface HasPlaylist {
-  playlist: string[];
-  startPlaylist: CallableFunction;
-  updatePlaylist: CallableFunction;
+  volume: number
+  updateVolume: CallableFunction
+  showLocators?: CallableFunction
 }
 
 export interface Playable {
-  start: CallableFunction;
-  pause?: CallableFunction;
-  stop: CallableFunction;
+  start: CallableFunction
+  pause?: CallableFunction
+  stop: CallableFunction
 }
 
+export interface DynamicMedia {
+  offType?: DynamicMediaType
+  offImageSrc?: string
+  showOffImage?: CallableFunction
+}
+
+export interface LiveStream {
+  liveSrc?: string
+  isLive?: boolean
+  enableLiveStream?: boolean
+}
+
+export interface Playlist {
+  playlist?: string[]
+  activePlaylistVideo?: number
+  startPlaylistVideo: CallableFunction
+  updatePlaylist: CallableFunction
+}
+
+export type TextureOptions = {
+  textureSrc?: string
+  bumpSrc?: string
+  emissiveSrc?: string
+  alphaSrc?: string
+  emission?: number
+  castShadows?: boolean
+}
+
+// vlm config interfaces - these define the properties stored in the database and passed in from VLM's API
+
+export type VLMBaseProperties = {
+  pk: string
+  sk: string
+  name: string
+  customId?: string
+  customRendering?: boolean
+  enabled: boolean
+  parent?: string
+  instances: VLMInstanceProperties[]
+}
+
+export type VLMClickable = {
+  clickEvent?: VLMClickEvent.Config
+}
+
+export type VLMTransformable = {
+  parent?: string
+  position: Vector3
+  scale: Vector3
+  rotation: Vector3
+}
+
+export type VLMAudible = {
+  audioSrc?: string
+  sourceType?: AudioSourceType
+  volume?: number
+}
+
+export type VLMPlayable = {
+  start: CallableFunction
+  pause?: CallableFunction
+  stop: CallableFunction
+}
+
+export type VLMDynamicMedia = {
+  liveSrc?: string
+  isLive?: boolean
+  enableLiveStream?: boolean
+  playlist?: string[]
+  offType?: DynamicMediaType
+  offImageSrc?: string
+}
+
+export type VLMTextureOptions = {
+  textureSrc?: string
+  bumpSrc?: string
+  emissiveSrc?: string
+  alphaSrc?: string
+  emission?: number
+  castShadows?: boolean
+}
+
+export type VLMMeshOptions = {
+  withCollisions?: boolean
+}
+export type VLMInstanceProperties = VLMBaseProperties & VLMTransformable & VLMClickable & VLMMeshOptions
+
+// enums
+
+export enum DynamicMediaType {
+  NONE,
+  IMAGE,
+  PLAYLIST,
+  LIVE,
+}
+
+export enum AudioSourceType {
+  CLIP,
+  LOOP,
+  PLAYLIST,
+  STREAM,
+}
+
+export enum StreamState {
+  NOT_FOUND,
+  INACTIVE,
+  STATIC,
+  LIVE,
+}
+
+// colyseus extensions
+
 export class ColyseusClient extends Client {
-  constructor(url: string) {
-    super(url);
+  constructor(url: string | EndpointSettings) {
+    super(url)
   }
 }
 
 export class ColyseusRoom extends Room {
   constructor(name: string) {
-    super(name);
+    super(name)
   }
 }

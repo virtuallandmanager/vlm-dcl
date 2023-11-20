@@ -1,39 +1,40 @@
-import { VLMSceneInitEvent, VLMSceneMessage } from "../components/VLMSystemEvents.component";
-import { VLMClaimPoint } from "../components/VLMClaimPoint.component";
+import { VLMSceneMessage } from "../components/VLMSystemEvents.component";
 import { VLMImage } from "../components/VLMImage.component";
-import { VLMNFT } from "../components/VLMNFT.component";
+// import { VLMClaimPoint } from "../components/VLMClaimPoint.component";
 import { VLMSound } from "../components/VLMSound.component";
 import { VLMVideo } from "../components/VLMVideo.component";
 import { VLMImageManager } from "./VLMImage.logic";
 import { VLMVideoManager } from "./VLMVideo.logic";
-import { VLMNFTManager } from "./VLMNFT.logic";
 import { VLMSoundManager } from "./VLMSound.logic";
 import { VLMWidgetManager } from "./VLMWidget.logic";
 import { VLMScene } from "../components/VLMScene.component";
-import { VLMModerationManager } from "./VLMModeration.logic";
 import { VLMEventManager } from "./VLMSystemEvents.logic";
-import { VLMClaimPointManager } from "./VLMClaimPoint.logic";
-import { VLMModelManager } from "./VLMModel.logic";
-import { VLMModel } from "../components/VLMModel.component";
+// import { VLMClaimPointManager } from "./VLMClaimPoint.logic";
+import { VLMMeshManager } from "./VLMMesh.logic";
+import { VLMMesh } from "../components/VLMMesh.component";
+import { VLMDebug } from "./VLMDebug.logic";
 
-export type VLMSceneElement = VLMClaimPoint.VLMConfig | VLMImage.VLMConfig | VLMNFT.VLMConfig | VLMSound.VLMConfig | VLMVideo.VLMConfig | VLMModel.VLMConfig;
-export type VLMSceneElementInstance = VLMImage.VLMInstanceConfig | VLMNFT.VLMInstanceConfig | VLMSound.VLMInstanceConfig | VLMVideo.VLMInstanceConfig | VLMModel.VLMInstanceConfig;
+export type VLMSceneElement = VLMImage.VLMConfig | VLMSound.VLMConfig | VLMVideo.VLMConfig | VLMMesh.VLMConfig 
+//| VLMClaimPoint.VLMConfig;
+export type VLMSceneElementInstance = VLMImage.Instance | VLMSound.Instance | VLMVideo.Instance | VLMMesh.Instance;
 export abstract class VLMSceneManager {
   static sceneId: string;
   static store: { [uuid: string]: VLMSceneElement } = {};
-  static scenePreset: VLMScene.Preset;
+  static scenePreset?: VLMScene.Preset;
 
   static initScenePreset: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      console.log("VLM - Initializing Scene", message);
+      VLMDebug.log("Initializing Scene", message);
       const scenePreset = message.scenePreset;
       const sceneSettings = message.sceneSettings;
-      VLMModelManager.init(scenePreset.models);
+      if (!scenePreset) {
+        return;
+      }
+      VLMMeshManager.init(scenePreset.models);
       VLMImageManager.init(scenePreset.images);
-      VLMVideoManager.init(scenePreset.videos);
-      VLMNFTManager.init(scenePreset.nfts);
-      VLMSoundManager.init(scenePreset.sounds);
-      VLMClaimPointManager.init(scenePreset.claimPoints);
+      VLMVideoManager.init(scenePreset.videos); 
+      // VLMSoundManager.init(scenePreset.sounds);
+      // VLMClaimPointManager.init(scenePreset.claimPoints);
 
       if (scenePreset?.widgets?.length) {
         // set initial widget states
@@ -43,18 +44,18 @@ export abstract class VLMSceneManager {
 
 
       if (sceneSettings?.moderation) {
-        console.log("VLM - Moderation Settings", sceneSettings.moderation)
+        VLMDebug.log("Moderation Settings", sceneSettings.moderation)
         this.updateSceneSetting({ setting: "moderation", settingData: sceneSettings.moderation });
       }
 
-      VLMEventManager.events.fireEvent(new VLMSceneInitEvent());
+      VLMEventManager.events.emit('VLMSceneInitEvent');
     } catch (error) {
       throw error;
     }
   };
 
   static updateScenePreset: CallableFunction = (message: VLMSceneMessage) => {
-    this.scenePreset = message.scenePreset;
+    this.scenePreset = message?.scenePreset;
   };
 
   static createSceneElement: CallableFunction = (message: VLMSceneMessage) => {
@@ -66,14 +67,11 @@ export abstract class VLMSceneManager {
         case "image":
           VLMImageManager.create(message.elementData);
           break;
-        case "nft":
-          VLMNFTManager.create(message.elementData);
-          break;
         case "video":
           VLMVideoManager.create(message.elementData);
           break;
         case "model":
-          VLMModelManager.create(message.elementData);
+          VLMMeshManager.create(message.elementData);
           break;
         case "sound":
           VLMSoundManager.create(message.elementData);
@@ -82,7 +80,7 @@ export abstract class VLMSceneManager {
           VLMWidgetManager.create(message.elementData);
           break;
         case "claimpoint":
-          VLMClaimPointManager.create(message.elementData);
+          // VLMClaimPointManager.create(message.elementData);
           break;
       }
     } catch (error) {
@@ -96,11 +94,8 @@ export abstract class VLMSceneManager {
         case "image":
           VLMImageManager.createInstance(message.elementData, message.instanceData);
           break;
-        case "nft":
-          VLMNFTManager.createInstance(message.elementData, message.instanceData);
-          break;
         case "model":
-          VLMModelManager.createInstance(message.elementData, message.instanceData);
+          VLMMeshManager.createInstance(message.elementData, message.instanceData);
           break;
         case "video":
           VLMVideoManager.createInstance(message.elementData, message.instanceData);
@@ -116,7 +111,6 @@ export abstract class VLMSceneManager {
 
   static updateSceneElement: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      console.log(`VLM VLMScene.logic updateSceneElement`, message)
       if (message.instance) {
         return this.updateSceneElementInstance(message);
       } else if (message.setting) {
@@ -126,9 +120,6 @@ export abstract class VLMSceneManager {
         case "image":
           VLMImageManager.update(message.elementData, message.property, message.id);
           break;
-        case "nft":
-          VLMNFTManager.update(message.elementData, message.property, message.id);
-          break;
         case "video":
           VLMVideoManager.update(message.elementData, message.property, message.id);
           break;
@@ -136,14 +127,13 @@ export abstract class VLMSceneManager {
           VLMSoundManager.update(message.elementData, message.property, message.id);
           break;
         case "model":
-          VLMModelManager.update(message.elementData, message.property, message.id);
+          VLMMeshManager.update(message.elementData, message.property, message.id);
           break;
         case "widget":
           VLMWidgetManager.update(message.elementData, message.user);
           break;
         case "claimpoint":
-          console.log("VLM - Update Claim Point", message.elementData)
-          VLMClaimPointManager.update(message.elementData, message.property, message.id);
+          // VLMClaimPointManager.update(message.elementData, message.property, message.id);
           break;
       }
     } catch (error) {
@@ -153,14 +143,13 @@ export abstract class VLMSceneManager {
 
   static updateSceneSetting: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      console.log(`VLM VLMScene.logic updateSceneSetting`, message)
       if (!message?.settingData) return;
       switch (message.setting) {
         case "localization":
           // TODO: add localization code
           break;
         case "moderation":
-          VLMModerationManager.updateSettings(message.settingData.settingValue);
+          // VLMModerationManager.updateSettings(message.settingData.settingValue);
           break;
       }
     } catch (error) {
@@ -174,11 +163,8 @@ export abstract class VLMSceneManager {
         case "image":
           VLMImageManager.updateInstance(message.instanceData, message.property, message.id);
           break;
-        case "nft":
-          VLMNFTManager.updateInstance(message.instanceData, message.property, message.id);
-          break;
         case "model":
-          VLMModelManager.updateInstance(message.instanceData, message.property, message.id);
+          VLMMeshManager.updateInstance(message.instanceData, message.property, message.id);
           break;
         case "video":
           VLMVideoManager.updateInstance(message.instanceData, message.property, message.id);
@@ -198,19 +184,16 @@ export abstract class VLMSceneManager {
         return this.deleteSceneElementInstance(message);
       }
 
-      const id = message.elementData.sk || message.id;
+      const id = message?.elementData?.sk || message.id;
       switch (message.element) {
         case "image":
           VLMImageManager.delete(id);
-          break;
-        case "nft":
-          VLMNFTManager.delete(id);
           break;
         case "video":
           VLMVideoManager.delete(id);
           break;
         case "model":
-          VLMModelManager.delete(id);
+          VLMMeshManager.delete(id);
           break;
         case "sound":
           VLMSoundManager.delete(id);
@@ -219,7 +202,7 @@ export abstract class VLMSceneManager {
           VLMWidgetManager.delete(id);
           break;
         case "claimpoint":
-          VLMClaimPointManager.delete(id);
+          // VLMClaimPointManager.delete(id);
           break;
       }
     } catch (error) {
@@ -229,18 +212,15 @@ export abstract class VLMSceneManager {
 
   static deleteSceneElementInstance: CallableFunction = (message: VLMSceneMessage) => {
     try {
-      const id = message.instanceData.sk || message.id;
+      const id = message?.instanceData?.sk || message.id;
       switch (message.element) {
         case "image":
           VLMImageManager.deleteInstance(id);
           break;
-        case "nft":
-          VLMNFTManager.deleteInstance(id);
-          break;
         case "video":
           VLMVideoManager.deleteInstance(id);
         case "model":
-          VLMModelManager.deleteInstance(id);
+          VLMMeshManager.deleteInstance(id);
           break;
         case "sound":
           VLMSoundManager.deleteInstance(id);

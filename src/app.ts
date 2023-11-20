@@ -1,5 +1,5 @@
 import { UserData } from "~system/UserIdentity";
-import { VLMEnvironment } from "./environment";
+import { VLMEnvironment, VLMInitConfig} from "./environment";
 import { VLMSessionManager } from "./logic/VLMSession.logic";
 import { VLMEventListeners } from "./logic/VLMSystemListeners.logic";
 import { VLMLogManager } from "./logic/VLMLogging";
@@ -9,12 +9,11 @@ import { VLMEventManager } from "./logic/VLMSystemEvents.logic";
 import { VLMWidget } from "./components/VLMWidget.component";
 import { VLMVideo } from "./components/VLMVideo.component";
 import { VLMImage } from "./components/VLMImage.component";
-import { VLMNFT } from "./components/VLMNFT.component";
 import { VLMSound } from "./components/VLMSound.component";
-import { VLMSceneInitEvent } from "./components/VLMSystemEvents.component";
-import { VLMModel } from "./components/VLMModel.component";
-import { VLMClaimPoint } from "./components/VLMClaimPoint.component";
+import { VLMMesh } from "./components/VLMMesh.component";
+// import { VLMClaimPoint } from "./components/VLMClaimPoint.component";
 import { configurePaths } from "./shared/paths";
+import { VLMDebug } from "./logic/VLMDebug.logic";
 
 /**
  * The main entry point for the VLM library.
@@ -25,7 +24,7 @@ export abstract class VLM {
 
   public static activeServer: string;
 
-  public static uiCanvas: UICanvas = new UICanvas();
+  // public static uiCanvas: UICanvas = new UICanvas();
 
   public static user: UserData;
 
@@ -34,38 +33,36 @@ export abstract class VLM {
    * @param config - The VLM initialization options.
    * @public
    */
-  public static init: CallableFunction = async (config?: VLMInitConfig) => {
-    console.log("VLM - Initializing", config)
+  public static init: CallableFunction = async (config: VLMInitConfig) => {
+
     return new Promise(async (resolve, reject) => {
-      onSceneReadyObservable.addOnce(async () => {
-        try {
-          if (config?.modelFolder || config?.soundFolder) {
-            configurePaths({ modelFolder: config?.modelFolder, soundFolder: config?.soundFolder })
-          }
-          VLMEventManager.events.addListener(VLMSceneInitEvent, null, () => {
-            resolve(VLM.storage);
-          });
-          if (config?.widgets) {
-            await VLMWidgetManager.configureWidgets(config.widgets);
-          }
-          await VLMEnvironment.init(config?.env || "prod");
-          await VLMNotificationManager.init();
-          const session = await VLMSessionManager.start(VLM.version);
-          if (!session?.sceneRoom) {
-            console.log("VLM INIT ERROR: Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file.")
-            resolve({ error: "Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file." });
-            return;
-          }
-          await VLMEventListeners.init();
-        } catch (error) {
-          VLMLogManager.logError(error, { ...config, message: "VLM INIT ERROR", version: VLM.version, env: config?.env || "prod", });
-          reject(error);
+      try {
+        if (config?.modelFolder || config?.soundFolder) {
+          configurePaths({ modelFolder: config?.modelFolder, soundFolder: config?.soundFolder })
         }
-      });
+        VLMEventManager.events.on('VLMSceneInitEvent', () => {
+          resolve(VLM.storage);
+        });
+        if (config?.widgets) {
+          await VLMWidgetManager.configureWidgets(config.widgets);
+        }
+        await VLMEnvironment.init(config);
+        await VLMNotificationManager.init();
+        const session = await VLMSessionManager.start(VLM.version);
+        if (!session?.sceneRoom) {
+          VLMDebug.log("INIT ERROR: Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file.")
+          resolve({ error: "Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file." });
+          return;
+        }
+        await VLMEventListeners.init();
+      } catch (error) {
+        VLMLogManager.logError(error, { ...config, message: "VLM INIT ERROR", version: VLM.version, env: config?.env || "prod", });
+        reject(error);
+      }
     });
   };
 
-  public static configureWidgets: CallableFunction = async (options: VLMWidget.DCLConfig[]) => {
+  public static configureWidgets: CallableFunction = async (options: VLMWidget.Config[]) => {
     return VLMWidgetManager.configureWidgets(options);
   };
 
@@ -93,28 +90,23 @@ export abstract class VLM {
     videos: {
       configs: VLMVideo.configs,
       instances: VLMVideo.instances,
-      systems: VLMVideo.systems
     },
     images: {
       configs: VLMImage.configs,
       instances: VLMImage.instances
     },
     models: {
-      configs: VLMModel.configs,
-      instances: VLMModel.instances
-    },
-    nfts: {
-      configs: VLMNFT.configs,
-      instances: VLMNFT.instances
+      configs: VLMMesh.configs,
+      instances: VLMMesh.instances
     },
     sounds: {
       configs: VLMSound.configs,
       instances: VLMSound.instances,
-      systems: VLMSound.systems
+      // systems: VLMSound.systems
     },
-    claimPoints: {
-      configs: VLMClaimPoint.configs,
-    },
+    // claimPoints: {
+    //   configs: VLMClaimPoint.configs,
+    // },
     widgets: {
       configs: VLMWidget.configs
     }
@@ -125,39 +117,24 @@ export abstract class VLM {
 
 export type VLMStorage = {
   video: {
-    configs: { [customId: string]: VLMVideo.DCLConfig },
-    instances: { [customId: string]: VLMVideo.DCLInstanceConfig },
-    systems: { [customId: string]: VLMVideo.VLMVideoPlaylistSystem }
+    configs: { [customId: string]: VLMVideo.Config },
+    instances: { [customId: string]: VLMVideo.Instance },
+    // systems: { [customId: string]: VLMVideo.VLMVideoPlaylistSystem }
   },
   image: {
-    configs: { [customId: string]: VLMImage.DCLConfig },
-    instances: { [customId: string]: VLMImage.DCLInstanceConfig }
+    configs: { [customId: string]: VLMImage.Config },
+    instances: { [customId: string]: VLMImage.Instance }
   },
   models: {
-    configs: { [customId: string]: VLMModel.DCLConfig },
-    instances: { [customId: string]: VLMModel.DCLInstanceConfig }
-  },
-  nft: {
-    configs: { [customId: string]: VLMNFT.DCLConfig },
-    instances: { [customId: string]: VLMNFT.DCLInstanceConfig }
+    configs: { [customId: string]: VLMMesh.Config },
+    instances: { [customId: string]: VLMMesh.Instance }
   },
   sound: {
-    configs: { [customId: string]: VLMSound.DCLConfig },
-    instances: { [customId: string]: VLMSound.DCLInstanceConfig },
-    systems: { [customId: string]: VLMSound.DCLSoundSystem }
+    configs: { [customId: string]: VLMSound.Config },
+    instances: { [customId: string]: VLMSound.Instance },
+    // systems: { [customId: string]: VLMSound.DCLSoundSystem }
   },
   widget: {
-    configs: { [customId: string]: VLMWidget.DCLConfig };
+    configs: { [customId: string]: VLMWidget.Config };
   }
-};
-
-/**
- * Environment initialization options. Allow you to choose which server to connect to.
- * @public
- */
-type VLMInitConfig = {
-  env: "dev" | "staging" | "prod";
-  widgets?: VLMWidget.DCLConfig[];
-  modelFolder?: string;
-  soundFolder?: string;
 };

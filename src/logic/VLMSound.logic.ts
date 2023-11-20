@@ -12,22 +12,22 @@ export abstract class VLMSoundManager {
 
   static create: CallableFunction = (config: VLMSound.VLMConfig) => {
     try {
-      new VLMSound.DCLConfig(config);
+      new VLMSound.Config(config);
     } catch (error) {
       throw error;
     }
   };
 
-  static createInstance: CallableFunction = (source: VLMSound.VLMConfig, instance: VLMSound.VLMInstanceConfig) => {
+  static createInstance: CallableFunction = (source: VLMSound.VLMConfig, instance: VLMSound.Instance) => {
     if (!source?.enabled || !instance?.enabled) {
       return;
     }
     const soundId = source.sk;
-    VLMSound.configs[soundId].createInstance(instance);
+    VLMSound.configs[soundId].createOrReplaceInstance(instance);
   };
 
   static update: CallableFunction = (config: VLMSound.VLMConfig | any, property: string, id: string) => {
-    const storedConfig: VLMSound.DCLConfig = VLMSound.configs[config.sk];
+    const storedConfig: VLMSound.Config = VLMSound.configs[config.sk];
 
     if (!config || (!storedConfig && !config.enabled)) {
       return;
@@ -44,31 +44,19 @@ export abstract class VLMSoundManager {
           this.add(config.sk);
         }
         break;
-      case "sourceType":
-        storedConfig.updateSourceType(config.sourceType);
-        break;
-      case "audioSrc":
-        storedConfig.updateSource(config.audioSrc);
-        break;
-      case "volume":
-        storedConfig.updateVolume(config.volume);
-        break;
-      case "properties":
-        storedConfig.updateParent(config.parent);
-        storedConfig.updateCustomId(config.customId);
-        storedConfig.updateCustomRendering(config.customRendering);
-        break;
+      default:
+        storedConfig.init(config);
     }
   };
 
-  static updateInstance: CallableFunction = (instanceConfig: VLMSound.VLMInstanceConfig, property: string, id: string) => {
+  static updateInstance: CallableFunction = (instanceConfig: VLMSound.Instance, property: string, id: string) => {
     const instance = VLMSound.instances[instanceConfig.sk],
       configId = instance?.configId,
       config = VLMSound.configs[configId];
     if (!config) {
       return;
     } else if (!instance && instanceConfig.enabled) {
-      config.createInstance(instanceConfig);
+      config.createOrReplaceInstance(instanceConfig);
     }
 
     const { position, scale, rotation } = instanceConfig;
@@ -78,22 +66,19 @@ export abstract class VLMSoundManager {
         if (!config.enabled || !instanceConfig.enabled) {
           config.removeInstance(instanceConfig.sk);
         } else if (instance && instanceConfig.enabled) {
-          config.addInstance(instanceConfig.sk);
+          config.createOrReplaceInstance(instanceConfig.sk);
         }
         break;
       case "transform":
         instance.updateTransform(position, scale, rotation);
         break;
-      case "properties":
-        instance.updateParent(instanceConfig.parent);
-        instance.updateCustomId(instanceConfig.customId);
-        instance.updateCustomRendering(instanceConfig.customRendering);
-        break;
+      default:
+        instance.init(instanceConfig);
     }
   };
 
   static add: CallableFunction = (id: string) => {
-    VLMSound.configs[id].showAll();
+    VLMSound.configs[id].addAll();
   };
 
   static delete: CallableFunction = (id: string) => {

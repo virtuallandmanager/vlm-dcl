@@ -1,130 +1,77 @@
+import { IEngine } from '@dcl/sdk/ecs'
+import { ecs } from '../environment'
+
+const REGULAR_PRIORITY = 100e3
+
+export namespace priority {
+  export const TimerSystemPriority = REGULAR_PRIORITY + 256
+  export const TweenSystemPriority = REGULAR_PRIORITY + 192
+  export const PerpetualMotionSystemPriority = REGULAR_PRIORITY + 192
+  export const PathSystemPriority = REGULAR_PRIORITY + 192
+  export const TriggerSystemPriority = REGULAR_PRIORITY + 128
+  export const ActionSystemPriority = REGULAR_PRIORITY + 64
+}
+
+export type Callback = () => void
+
+export type TimerId = number
+
 export namespace VLMTimer {
-  export class System implements ISystem {
-    private static instance: System | null = null;
-
-    private _components: ComponentConstructor<ITimerComponent>[] = [];
-
-    static createAndAddToEngine(): System {
-      if (this.instance == null) {
-        this.instance = new System();
-        engine.addSystem(this.instance);
+  export class System {
+    static createTimers(targetEngine: IEngine) {
+      type TimerData = {
+        accumulatedTime: number
+        interval: number
+        recurrent: boolean
+        callback: Callback
       }
-      return this.instance;
-    }
 
-    static registerCustomComponent<T extends ITimerComponent>(component: ComponentConstructor<T>) {
-      this.createAndAddToEngine()._components.push(component);
-    }
+      const timers: Map<TimerId, TimerData> = new Map()
+      let timerIdCounter = 0
 
-    public addComponentType(component: ComponentConstructor<ITimerComponent>) {
-      for (let comp of this._components) {
-        if (component == comp) {
-          return;
-        }
-      }
-      this._components.push(component);
-    }
+      function system(dt: number) {
+        let deadTimers = []
+        let callbacks = []
 
-    private constructor() {
-      System.instance = this;
-    }
+        for (let [timerId, timerData] of timers) {
+          timerData.accumulatedTime += 1000 * dt
+          if (timerData.accumulatedTime < timerData.interval) continue
 
-    update(dt: number) {
-      this._components.forEach((component) => {
-        this.updateComponent(dt, component);
-      });
-    }
+          callbacks.push(timerData.callback)
 
-    private updateComponent<T extends ITimerComponent>(dt: number, component: ComponentConstructor<T>) {
-      let record = engine.getEntitiesWithComponent(component);
-
-      for (const key in record) {
-        if (record.hasOwnProperty(key)) {
-          let entity = record[key];
-          let timerComponent = entity.getComponent(component);
-
-          timerComponent.elapsedTime += dt;
-          if (timerComponent.elapsedTime >= timerComponent.targetTime) {
-            timerComponent.onTargetTimeReached(entity);
+          if (timerData.recurrent) {
+            timerData.accumulatedTime -= Math.floor(timerData.accumulatedTime / timerData.interval) * timerData.interval
+          } else {
+            deadTimers.push(timerId)
           }
         }
+
+        for (let timerId of deadTimers) timers.delete(timerId)
+
+        for (let callback of callbacks) callback()
+      }
+
+      targetEngine.addSystem(system, priority.TimerSystemPriority)
+      return {
+        setTimeout(callback: Callback, milliseconds: number): TimerId {
+          let timerId = timerIdCounter++
+          timers.set(timerId, { callback: callback, interval: milliseconds, recurrent: false, accumulatedTime: 0 })
+          return timerId
+        },
+        clearTimeout(timer: TimerId) {
+          timers.delete(timer)
+        },
+        setInterval(callback: Callback, milliseconds: number): TimerId {
+          let timerId = timerIdCounter++
+          timers.set(timerId, { callback: callback, interval: milliseconds, recurrent: true, accumulatedTime: 0 })
+          return timerId
+        },
+        clearInterval(timer: TimerId) {
+          timers.delete(timer)
+        },
       }
     }
   }
-  /**
-   * Execute every X milliseconds
-   * @public
-   */
-  @Component("vlmTimerInterval")
-  export class Interval implements ITimerComponent {
-    elapsedTime: number;
-    targetTime: number;
-    onTargetTimeReached: (ownerEntity: IEntity) => void;
-
-    private onTimeReachedCallback?: () => void;
-
-    /**
-     * @param millisecs - amount of time in milliseconds
-     * @param onTimeReachedCallback - callback for when time is reached
-     */
-    constructor(millisecs: number, onTimeReachedCallback?: () => void) {
-      let instance = VLMTimer.System.createAndAddToEngine();
-      instance.addComponentType(Interval);
-
-      this.elapsedTime = 0;
-      this.targetTime = millisecs / 1000;
-      this.onTimeReachedCallback = onTimeReachedCallback;
-      this.onTargetTimeReached = () => {
-        this.elapsedTime = 0;
-        if (this.onTimeReachedCallback) this.onTimeReachedCallback();
-      };
-    }
-
-    setCallback(onTimeReachedCallback: () => void) {
-      this.onTimeReachedCallback = onTimeReachedCallback;
-    }
-  }
-
-  /**
-   * Execute once after X milliseconds
-   * @public
-   */
-  @Component("vlmTimerDelay")
-  export class Delay implements ITimerComponent {
-    elapsedTime: number;
-    targetTime: number;
-    onTargetTimeReached: (ownerEntity: IEntity) => void;
-
-    private onTimeReachedCallback?: () => void;
-
-    /**
-     * @param millisecs - amount of time in milliseconds
-     * @param onTimeReachedCallback - callback for when time is reached
-     */
-    constructor(millisecs: number, onTimeReachedCallback?: () => void) {
-      let instance = VLMTimer.System.createAndAddToEngine();
-      instance.addComponentType(Delay);
-
-      this.elapsedTime = 0;
-      this.targetTime = millisecs / 1000;
-      this.onTimeReachedCallback = onTimeReachedCallback;
-      this.onTargetTimeReached = (entity) => {
-        if (this.onTimeReachedCallback) this.onTimeReachedCallback();
-        entity.removeComponent(this);
-      };
-    }
-
-    setCallback(onTimeReachedCallback: () => void) {
-      this.onTimeReachedCallback = onTimeReachedCallback;
-    }
-  }
-
-  /**
-   * @public
-   */
-  export interface ITimerComponent {
-    elapsedTime: number;
-    targetTime: number;
-    onTargetTimeReached: (ownerEntity: IEntity) => void;
-  }
 }
+
+export const timers = VLMTimer.System.createTimers(ecs.engine)

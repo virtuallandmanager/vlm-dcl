@@ -1,174 +1,125 @@
-import { VLMVideo } from "../components/VLMVideo.component";
+import { VLMVideo } from '../components/VLMVideo.component'
+import { VLMDebug } from './VLMDebug.logic'
 
 export abstract class VLMVideoManager {
-  static init: CallableFunction = (videoScreens: VLMVideo.VLMConfig[]) => {
+  static init: CallableFunction = (videos: VLMVideo.VLMConfig[]) => {
     try {
-      if (!videoScreens) {
-        return;
+      VLMDebug.log('Initializing Videos', videos)
+      if (!videos) {
+        return
       }
-      videoScreens.forEach((videoScreen: VLMVideo.VLMConfig) => {
-        const existing = VLMVideo.configs[videoScreen?.sk];
+      videos.forEach((video: VLMVideo.VLMConfig) => {
+        const existing = VLMVideo.configs[video?.sk]
         if (existing) {
-          existing.init();
+          existing.init()
         } else {
-          this.create(videoScreen);
+          this.create(video)
         }
-
-      });
+      })
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static create: CallableFunction = (config: VLMVideo.VLMConfig) => {
     try {
-      new VLMVideo.DCLConfig(config);
+      new VLMVideo.Config(config)
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
-  static createInstance: CallableFunction = (config: VLMVideo.DCLConfig, instance: VLMVideo.VLMConfig) => {
+  static createInstance: CallableFunction = (config: VLMVideo.Config, instance: VLMVideo.VLMConfig) => {
     try {
-      const videoId = config.sk;
-      VLMVideo.configs[videoId].createInstance(instance);
+      const videoId = config.sk
+      VLMVideo.configs[videoId].createOrReplaceInstance(instance)
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static update: CallableFunction = (config: VLMVideo.VLMConfig, property: string, id: string) => {
     try {
-      const storedConfig: VLMVideo.DCLConfig = VLMVideo.configs[config.sk];
+      const storedConfig: VLMVideo.Config = VLMVideo.configs[config.sk]
 
       if (!config || (!storedConfig && !config.enabled)) {
-        return;
+        return
       } else if (!storedConfig && config.enabled) {
         this.create(config)
-        return this.update(config, property, id);
+        return this.update(config, property, id)
       }
 
       switch (property) {
-        case "enabled":
+        case 'enabled':
           if (!config.enabled) {
-            this.remove(config?.sk);
+            this.remove(config?.sk)
           } else if (storedConfig) {
-            this.add(config?.sk);
+            this.add(config?.sk)
           }
-          break;
-        case "liveSrc":
-          storedConfig.liveSrc = config.liveSrc;
-          break;
-        case "enableLiveStream":
-          console.log("enableLiveStream", config.enableLiveStream, config);
-          storedConfig.updateOnAirState(config.enableLiveStream);
-          break;
-        case "playlist":
-          storedConfig.updatePlaylist(config.playlist);
-          break;
-        case "volume":
-          storedConfig.updateVolume(config.volume);
-          break;
-        case "emission":
-          storedConfig.emissiveIntensity = config.emission || 0;
-          break;
-        case "offType":
-          storedConfig.updateOffType(config.offType);
-          break;
-        case "clickEvent":
-          storedConfig.updateClickEvent(config.clickEvent);
-          break;
-        case "properties":
-          storedConfig.updateParent(config.parent);
-          storedConfig.updateCustomId(config.customId);
-          storedConfig.updateCustomRendering(config.customRendering);
-        case "offImageSrc":
-          storedConfig.updateOffImage(config.offImageSrc);
-          break;
-        case "parent":
-          storedConfig.updateParent(config.parent);
-          break;
-        case "customId":
-          storedConfig.updateCustomId(config.customId);
-          break;
-        case "customRendering":
-          storedConfig.updateCustomRendering(config.customRendering);
-          break;
+          break
+        default:
+          storedConfig.init(config)
       }
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
-  static updateInstance: CallableFunction = (instanceConfig: VLMVideo.VLMInstanceConfig, property: string, id: string) => {
+  static updateInstance: CallableFunction = (instanceConfig: VLMVideo.Instance, property: string, id: string) => {
     try {
       const instance = VLMVideo.instances[instanceConfig?.sk] || VLMVideo.instances[id],
         configId = instance.configId,
-        config = VLMVideo.configs[configId];
+        config = VLMVideo.configs[configId]
 
       if (!config) {
-        return;
+        return
       } else if (!instance && instanceConfig.enabled) {
-        config.createInstance(instanceConfig);
+        config.createOrReplaceInstance(instanceConfig)
       }
 
-      const { position, scale, rotation } = instanceConfig;
+      const { position, scale, rotation } = instanceConfig
 
       switch (property) {
-        case "enabled":
+        case 'enabled':
           if (!config.enabled || !instanceConfig.enabled) {
-            config.removeInstance(instanceConfig.sk);
+            config.removeInstance(instanceConfig)
           } else if (instance && instanceConfig.enabled) {
-            config.addInstance(instanceConfig.sk);
+            config.createOrReplaceInstance(instanceConfig)
           }
-          break;
-        case "transform":
-          instance.updateTransform(position, scale, rotation);
-          break;
-        case "properties":
-          instance.updateCollider(instanceConfig);
-          instance.updateParent(instanceConfig.parent);
-          instance.updateCustomId(instanceConfig.customId);
-          instance.updateCustomRendering(instanceConfig.customRendering);
-          break;
-        case "withCollider":
-          instance.updateCollider(instanceConfig.withCollisions);
-          break;
-        case "clickEvent":
-          instance.updateClickEvent(instanceConfig.clickEvent);
-          break;
-        case "customRendering":
-          instance.updateCustomRendering(instanceConfig.customRendering);
-          break;
-        case "customId":
-          instance.updateCustomId(instanceConfig.customId);
-          break;
-        case "parent":
-          instance.updateParent(instanceConfig.parent);
-          break;
+          break
+        case 'transform':
+          instance.updateTransform(position, scale, rotation)
+          break
+        case 'parent':
+          instance.updateParent(instanceConfig.parent)
+          break
+        default:
+          instance.init(config, instanceConfig)
       }
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
+
   static add: CallableFunction = (id: string) => {
-    VLMVideo.configs[id].showAll();
-  };
+    VLMVideo.configs[id].addAll()
+  }
+
   static remove: CallableFunction = (id: string) => {
-    VLMVideo.configs[id].remove();
-    VLMVideo.systems[id].kill();
-  };
+    VLMVideo.configs[id].remove()
+  }
+
   static delete: CallableFunction = (id: string) => {
-    VLMVideo.configs[id].delete();
-  };
+    VLMVideo.configs[id].delete()
+  }
 
-  static removeInstance: CallableFunction = (instanceId: string, configId?: string) => {
-    const configIdA = configId || VLMVideo.instances[instanceId].configId;
-    VLMVideo.configs[configIdA].removeInstance(instanceId);
-  };
+  static removeInstance: CallableFunction = (instanceId: string, _configId?: string) => {
+    const configId = _configId || VLMVideo.instances[instanceId].configId
+    VLMVideo.configs[configId].removeInstance(instanceId)
+  }
 
-  static deleteInstance: CallableFunction = (instanceId: string, configId?: string) => {
-    const configIdA = configId || VLMVideo.instances[instanceId].configId;
-    VLMVideo.configs[configIdA].deleteInstance(instanceId);
-  };
+  static deleteInstance: CallableFunction = (instanceId: string, _configId?: string) => {
+    const configId = _configId || VLMVideo.instances[instanceId].configId
+    VLMVideo.configs[configId].deleteInstance(instanceId)
+  }
 }

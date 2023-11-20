@@ -1,13 +1,12 @@
 {
   "name": "vlm-dcl",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Virtual Land Manager for Decentraland",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "cross-env NODE_ENV=production rollup -c",
-    "dev": "cross-env NODE_ENV=development rollup -c",
-    "link": "npm link && rollup --watch -c "
+    "build": "tsc -p tsconfig.json",
+    "link": "npm link"
   },
   "typings": "./dist/index.d.ts",
   "decentralandLibrary": {
@@ -37,6 +36,8 @@
     "@babel/plugin-transform-private-property-in-object": "^7.22.5",
     "@babel/preset-env": "^7.21.5",
     "@babel/preset-typescript": "^7.22.5",
+    "@dcl/asset-packs": "latest",
+    "@dcl/js-runtime": "7.3.25",
     "@microsoft/api-documenter": "^7.17.11",
     "@rollup/plugin-babel": "^6.0.3",
     "@rollup/plugin-commonjs": "^21.1.0",
@@ -47,10 +48,8 @@
     "@types/jest": "^27.4.1",
     "@types/node": "^20.8.6",
     "cross-env": "^7.0.3",
-    "@dcl/asset-packs": "latest",
-    "@dcl/js-runtime": "7.3.25",
-    "@dcl/sdk": "latest",
     "jest": "^27.5.1",
+    "prettier": "^3.1.0",
     "rollup": "^2.79.1",
     "rollup-plugin-dts": "^1.4.13",
     "rollup-plugin-terser": "^7.0.2",
@@ -62,6 +61,8 @@
     "yarn": "please use npm"
   },
   "dependencies": {
-    "colyseus.js": "^0.15.14"
+    "colyseus.js": "^0.15.14",
+    "whatwg-url-without-unicode": "^8.0.0-3",
+    "xmlhttprequest-polyfill": "^0.1.2"
   }
 }

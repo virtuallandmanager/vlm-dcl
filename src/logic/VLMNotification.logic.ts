@@ -1,4 +1,5 @@
 import { VLMNotification } from "../components/VLMNotification.component";
+import { ecs } from "../environment";
 
 enum EMessageState {
   HIDDEN = "HIDDEN",
@@ -7,7 +8,7 @@ enum EMessageState {
   VISIBLE = "VISIBLE",
 }
 
-export abstract class VLMNotificationManager implements ISystem {
+export abstract class VLMNotificationManager {
   static messageQueue: VLMNotification.Message[] = [];
   static initialized: boolean;
   static timer: number = 0;
@@ -20,41 +21,41 @@ export abstract class VLMNotificationManager implements ISystem {
     
     const currentMessage = this.messageQueue[0];
 
-    switch (this.state) {
-      case EMessageState.HIDDEN:
-        this.fadeIn();
-        break;
+    // switch (this.state) {
+    //   case EMessageState.HIDDEN:
+    //     this.fadeIn();
+    //     break;
 
-      case EMessageState.VISIBLE:
-        this.timer += dt;
-        if (this.timer >= this.delay) {
-          this.fadeOut();
-        }
-        break;
+    //   case EMessageState.VISIBLE:
+    //     this.timer += dt;
+    //     if (this.timer >= this.delay) {
+    //       this.fadeOut();
+    //     }
+    //     break;
 
-      case EMessageState.FADING_IN:
-        currentMessage.opacity += this.fadeSpeed * dt;
-        if (currentMessage.opacity >= 1) {
-          currentMessage.opacity = 1;
-          this.state = EMessageState.VISIBLE;
-          this.timer = 0;  // Reset the timer
-          this.delay = currentMessage.delay || 3;
-        }
-        break;
+    //   case EMessageState.FADING_IN:
+    //     currentMessage.opacity += this.fadeSpeed * dt;
+    //     if (currentMessage.opacity >= 1) {
+    //       currentMessage.opacity = 1;
+    //       this.state = EMessageState.VISIBLE;
+    //       this.timer = 0;  // Reset the timer
+    //       this.delay = currentMessage.delay || 3;
+    //     }
+    //     break;
 
-      case EMessageState.FADING_OUT:
-        currentMessage.opacity -= this.fadeSpeed * dt;
-        if (currentMessage.opacity <= 0) {
-          currentMessage.opacity = 0;
-          this.removeMessage();
-          this.state = (this.messageQueue.length > 0) ? EMessageState.HIDDEN : EMessageState.HIDDEN;
-        }
-        break;
-    }
+    //   case EMessageState.FADING_OUT:
+    //     currentMessage.opacity -= this.fadeSpeed * dt;
+    //     if (currentMessage.opacity <= 0) {
+    //       currentMessage.opacity = 0;
+    //       this.removeMessage();
+    //       this.state = (this.messageQueue.length > 0) ? EMessageState.HIDDEN : EMessageState.HIDDEN;
+    //     }
+    //     break;
+    // }
   }
 
   static init: CallableFunction = (value: string, messageOptions: VLMNotification.MessageOptions) => {
-    engine.addSystem(this);
+    ecs.engine.addSystem(this.update);
     this.initialized = true;
   };
 
