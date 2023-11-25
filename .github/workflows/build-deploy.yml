@@ -26,7 +26,6 @@ jobs:
         run: npm run build
 
       - name: Set custom-tag for sdk7
-        if: github.ref == 'refs/heads/sdk7'
         run: echo "CUSTOM_TAG=sdk7" >> $GITHUB_ENV
 
       - name: Publish with custom-tag
@@ -34,14 +33,5 @@ jobs:
         with:
           access: public
           custom-tag: ${{ env.CUSTOM_TAG }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish sdk7 as latest
-        if: github.ref == 'refs/heads/sdk7'
-        uses: menduz/oddish-action@master
-        with:
-          access: public
-          custom-tag: latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
