@@ -1,4 +1,4 @@
-export * from "./VLMClaimPoint.component";
+// export * from "./VLMClaimPoint.component";
 export * from "./VLMImage.component";
 export * from "./VLMModeration.component";
 // export * from "./VLMNotification.component";
