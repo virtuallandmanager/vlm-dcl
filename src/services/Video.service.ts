@@ -1,5 +1,4 @@
 import {
-  engine,
   Entity,
   PBMaterial_PbrMaterial,
   PBMaterial_UnlitMaterial,
@@ -15,17 +14,19 @@ import { ecs } from '../environment'
 import { VLMVideo } from '../components'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 import { DynamicMedia, DynamicMediaType } from '../shared/interfaces'
-import { VLM } from '../app'
 
 export class VideoService {
   entities: Entity[] = []
-  static videoPlayerEntity: Entity = engine.addEntity()
+  static videoPlayerEntity: Entity = ecs?.engine?.addEntity()
   videoPlayerEntity: Entity = VideoService.videoPlayerEntity
   videoTexture?: TextureUnion
 
   addEntity: CallableFunction = (entity: Entity): void => {
     if (!this.entities.includes(entity)) {
       this.entities.push(entity)
+    }
+    if (!VideoService.videoPlayerEntity) {
+      VideoService.videoPlayerEntity = ecs.engine.addEntity()
     }
   }
 

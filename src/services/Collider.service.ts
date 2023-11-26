@@ -1,4 +1,4 @@
-import { Entity } from '@dcl/sdk/ecs'
+import { Entity, MeshCollider, ColliderLayer } from '@dcl/sdk/ecs'
 import { ecs } from '../environment'
 import { VLMMeshOptions } from '../shared/interfaces'
 
@@ -11,24 +11,24 @@ export class ColliderService {
     }
   }
 
-  setPlaneShape: CallableFunction = (entity: Entity, options?: { uvs: number[] }): void => {
+  setPlaneShape: CallableFunction = (entity: Entity): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setPlane(entity, options?.uvs)
+    ecs.MeshCollider.setPlane(entity, [ColliderLayer.CL_POINTER, ColliderLayer.CL_PHYSICS])
   }
 
   setCylinderShape: CallableFunction = (entity: Entity, options: { radiusTop?: number; radiusBottom?: number }): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setCylinder(entity, options.radiusBottom, options.radiusTop)
+    ecs.MeshCollider.setCylinder(entity, options.radiusBottom, options.radiusTop, [ColliderLayer.CL_POINTER, ColliderLayer.CL_PHYSICS])
   }
 
-  setBoxShape: CallableFunction = (entity: Entity, options?: { uvs: number[] }): void => {
+  setBoxShape: CallableFunction = (entity: Entity): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setBox(entity, options?.uvs)
+    ecs.MeshCollider.setBox(entity, [ColliderLayer.CL_POINTER, ColliderLayer.CL_PHYSICS])
   }
 
   setSphereShape: CallableFunction = (entity: Entity): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setSphere(entity)
+    ecs.MeshCollider.setSphere(entity, [ColliderLayer.CL_POINTER, ColliderLayer.CL_PHYSICS])
   }
 
   set: CallableFunction = (entity: Entity, type: string, withCollisions: boolean): void => {

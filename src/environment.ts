@@ -28,9 +28,10 @@ export abstract class VLMEnvironment {
       this.devMode = (await isPreviewMode({})).isPreview
       if (!config) {
         config = { env: 'prod' }
+        VLMDebug.log('No config provided, defaulting to prod')
       }
       
-      if (config.env !== 'prod' && !this.devMode) {
+      if (!config.env || config.env !== 'prod' && !this.devMode) {
         config.env = 'prod'
       }
 

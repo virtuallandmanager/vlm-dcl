@@ -220,13 +220,14 @@ export namespace VLMImage {
       }
 
       if (this.withCollisions || config.withCollisions) {
-        config.services.collider.set(this.entity, 'plane', this)
+        const withCollisions = this.withCollisions || config.withCollisions
+        config.services.collider.set(this.entity, 'plane', withCollisions)
       }
 
       // add transform
       config.services.transform.set(this.entity, {
         position: this.position,
-        scale: this.scale,
+        scale: { x: this.scale.x, y: this.scale.y, z: 0 },
         rotation: this.rotation,
         parent: config.parent ? instances[config.parent].entity : undefined,
       })

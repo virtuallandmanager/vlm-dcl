@@ -1,4 +1,4 @@
-import { Entity, engine } from '@dcl/sdk/ecs'
+import { Entity } from '@dcl/sdk/ecs'
 import { Vector3 } from '~system/EngineApi'
 import { VLMClickEvent } from './VLMClickEvent.component'
 import { MaterialService } from '../services/Material.service'
@@ -8,6 +8,7 @@ import { TransformService } from '../services/Transform.service'
 import { AudioService } from '../services/Audio.service'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 import { BaseProperties, VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMMeshOptions } from '../shared/interfaces'
+import { ecs } from '../environment'
 
 export namespace VLMBase {
   /**
@@ -92,7 +93,7 @@ export namespace VLMBase {
     rotation: Vector3
 
     constructor(config: Config, instance: VLMInstanceProperties) {
-      this.entity = engine.addEntity()
+      this.entity = ecs.engine.addEntity()
       this.sk = instance.sk
       this.configId = config.sk
       this.enabled = instance.enabled

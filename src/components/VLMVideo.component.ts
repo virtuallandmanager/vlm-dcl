@@ -291,7 +291,7 @@ export namespace VLMVideo {
     startLiveStream: CallableFunction = () => {
       if (this.liveSrc) {
         this.videoOptions.src = this.liveSrc
-        this.services.video.setPlayer(this.videoOptions)
+        this.services.video.setPlayer(null, this.videoOptions)
       } else {
         VLMDebug.log('error', 'Tried to start live stream but no url was provided')
       }
