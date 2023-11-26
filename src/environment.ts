@@ -26,9 +26,14 @@ export abstract class VLMEnvironment {
   static init: CallableFunction = async (config: VLMInitConfig) => {
     try {
       this.devMode = (await isPreviewMode({})).isPreview
-      if (!config?.env || (config.env !== 'prod' && !this.devMode)) {
+      if (!config) {
+        config = { env: 'prod' }
+      }
+      
+      if (config.env !== 'prod' && !this.devMode) {
         config.env = 'prod'
       }
+
       if (config?.debug) {
         VLMDebug.init(config.debug)
       }
