@@ -3,7 +3,7 @@ name: Publish NPM package
 on:
   push:
     branches:
-      - main
+      - sdk7
 
 jobs:
   publish:
