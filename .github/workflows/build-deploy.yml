@@ -29,7 +29,7 @@ jobs:
         run: echo "CUSTOM_TAG=sdk7" >> $GITHUB_ENV
       
       - name: Echo CUSTOM_TAG
-        run: echo "CUSTOM_TAG=${CUSTOM_TAG}"
+        run: echo "CUSTOM_TAG=${env.CUSTOM_TAG}"
 
       - name: Publish with custom-tag
         uses: menduz/oddish-action@master
