@@ -48,13 +48,13 @@ export namespace VLMSound {
       try {
         Object.assign(this, config)
 
-        this.audioOptions = this.services.audio.buildOptions(config)
-
         configs[this.sk] = this
 
         if (this.customId) {
           configs[this.customId] = configs[this.sk]
         }
+
+        this.audioOptions = this.services.audio.buildOptions(config)
 
         if (this.customRendering || !config.instances || config.instances.length < 1) {
           return
@@ -189,6 +189,7 @@ export namespace VLMSound {
    * @returns void
    */
   export class Instance extends VLMBase.Instance {
+    hasLocator: boolean = false
     constructor(config: Config, instanceConfig: VLMInstanceProperties) {
       super(config, instanceConfig)
       this.init(config, instanceConfig)
@@ -201,14 +202,18 @@ export namespace VLMSound {
      */
     init: CallableFunction = (config: Config, instanceConfig: Instance) => {
       Object.assign(this, instanceConfig)
-      config.services.audio.set(this.entity, config.audioOptions)
-      this.updateTransform(this.position, this.scale, this.rotation)
 
       instances[this.sk] = this
 
       if (this.customId) {
         instances[this.customId] = instances[this.sk]
       }
+
+      config.services.audio.set(this.entity, config.audioOptions)
+      config.services.mesh.set(this.entity, 'sphere')
+      config.services.material.set(this.entity, 'pbr', { albedoColor: Color4.create(0, 0, 0, 0) })
+
+      this.updateTransform(this.position, this.scale, this.rotation)
     }
     /**
      * @public add
@@ -264,18 +269,12 @@ export namespace VLMSound {
      * @returns void
      *
      */
-    updateTransform: CallableFunction = (position?: Vector3, scale?: Vector3, rotation?: Vector3) => {
-      const config = configs[this.configId]
-      this.position = position || this.position
-      this.scale = scale || this.scale
-      this.rotation = rotation || this.rotation
+    updateTransform: CallableFunction = (_position?: Vector3, _scale?: Vector3, _rotation?: Vector3) => {
+      const position = _position || this.position,
+        scale = _scale || this.scale,
+        rotation = _rotation || this.rotation
 
-      config.services.transform.set(this.entity, {
-        position: this.position,
-        scale: this.scale,
-        rotation: Quaternion.fromEulerDegrees(this.rotation.x, this.rotation.y, this.rotation.z),
-        parent: this.parent,
-      })
+      configs[this.configId].services.transform.set(this.entity, { position, scale: { x: 0.1, y: 0.1, z: 0.1 }, rotation })
     }
 
     /**
@@ -299,10 +298,17 @@ export namespace VLMSound {
      */
     toggleLocator: CallableFunction = () => {
       try {
-        const { position } = this
-        configs[this.configId].services.mesh.set(this.entity, 'sphere')
-        configs[this.configId].services.material.set(this.entity, 'pbr', { color: Color4.White(), emissiveIntensity: 1 })
-        configs[this.configId].services.transform.set(this.entity, { position, scale: Vector3.create(0.1, 0.1, 0.1) })
+        if (this.hasLocator) {
+          configs[this.configId].services.mesh.clear(this.entity)
+          configs[this.configId].services.material.clear(this.entity)
+          this.hasLocator = false
+        } else {
+          const { position, rotation } = this
+          configs[this.configId].services.mesh.set(this.entity, 'sphere')
+          configs[this.configId].services.material.set(this.entity, 'pbr', { color: Color4.White(), emissiveIntensity: 1 })
+          configs[this.configId].services.transform.set(this.entity, { position, scale: { x: 0.1, y: 0.1, z: 0.1 }, rotation })
+          this.hasLocator = true
+        }
       } catch (error) {
         throw error
       }

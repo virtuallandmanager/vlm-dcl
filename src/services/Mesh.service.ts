@@ -123,4 +123,14 @@ export class MeshService {
         break
     }
   }
+
+  clear: CallableFunction = (entity: Entity): void => {
+    if (!this.entities.includes(entity)) {
+      return
+    }
+    ecs.MeshRenderer.deleteFrom(entity)
+    ecs.GltfContainer.deleteFrom(entity)
+    ecs.NftShape.deleteFrom(entity)
+    ecs.Billboard.deleteFrom(entity)
+  }
 }

@@ -33,7 +33,7 @@ export abstract class VLMSceneManager {
       VLMMeshManager.init(scenePreset.models);
       VLMImageManager.init(scenePreset.images);
       VLMVideoManager.init(scenePreset.videos); 
-      // VLMSoundManager.init(scenePreset.sounds);
+      VLMSoundManager.init(scenePreset.sounds);
       // VLMClaimPointManager.init(scenePreset.claimPoints);
 
       if (scenePreset?.widgets?.length) {

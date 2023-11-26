@@ -28,4 +28,8 @@ export class TransformService {
       this.set(entity, options)
     })
   }
+
+  clear: CallableFunction = (entity: Entity): void => {
+    ecs.Transform.deleteFrom(entity)
+  }
 }

@@ -1,6 +1,7 @@
 import { Entity, PBAudioSource } from '@dcl/sdk/ecs'
 import { ecs } from '../environment'
 import { AudioSourceType, VLMAudible, VLMBaseProperties, VLMDynamicMedia } from '../shared/interfaces'
+import { getSoundPath } from '../shared/paths'
 
 export class AudioService {
   entities: Entity[] = []
@@ -136,7 +137,7 @@ export class AudioService {
       const { enabled, audioSrc, volume, sourceType } = config
 
       if (audioSrc) {
-        audioOptions.audioClipUrl = audioSrc
+        audioOptions.audioClipUrl = getSoundPath(audioSrc)
       }
       if (volume !== undefined) {
         audioOptions.volume = volume

@@ -25,7 +25,7 @@ export class MaterialService {
     }
   }
 
-  clearMaterial: CallableFunction = (entity: Entity): void => {
+  clear: CallableFunction = (entity: Entity): void => {
     this.addEntity(entity)
     ecs.Material.deleteFrom(entity)
   }
@@ -44,7 +44,7 @@ export class MaterialService {
         break
       default:
         this.entities.forEach((entity: Entity) => {
-          this.clearMaterial(entity)
+          this.clear(entity)
         })
         break
     }
