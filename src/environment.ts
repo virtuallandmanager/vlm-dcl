@@ -26,14 +26,18 @@ export abstract class VLMEnvironment {
   static init: CallableFunction = async (config: VLMInitConfig) => {
     try {
       this.devMode = (await isPreviewMode({})).isPreview
-      if (!config.env || (config.env !== 'prod' && !this.devMode)) {
+      if (!config?.env || (config.env !== 'prod' && !this.devMode)) {
         config.env = 'prod'
       }
-      if (config.debug) {
+      if (config?.debug) {
         VLMDebug.init(config.debug)
       }
 
-      ecs = config.ecs || ecsLib
+      if (config?.ecs) {
+        ecs = config?.ecs
+      } else {
+        ecs = ecsLib
+      }
 
       VLMDebug.log(`Initializing ${config.env} environment`)
       this.apiUrl = this.apiUrls[config.env]
