@@ -30,8 +30,8 @@ export abstract class VLMEnvironment {
         config = { env: 'prod' }
         VLMDebug.log('No config provided, defaulting to prod')
       }
-      
-      if (!config.env || config.env !== 'prod' && !this.devMode) {
+
+      if (!config.env || (config.env !== 'prod' && !this.devMode)) {
         config.env = 'prod'
       }
 
@@ -53,6 +53,10 @@ export abstract class VLMEnvironment {
     } catch (error) {
       throw error
     }
+  }
+
+  static configureEcs: CallableFunction = async (_ecs: any) => {
+    ecs = _ecs
   }
 }
 

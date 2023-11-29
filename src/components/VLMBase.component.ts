@@ -1,5 +1,5 @@
 import { Entity } from '@dcl/sdk/ecs'
-import { Vector3 } from '~system/EngineApi'
+import { Vector3 } from '@dcl/sdk/math'
 import { VLMClickEvent } from './VLMClickEvent.component'
 import { MaterialService } from '../services/Material.service'
 import { MeshService } from '../services/Mesh.service'
@@ -109,5 +109,35 @@ export namespace VLMBase {
       this.rotation = instance.rotation
       VLMDebug.log('Created Base Instance', this.entity, config.pk)
     }
+  }
+}
+
+export type QuickNullConfig = {
+  position: Vector3
+  scale?: Vector3
+  rotation?: Vector3
+  colliders?: boolean
+  parent?: Entity
+} & VLMClickable
+
+/**
+ * Quick creator function for VLMMesh Configs
+ * @param config - the config object
+ * @returns void
+ *
+ *
+ */
+export class QuickNull {
+  entity: Entity = ecs.engine.addEntity()
+  services: { transform: TransformService }
+  constructor(config: QuickNullConfig) {
+    this.services = {
+      transform: new TransformService(),
+    }
+    this.services.transform.set(this.entity, {
+      position: config.position,
+      scale: config.scale || Vector3.create(1, 1, 1),
+      rotation: config.rotation || Vector3.create(0, 0, 0),
+    })
   }
 }

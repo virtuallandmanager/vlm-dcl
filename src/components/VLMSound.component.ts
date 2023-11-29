@@ -315,3 +315,16 @@ export namespace VLMSound {
     }
   }
 }
+
+/**
+ * Quick creator function for VLMImage Configs
+ * @param config - the config object
+ * @returns void
+ */
+export class QuickSound {
+  constructor(config: { path?: string } & VLMSound.VLMConfig & VLMSound.Instance) {
+    config.audioSrc = config.path || config.audioSrc
+    const soundConfig = new VLMSound.Config(config)
+    new VLMSound.Instance(soundConfig, config)
+  }
+}

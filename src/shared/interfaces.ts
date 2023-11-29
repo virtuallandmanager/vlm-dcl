@@ -127,6 +127,7 @@ export type VLMTextureOptions = {
 }
 
 export type VLMMeshOptions = {
+  modelSrc?: string
   withCollisions?: boolean
 }
 export type VLMInstanceProperties = VLMBaseProperties & VLMTransformable & VLMClickable & VLMMeshOptions

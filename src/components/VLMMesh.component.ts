@@ -1,5 +1,6 @@
 import { VLMBase } from './VLMBase.component'
 import { Quaternion, Vector3 } from '@dcl/sdk/math'
+import { Entity } from '@dcl/sdk/ecs'
 import { MeshService } from '../services/Mesh.service'
 import { TransformService } from '../services/Transform.service'
 import { ClickEventService } from '../services/ClickEvent.service'
@@ -31,7 +32,7 @@ export namespace VLMMesh {
     services: { mesh: MeshService; collider: ColliderService; transform: TransformService; clickEvent: ClickEventService }
     modelSrc: string = ''
 
-    constructor(config: VLMBaseProperties) {
+    constructor(config: VLMConfig) {
       super(config)
       this.services = {
         mesh: new MeshService(),
@@ -261,7 +262,7 @@ export namespace VLMMesh {
       config.services.transform.set(this.entity, {
         position: this.position,
         scale: this.scale,
-        rotation: Quaternion.fromEulerDegrees(this.rotation.x, this.rotation.y, this.rotation.z),
+        rotation: this.rotation || Vector3.create(0, 0, 0),
         parent: this.parent,
       })
     }
@@ -292,5 +293,43 @@ export namespace VLMMesh {
 
       config.services.clickEvent.set(this.entity, this.clickEvent)
     }
+  }
+}
+
+export type QuickMeshConfig = {
+  path: string
+  position: Vector3
+  scale?: Vector3
+  rotation?: Vector3
+  colliders?: boolean
+  parent?: Entity
+} & VLMClickable
+
+/**
+ * Quick creator function for VLMMesh Configs
+ * @param config - the config object
+ * @returns void
+ *
+ *
+ */
+export class QuickMesh {
+  entity: Entity = ecs.engine.addEntity()
+  services: { mesh: MeshService; collider: ColliderService; transform: TransformService; clickEvent: ClickEventService }
+  constructor(config: QuickMeshConfig) {
+    this.services = {
+      mesh: new MeshService(),
+      collider: new ColliderService(),
+      transform: new TransformService(),
+      clickEvent: new ClickEventService(),
+    }
+
+    this.services.mesh.set(this.entity, 'gltf', { src: getModelPath(config.path) })
+    this.services.transform.set(this.entity, {
+      position: config.position,
+      scale: config.scale || Vector3.create(1, 1, 1),
+      rotation: config.rotation || Vector3.create(0, 0, 0),
+      parent: config.parent,
+    })
+    this.services.clickEvent.set(this.entity, config.clickEvent)
   }
 }

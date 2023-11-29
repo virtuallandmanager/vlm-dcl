@@ -538,3 +538,17 @@ export namespace VLMVideo {
     REMOVING,
   }
 }
+
+/**
+ * Quick creator function for VLMVideo Configs
+ * @param config - the config object
+ * @returns void
+ *
+ *
+ */
+export class QuickVideoScreen {
+  constructor(config: VLMVideo.VLMConfig & VLMVideo.Instance) {
+    const videoConfig = new VLMVideo.Config(config)
+    new VLMVideo.Instance(videoConfig, config)
+  }
+}

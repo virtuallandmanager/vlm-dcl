@@ -350,3 +350,15 @@ export namespace VLMImage {
     }
   }
 }
+
+/**
+ * Quick creator function for VLMImage Configs
+ * @param config - the config object
+ * @returns void
+ */
+export class QuickImage {
+  constructor(config: VLMImage.VLMConfig & VLMImage.Instance) {
+    const imageConfig = new VLMImage.Config(config)
+    new VLMImage.Instance(imageConfig, config)
+  }
+}
