@@ -1,4 +1,4 @@
-import { Entity, PBMaterial_PbrMaterial, PBMaterial_UnlitMaterial } from '@dcl/sdk/ecs'
+import { Entity, PBMaterial_PbrMaterial, PBMaterial_UnlitMaterial, Material } from '@dcl/sdk/ecs'
 import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 import { VLMTextureOptions } from '../shared/interfaces'
@@ -61,16 +61,16 @@ export class MaterialService {
       const { textureSrc, bumpSrc, emissiveSrc, alphaSrc, emission } = config
 
       if (textureSrc) {
-        textureOptions.texture = ecs.Material.Texture.Common({ src: textureSrc })
+        textureOptions.texture = Material.Texture.Common({ src: textureSrc })
       }
       if (bumpSrc) {
-        textureOptions.bumpTexture = ecs.Material.Texture.Common({ src: bumpSrc })
+        textureOptions.bumpTexture = Material.Texture.Common({ src: bumpSrc })
       }
       if (emissiveSrc) {
-        textureOptions.emissiveTexture = ecs.Material.Texture.Common({ src: emissiveSrc })
+        textureOptions.emissiveTexture = Material.Texture.Common({ src: emissiveSrc })
       }
       if (alphaSrc) {
-        textureOptions.alphaTexture = ecs.Material.Texture.Common({ src: alphaSrc })
+        textureOptions.alphaTexture = Material.Texture.Common({ src: alphaSrc })
       }
       if (emission) {
         textureOptions.emissiveIntensity = emission || 1

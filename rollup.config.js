@@ -40,6 +40,7 @@ export default {
     }),
     resolve({
       preferBuiltins: true,
+      browser: true,
       platform: 'node'
     }),
     isProduction && terser({ format: { comments: false } }),
