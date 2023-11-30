@@ -69,11 +69,18 @@ export class MaterialService {
         metallic: 0.5,
         roughness: 0.5,
         specularIntensity: 1,
-        emissiveIntensity: 1,
+        emissiveIntensity: config.emission || 1,
         directIntensity: 1,
       }
 
-      textureOptions.texture = Material.Texture.Common({ src: config.textureSrc })
+      const texture = Material.Texture.Common({ src: config.textureSrc || '' })
+      if (config.textureSrc) {
+        textureOptions.texture = texture
+        textureOptions.emissiveTexture = texture
+      }
+      if (config.emissiveSrc) {
+        textureOptions.emissiveTexture = Material.Texture.Common({ src: config.emissiveSrc })
+      }
 
       return textureOptions
     } catch (error) {

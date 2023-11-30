@@ -1,101 +1,102 @@
-import { VLMSound } from "../components/VLMSound.component";
+import { VLMSound } from '../components/VLMSound.component'
 
 export abstract class VLMSoundManager {
   static init: CallableFunction = (sounds: VLMSound.VLMConfig[]) => {
     if (!sounds) {
-      return;
+      return
     }
     sounds.forEach((sound: VLMSound.VLMConfig) => {
-      this.create(sound);
-    });
-  };
+      this.create(sound)
+    })
+  }
 
   static create: CallableFunction = (config: VLMSound.VLMConfig) => {
     try {
-      new VLMSound.Config(config);
+      new VLMSound.Config(config)
     } catch (error) {
-      throw error;
+      throw error
     }
-  };
+  }
 
   static createInstance: CallableFunction = (source: VLMSound.VLMConfig, instance: VLMSound.Instance) => {
     if (!source?.enabled || !instance?.enabled) {
-      return;
+      return
     }
-    const soundId = source.sk;
-    VLMSound.configs[soundId].createOrReplaceInstance(instance);
-  };
+    const soundId = source.sk
+    VLMSound.configs[soundId].createOrReplaceInstance(instance)
+  }
 
   static update: CallableFunction = (config: VLMSound.VLMConfig | any, property: string, id: string) => {
-    const storedConfig: VLMSound.Config = VLMSound.configs[config.sk];
+    const storedConfig: VLMSound.Config = VLMSound.configs[config.sk]
 
     if (!config || (!storedConfig && !config.enabled)) {
-      return;
+      return
     } else if (!storedConfig && config.enabled) {
       this.create(config)
-      return this.update(config, property, id);
+      return
     }
 
     switch (property) {
-      case "enabled":
+      case 'enabled':
+        storedConfig.enabled = config.enabled
         if (!config.enabled) {
-          this.remove(config.sk);
+          this.remove(config.sk)
         } else if (storedConfig) {
-          this.add(config.sk);
+          this.add(config.sk)
         }
-        break;
+        break
       default:
-        storedConfig.init(config);
+        storedConfig.init(config)
     }
-  };
+  }
 
   static updateInstance: CallableFunction = (instanceConfig: VLMSound.Instance, property: string, id: string) => {
     const instance = VLMSound.instances[instanceConfig.sk],
       configId = instance?.configId,
-      config = VLMSound.configs[configId];
+      config = VLMSound.configs[configId]
     if (!config) {
-      return;
+      return
     } else if (!instance && instanceConfig.enabled) {
-      config.createOrReplaceInstance(instanceConfig);
+      config.createOrReplaceInstance(instanceConfig)
     }
 
-    const { position, scale, rotation } = instanceConfig;
+    const { position, scale, rotation } = instanceConfig
 
     switch (property) {
-      case "enabled":
+      case 'enabled':
         if (!config.enabled || !instanceConfig.enabled) {
-          config.removeInstance(instanceConfig.sk);
+          config.removeInstance(instanceConfig.sk)
         } else if (instance && instanceConfig.enabled) {
-          config.createOrReplaceInstance(instanceConfig.sk);
+          config.createOrReplaceInstance(instanceConfig.sk)
         }
-        break;
-      case "transform":
-        instance.updateTransform(position, scale, rotation);
-        break;
+        break
+      case 'transform':
+        instance.updateTransform(position, scale, rotation)
+        break
       default:
-        instance.init(instanceConfig);
+        instance.init(instanceConfig)
     }
-  };
+  }
 
   static add: CallableFunction = (id: string) => {
-    VLMSound.configs[id].addAll();
-  };
+    VLMSound.configs[id].addAll()
+  }
 
   static delete: CallableFunction = (id: string) => {
-    VLMSound.configs[id].delete();
-  };
+    VLMSound.configs[id].delete()
+  }
 
   static remove: CallableFunction = (id: string) => {
-    VLMSound.configs[id].remove();
-  };
+    VLMSound.configs[id].remove()
+  }
 
   static removeInstance: CallableFunction = (instanceId: string) => {
-    const configId = VLMSound.instances[instanceId].configId;
-    VLMSound.configs[configId].removeInstance(instanceId);
-  };
+    const configId = VLMSound.instances[instanceId].configId
+    VLMSound.configs[configId].removeInstance(instanceId)
+  }
 
   static deleteInstance: CallableFunction = (instanceId: string) => {
-    const configId = VLMSound.instances[instanceId].configId;
-    VLMSound.configs[configId].deleteInstance(instanceId);
-  };
+    const configId = VLMSound.instances[instanceId].configId
+    VLMSound.configs[configId].deleteInstance(instanceId)
+  }
 }

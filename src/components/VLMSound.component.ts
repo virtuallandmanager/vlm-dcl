@@ -1,17 +1,19 @@
 import { VLMBase } from './VLMBase.component'
-import { Color4, Quaternion, Vector3 } from '@dcl/sdk/math'
+import { Entity } from '@dcl/sdk/ecs'
+import { Color4, Vector3 } from '@dcl/sdk/math'
 import { AudioService } from '../services/Audio.service'
 import { TransformService } from '../services/Transform.service'
 import { MeshService } from '../services/Mesh.service'
 import { MaterialService } from '../services/Material.service'
 import { ecs } from '../environment'
-import { VLMAudible, VLMBaseProperties, VLMInstanceProperties } from '../shared/interfaces'
+import { VLMAudible, VLMBaseProperties, VLMInstanceProperties, VLMInstancedItem } from '../shared/interfaces'
+import { VLMDebug } from '../logic/VLMDebug.logic'
 
 export namespace VLMSound {
   export const configs: { [uuid: string]: Config } = {}
   export const instances: { [uuid: string]: Instance } = {}
 
-  export type VLMConfig = VLMBaseProperties & VLMAudible
+  export type VLMConfig = VLMBaseProperties & VLMAudible & VLMInstancedItem
 
   /**
    * @public
@@ -28,7 +30,7 @@ export namespace VLMSound {
   export class Config extends VLMBase.Config {
     audioOptions: { volume: number } = { volume: 1 }
     services: { audio: AudioService; mesh: MeshService; material: MaterialService; transform: TransformService }
-    constructor(config: VLMBaseProperties) {
+    constructor(config: VLMConfig) {
       super(config)
       this.services = {
         audio: new AudioService(),
@@ -44,7 +46,7 @@ export namespace VLMSound {
      * Initializes the config
      * @returns void
      */
-    init: CallableFunction = (config: VLMBaseProperties) => {
+    init: CallableFunction = (config: VLMConfig) => {
       try {
         Object.assign(this, config)
 
@@ -56,7 +58,7 @@ export namespace VLMSound {
 
         this.audioOptions = this.services.audio.buildOptions(config)
 
-        if (this.customRendering || !config.instances || config.instances.length < 1) {
+        if (!config.instances || config.instances?.length < 1) {
           return
         }
 
@@ -76,6 +78,7 @@ export namespace VLMSound {
 
     addAll: CallableFunction = () => {
       try {
+        VLMDebug.log(instances, this.instanceIds)
         this.instanceIds.forEach((instanceId: string) => {
           instances[instanceId].add()
         })
@@ -209,6 +212,10 @@ export namespace VLMSound {
         instances[this.customId] = instances[this.sk]
       }
 
+      if (!this.enabled || !config.enabled) {
+        return
+      }
+
       config.services.audio.set(this.entity, config.audioOptions)
       config.services.mesh.set(this.entity, 'sphere')
       config.services.material.set(this.entity, 'pbr', { albedoColor: Color4.create(0, 0, 0, 0) })
@@ -284,7 +291,7 @@ export namespace VLMSound {
      * @returns void
      *
      */
-    updateParent: CallableFunction = (parent: string) => {
+    updateParent: CallableFunction = (parent: Entity) => {
       const config = configs[this.configId]
       this.parent = parent
 

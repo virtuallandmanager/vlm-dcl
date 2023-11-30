@@ -10,13 +10,13 @@ import { VLMClickEvent } from './VLMClickEvent.component'
 import { ColliderService } from '../services/Collider.service'
 import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
-import { VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMTextureOptions } from '../shared/interfaces'
+import { VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMInstancedItem, VLMTextureOptions } from '../shared/interfaces'
 
 export namespace VLMImage {
   export const configs: { [uuid: string]: Config } = {}
   export const instances: { [uuid: string]: Instance } = {}
 
-  export type VLMConfig = VLMBaseProperties & VLMClickable & VLMTextureOptions
+  export type VLMConfig = VLMBaseProperties & VLMClickable & VLMTextureOptions & VLMInstancedItem
 
   /**
    * @public
@@ -63,7 +63,7 @@ export namespace VLMImage {
           configs[this.customId] = configs[this.sk]
         }
 
-        if (!this.enabled || this.customRendering || !config.instances || config.instances.length < 1) {
+        if (!config.instances || config.instances.length < 1) {
           return
         }
 
@@ -83,6 +83,7 @@ export namespace VLMImage {
 
     addAll: CallableFunction = () => {
       try {
+        VLMDebug.log(instances)
         this.instanceIds.forEach((instanceId: string) => {
           instances[instanceId].add()
         })
@@ -213,12 +214,12 @@ export namespace VLMImage {
         instances[this.customId] = instances[this.sk]
       }
 
-      if (config.enabled && this.enabled) {
-        config.services.mesh.set(this.entity, 'plane')
-        config.services.material.set(this.entity, 'basic', { ...config.textureOptions })
-      } else {
+      if (!this.enabled || !config.enabled) {
         return
       }
+
+      config.services.mesh.set(this.entity, 'plane')
+      config.services.material.set(this.entity, 'basic', { ...config.textureOptions })
 
       if (this.withCollisions || config.withCollisions) {
         const withCollisions = this.withCollisions || config.withCollisions
@@ -314,7 +315,7 @@ export namespace VLMImage {
      * @returns void
      *
      */
-    updateParent: CallableFunction = (parent: string) => {
+    updateParent: CallableFunction = (parent: Entity) => {
       const config = configs[this.configId]
       this.parent = parent
 

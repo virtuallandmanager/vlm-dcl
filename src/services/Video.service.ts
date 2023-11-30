@@ -8,6 +8,7 @@ import {
   VideoState,
   TextureUnion,
   Material,
+  VideoPlayer,
 } from '@dcl/sdk/ecs'
 import { Color3 } from '@dcl/sdk/math'
 import { ecs } from '../environment'
@@ -83,7 +84,7 @@ export class VideoService {
     }
   }
 
-  setPlayer: CallableFunction = (entity: Entity | null, videoOptions: PBVideoPlayer, textureOptions: PBMaterial_PbrMaterial): void => {
+  setPlayer: CallableFunction = (entity: Entity | null, videoOptions: PBVideoPlayer, textureOptions?: PBMaterial_PbrMaterial): void => {
     this.videoTexture = ecs.Material.Texture.Video({
       videoPlayerEntity: this.videoPlayerEntity,
     })
@@ -137,28 +138,38 @@ export class VideoService {
     })
   }
 
-  play: CallableFunction = (entity: Entity): void => {
-    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(entity)
+  play: CallableFunction = (): void => {
+    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(this.videoPlayerEntity)
     if (!videoPlayer) {
       return
     }
     videoPlayer.playing = true
   }
 
-  stop: CallableFunction = (entity: Entity): void => {
-    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(entity)
+  stop: CallableFunction = (): void => {
+    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(this.videoPlayerEntity)
+    if (!videoPlayer) {
+      return
+    }
+    videoPlayer.position = 0
+    videoPlayer.playing = false
+    ecs.VideoPlayer.deleteFrom(this.videoPlayerEntity)
+  }
+
+  pause: CallableFunction = (): void => {
+    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(this.videoPlayerEntity)
     if (!videoPlayer) {
       return
     }
     videoPlayer.playing = false
   }
 
-  toggle: CallableFunction = (entity: Entity): void => {
-    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(entity)
+  toggle: CallableFunction = (): void => {
+    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(this.videoPlayerEntity)
     if (!videoPlayer) {
       return
     }
-    videoPlayer.playing = !videoPlayer.playing
+    videoPlayer.playing ? this.stop() : this.play()
   }
 
   setVolume: CallableFunction = (entity: Entity, volume: number): void => {
@@ -208,18 +219,6 @@ export class VideoService {
   playAll: CallableFunction = (): void => {
     this.entities.forEach((entity: Entity) => {
       this.play(entity)
-    })
-  }
-
-  stopAll: CallableFunction = (): void => {
-    this.entities.forEach((entity: Entity) => {
-      this.stop(entity)
-    })
-  }
-
-  toggleAll: CallableFunction = (): void => {
-    this.entities.forEach((entity: Entity) => {
-      this.toggle(entity)
     })
   }
 
@@ -281,7 +280,7 @@ export class VideoService {
     }
   }
 
-  getVideoState: CallableFunction = (entity: Entity): DeepReadonlyObject<PBVideoEvent> | undefined => {
-    return ecs.videoEventsSystem.getVideoState(entity)
+  getVideoState: CallableFunction = (): DeepReadonlyObject<PBVideoEvent> | undefined => {
+    return ecs.videoEventsSystem.getVideoState(this.videoPlayerEntity)
   }
 }

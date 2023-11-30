@@ -2,6 +2,7 @@
 ///<reference lib="es2015.symbol.wellknown" />
 ///<reference lib="es2015.collection" />
 ///<reference lib="es2015.iterable" />
+import { Entity } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import { Room, Client } from 'colyseus.js'
 import { EndpointSettings } from 'colyseus.js/lib/Client'
@@ -15,7 +16,7 @@ export interface BaseProperties {
   customId?: string
   customRendering?: boolean
   enabled?: boolean
-  parent?: string
+  parent?: Entity
   instanceIds: string[]
   init?: CallableFunction
 }
@@ -25,7 +26,7 @@ export interface Clickable {
 }
 
 export interface Transformable {
-  parent?: string
+  parent?: Entity
   position: Vector3
   scale: Vector3
   rotation: Vector3
@@ -77,12 +78,11 @@ export type TextureOptions = {
 export type VLMBaseProperties = {
   pk: string
   sk: string
-  name: string
+  name?: string
   customId?: string
   customRendering?: boolean
   enabled: boolean
-  parent?: string
-  instances: VLMInstanceProperties[]
+  parent?: Entity
 }
 
 export type VLMClickable = {
@@ -90,7 +90,7 @@ export type VLMClickable = {
 }
 
 export type VLMTransformable = {
-  parent?: string
+  parent?: Entity
   position: Vector3
   scale: Vector3
   rotation: Vector3
@@ -118,7 +118,7 @@ export type VLMDynamicMedia = {
 }
 
 export type VLMTextureOptions = {
-  textureSrc: string
+  textureSrc?: string
   bumpSrc?: string
   emissiveSrc?: string
   alphaSrc?: string
@@ -130,7 +130,10 @@ export type VLMMeshOptions = {
   modelSrc?: string
   withCollisions?: boolean
 }
+
 export type VLMInstanceProperties = VLMBaseProperties & VLMTransformable & VLMClickable & VLMMeshOptions
+
+export type VLMInstancedItem = { instances?: VLMInstanceProperties[] }
 
 // enums
 

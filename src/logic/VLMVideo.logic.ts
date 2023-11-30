@@ -40,21 +40,22 @@ export abstract class VLMVideoManager {
 
   static update: CallableFunction = (config: VLMVideo.VLMConfig, property: string, id: string) => {
     try {
-      const storedConfig: VLMVideo.Config = VLMVideo.configs[config.sk]
+      const storedConfig: VLMVideo.Config = VLMVideo.configs[config.sk || id]
 
       if (!config || (!storedConfig && !config.enabled)) {
         return
       } else if (!storedConfig && config.enabled) {
         this.create(config)
-        return this.update(config, property, id)
+        return
       }
 
       switch (property) {
         case 'enabled':
+          storedConfig.enabled = config.enabled
           if (!config.enabled) {
-            this.remove(config?.sk)
+            this.remove(config.sk)
           } else if (storedConfig) {
-            this.add(config?.sk)
+            this.add(config.sk)
           }
           break
         default:

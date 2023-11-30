@@ -49,11 +49,12 @@ export abstract class VLMImageManager {
         return
       } else if (!storedConfig && config.enabled) {
         this.create(config)
-        return this.update(config, property, id)
+        return
       }
 
       switch (property) {
         case 'enabled':
+          storedConfig.enabled = config.enabled
           if (!config.enabled) {
             this.remove(config.sk)
           } else if (storedConfig) {

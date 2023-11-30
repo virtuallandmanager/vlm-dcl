@@ -7,7 +7,7 @@ import { VideoService } from '../services/Video.service'
 import { TransformService } from '../services/Transform.service'
 import { AudioService } from '../services/Audio.service'
 import { VLMDebug } from '../logic/VLMDebug.logic'
-import { BaseProperties, VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMMeshOptions } from '../shared/interfaces'
+import { BaseProperties, VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMInstancedItem, VLMMeshOptions } from '../shared/interfaces'
 import { ecs } from '../environment'
 
 export namespace VLMBase {
@@ -32,16 +32,16 @@ export namespace VLMBase {
     pk: string
     sk: string
     enabled: boolean
-    parent?: string
+    parent?: Entity
     customId?: string
     customRendering?: boolean
-    name: string
+    name?: string
     withCollisions?: boolean
     clickEvent?: VLMClickEvent.Config
     instanceIds: string[] = []
     services: { material?: MaterialService; model?: MeshService; video?: VideoService; transform?: TransformService; audio?: AudioService } = {}
 
-    constructor(config: VLMBaseProperties & VLMClickable & VLMMeshOptions) {
+    constructor(config: VLMBaseProperties & VLMClickable & VLMMeshOptions & VLMInstancedItem) {
       this.pk = config.pk
       this.sk = config.sk
       this.enabled = config.enabled
@@ -51,7 +51,7 @@ export namespace VLMBase {
       this.name = config.name
       this.withCollisions = config.withCollisions
       this.clickEvent = config.clickEvent
-      this.instanceIds = config.instances.map((instance: VLMInstanceProperties) => instance.sk)
+      this.instanceIds = config.instances?.map((instance: VLMInstanceProperties) => instance.sk) || []
     }
   }
 
@@ -81,10 +81,10 @@ export namespace VLMBase {
     sk: string
     configId: string
     enabled: boolean
-    parent?: string
+    parent?: Entity
     customId?: string
     customRendering?: boolean
-    name: string
+    name?: string
     defaultClickEvent?: VLMClickEvent.Config
     clickEvent?: VLMClickEvent.Config
     withCollisions?: boolean

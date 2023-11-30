@@ -1,5 +1,5 @@
 import { VLMBase } from './VLMBase.component'
-import { Quaternion, Vector3 } from '@dcl/sdk/math'
+import { Vector3 } from '@dcl/sdk/math'
 import { Entity } from '@dcl/sdk/ecs'
 import { MeshService } from '../services/Mesh.service'
 import { TransformService } from '../services/Transform.service'
@@ -8,13 +8,14 @@ import { VLMClickEvent } from './VLMClickEvent.component'
 import { ColliderService } from '../services/Collider.service'
 import { ecs } from '../environment'
 import { getModelPath } from '../shared/paths'
-import { VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMMeshOptions, VLMTransformable } from '../shared/interfaces'
+import { VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMInstancedItem, VLMMeshOptions, VLMTransformable } from '../shared/interfaces'
+import { VLMDebug } from '../logic/VLMDebug.logic'
 
 export namespace VLMMesh {
   export const configs: { [uuid: string]: Config } = {}
   export const instances: { [uuid: string]: Instance } = {}
 
-  export type VLMConfig = VLMBaseProperties & VLMMeshOptions & VLMClickable & VLMTransformable
+  export type VLMConfig = VLMBaseProperties & VLMMeshOptions & VLMClickable & VLMTransformable & VLMInstancedItem
 
   /**
    * @public
@@ -48,7 +49,7 @@ export namespace VLMMesh {
      * Initializes the config
      * @returns void
      */
-    init: CallableFunction = (config: VLMBaseProperties) => {
+    init: CallableFunction = (config: VLMConfig) => {
       try {
         Object.assign(this, config)
 
@@ -58,11 +59,11 @@ export namespace VLMMesh {
           configs[this.customId] = configs[this.sk]
         }
 
-        if (!this.enabled || this.customRendering || !config.instances || config.instances.length < 1) {
+        if (!config.instances || config?.instances.length < 1) {
           return
         }
 
-        config.instances.forEach((instance: VLMInstanceProperties) => {
+        config.instances?.forEach((instance: VLMInstanceProperties) => {
           this.createOrReplaceInstance(instance)
         })
       } catch (error) {
@@ -78,6 +79,7 @@ export namespace VLMMesh {
 
     addAll: CallableFunction = () => {
       try {
+        VLMDebug.log(instances)
         this.instanceIds.forEach((instanceId: string) => {
           instances[instanceId].add()
         })
@@ -189,15 +191,20 @@ export namespace VLMMesh {
     init: CallableFunction = (config: Config, instanceConfig: VLMInstanceProperties) => {
       Object.assign(this, instanceConfig)
 
+      instances[this.sk] = this
+      
+      if (this.customId) {
+        instances[this.customId] = instances[this.sk]
+      }
+
+      if (!this.enabled || !config.enabled) {
+        return
+      }
+
       config.services.mesh.set(this.entity, 'gltf', { src: getModelPath(config.modelSrc) })
       this.updateTransform(this.position, this.scale, this.rotation)
       this.updateClickEvent(this.clickEvent)
 
-      instances[this.sk] = this
-
-      if (this.customId) {
-        instances[this.customId] = instances[this.sk]
-      }
     }
     /**
      * @public add
@@ -274,7 +281,7 @@ export namespace VLMMesh {
      * @returns void
      *
      */
-    updateParent: CallableFunction = (parent: string) => {
+    updateParent: CallableFunction = (parent: Entity) => {
       const config = configs[this.configId]
       this.parent = parent
 

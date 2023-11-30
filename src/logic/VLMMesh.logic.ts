@@ -43,16 +43,18 @@ export abstract class VLMMeshManager {
 
   static update: CallableFunction = (config: VLMMesh.VLMConfig, property: string, id: string) => {
     try {
-      let storedConfig: VLMMesh.Config = VLMMesh.configs[config.sk]
+      const storedConfig: VLMMesh.Config = VLMMesh.configs[config.sk || id]
 
       if (!config || (!storedConfig && !config.enabled)) {
         return
       } else if (!storedConfig && config.enabled) {
-        new VLMMesh.Config(config)
+        this.create(config)
+        return
       }
 
       switch (property) {
         case 'enabled':
+          storedConfig.enabled = config.enabled
           if (!config.enabled) {
             this.remove(config.sk)
           } else if (storedConfig) {

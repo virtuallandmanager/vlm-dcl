@@ -1,8 +1,9 @@
 import { ecs } from '../environment'
+import { Entity } from '@dcl/sdk/ecs'
 import { VLMBase } from './VLMBase.component'
 import { VLMClickEvent } from './VLMClickEvent.component'
-import { PBMaterial_PbrMaterial, PBVideoPlayer, SystemFn } from '@dcl/sdk/ecs'
-import { Quaternion, Vector3 } from '@dcl/sdk/math'
+import { PBMaterial_PbrMaterial, PBVideoPlayer, VideoState } from '@dcl/sdk/ecs'
+import { Vector3 } from '@dcl/sdk/math'
 import { VideoService } from '../services/Video.service'
 import { MaterialService } from '../services/Material.service'
 import { MeshService } from '../services/Mesh.service'
@@ -16,7 +17,7 @@ import {
   VLMClickable,
   VLMDynamicMedia,
   VLMInstanceProperties,
-  VLMPlayable,
+  VLMInstancedItem,
   VLMTextureOptions,
 } from '../shared/interfaces'
 import { ColliderService } from '../services/Collider.service'
@@ -25,7 +26,7 @@ export namespace VLMVideo {
   export const configs: { [uuid: string]: Config } = {}
   export const instances: { [uuid: string]: Instance } = {}
 
-  export type VLMConfig = VLMBaseProperties & VLMClickable & VLMAudible & VLMPlayable & VLMDynamicMedia & VLMTextureOptions
+  export type VLMConfig = VLMBaseProperties & VLMClickable & VLMAudible & VLMDynamicMedia & VLMTextureOptions & VLMInstancedItem
 
   /**
    * @public
@@ -102,9 +103,7 @@ export namespace VLMVideo {
 
         VLMDebug.log('Creating Video Config', config)
 
-        if (!this.enabled || this.customRendering || !config.instances || config.instances.length < 1) {
-          return
-        }
+        const originalMediaType = this.mediaType
 
         if (this.liveSrc && this.enableLiveStream && this.isLive) {
           // if live stream exists, is enabled, and is live
@@ -125,10 +124,23 @@ export namespace VLMVideo {
           // if no off image exists
           // set the video source to the off image
           this.mediaType = DynamicMediaType.NONE
+        }
+
+        if (originalMediaType !== this.mediaType || !this.enabled || !config.enabled) {
+          VLMDebug.log('Video Media Type Changed', originalMediaType, this.mediaType)
+          this.services.video.stop()
+          this.services.video.clearEventSystem()
+        }
+        if (originalMediaType !== this.mediaType && this.mediaType === DynamicMediaType.NONE) {
+          this.remove()
           return
         }
 
         VLMDebug.log('Video Media Type', this.mediaType)
+
+        if (!config.instances || config.instances.length < 1 || this.mediaType === DynamicMediaType.NONE) {
+          return
+        }
 
         config.instances.forEach((instance: VLMInstanceProperties) => {
           this.createOrReplaceInstance(instance)
@@ -146,8 +158,9 @@ export namespace VLMVideo {
 
     addAll: CallableFunction = () => {
       try {
+        VLMDebug.log(instances)
         this.instanceIds.forEach((instanceId: string) => {
-          instances[instanceId]?.add()
+          instances[instanceId].add()
         })
       } catch (error) {
         throw error
@@ -161,6 +174,9 @@ export namespace VLMVideo {
      */
     remove: CallableFunction = () => {
       try {
+        if (this.services.video.getVideoState().state === VideoState.VS_PLAYING) {
+          this.services.video.stop()
+        }
         this.instanceIds.forEach((instanceId: string) => {
           instances[instanceId].remove()
         })
@@ -176,6 +192,9 @@ export namespace VLMVideo {
      */
     delete: CallableFunction = () => {
       try {
+        if (this.services.video.getVideoState().state === VideoState.VS_PLAYING) {
+          this.services.video.stop()
+        }
         delete configs[this.sk]
         this.instanceIds.forEach((instanceId: string) => {
           instances[instanceId].delete()
@@ -356,13 +375,11 @@ export namespace VLMVideo {
         instances[this.customId] = instances[this.sk]
       }
 
-      config.services.video.addEntity(this.entity)
-
-      if (!config.enabled || !this.enabled || config.mediaType === DynamicMediaType.NONE) {
-        // move this to after the storage is set
-        this.remove()
+      if (!this.enabled || !config.enabled) {
         return
       }
+
+      config.services.video.addEntity(this.entity)
 
       if (config.mediaType === DynamicMediaType.LIVE) {
         config.startLiveStream()
@@ -470,7 +487,7 @@ export namespace VLMVideo {
      * @returns void
      *
      */
-    updateParent: CallableFunction = (parent: string) => {
+    updateParent: CallableFunction = (parent: Entity) => {
       const config = configs[this.configId]
       this.parent = parent
 
@@ -539,6 +556,17 @@ export namespace VLMVideo {
   }
 }
 
+type QuickVideoConfig = {
+  liveUrl: string
+  playlist?: string[]
+  position: Vector3
+  scale?: Vector3
+  rotation?: Vector3
+  volume?: number
+  colliders?: boolean
+  parent?: Entity
+} & VLMClickable
+
 /**
  * Quick creator function for VLMVideo Configs
  * @param config - the config object
@@ -547,8 +575,47 @@ export namespace VLMVideo {
  *
  */
 export class QuickVideoScreen {
-  constructor(config: VLMVideo.VLMConfig & VLMVideo.Instance) {
-    const videoConfig = new VLMVideo.Config(config)
-    new VLMVideo.Instance(videoConfig, config)
+  entity: Entity = ecs.engine.addEntity()
+  mediaType: DynamicMediaType = DynamicMediaType.NONE
+  services: {
+    material: MaterialService
+    mesh: MeshService
+    collider: ColliderService
+    transform: TransformService
+    clickEvent: ClickEventService
+    video: VideoService
+  }
+  constructor(config: QuickVideoConfig) {
+    this.services = {
+      material: new MaterialService(),
+      mesh: new MeshService(),
+      collider: new ColliderService(),
+      transform: new TransformService(),
+      clickEvent: new ClickEventService(),
+      video: new VideoService(),
+    }
+
+    new VLMVideo.Config({
+      pk: '',
+      sk: '',
+      name: '',
+      enabled: true,
+      offType: DynamicMediaType.PLAYLIST,
+      enableLiveStream: config.liveUrl ? true : false,
+      liveSrc: config.liveUrl,
+      playlist: config.playlist || [],
+      instances: [
+        {
+          pk: '',
+          sk: '',
+          name: '',
+          position: config.position,
+          scale: config.scale || Vector3.One(),
+          rotation: config.rotation || Vector3.Zero(),
+          parent: config.parent,
+          enabled: true,
+        },
+      ],
+    })
   }
 }
