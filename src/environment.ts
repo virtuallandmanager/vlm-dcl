@@ -3,7 +3,7 @@ import { VLMWidget } from './components/VLMWidget.component'
 import * as ecsLib from '@dcl/sdk/ecs'
 import { VLMDebug } from './logic/VLMDebug.logic'
 
-export let ecs: any
+export let ecs: any = ecsLib
 
 export abstract class VLMEnvironment {
   static devMode: boolean
@@ -41,8 +41,6 @@ export abstract class VLMEnvironment {
 
       if (config?.ecs) {
         ecs = config?.ecs
-      } else {
-        ecs = ecsLib
       }
 
       VLMDebug.log(`Initializing ${config.env} environment`)

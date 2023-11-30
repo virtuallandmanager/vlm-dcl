@@ -63,23 +63,22 @@ export class MaterialService {
       if (textureSrc) {
         textureOptions.texture = ecs.Material.Texture.Common({ src: textureSrc })
       }
-      if (bumpSrc || textureSrc) {
-        textureOptions.bumpTexture = ecs.Material.Texture.Common({ src: bumpSrc || textureSrc })
+      if (bumpSrc) {
+        textureOptions.bumpTexture = ecs.Material.Texture.Common({ src: bumpSrc })
       }
-      if (emissiveSrc || textureSrc) {
-        textureOptions.emissiveTexture = ecs.Material.Texture.Common({ src: emissiveSrc || textureSrc })
+      if (emissiveSrc) {
+        textureOptions.emissiveTexture = ecs.Material.Texture.Common({ src: emissiveSrc })
       }
-      if (alphaSrc || textureSrc) {
-        textureOptions.alphaTexture = ecs.Material.Texture.Common({ src: alphaSrc || textureSrc })
+      if (alphaSrc) {
+        textureOptions.alphaTexture = ecs.Material.Texture.Common({ src: alphaSrc })
       }
       if (emission) {
-        textureOptions.emissiveIntensity = emission
-        textureOptions.directIntensity = emission
-        textureOptions.specularIntensity = emission
+        textureOptions.emissiveIntensity = emission || 1
       }
 
       textureOptions.castShadows = config.castShadows
 
+      console.log('Texture Options: ', textureOptions)
       return textureOptions
     } catch (error) {
       throw error
