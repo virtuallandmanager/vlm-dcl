@@ -75,7 +75,6 @@ export class MaterialService {
 
       textureOptions.texture = Material.Texture.Common({ src: config.textureSrc })
 
-      console.log('Texture Options: ', textureOptions)
       return textureOptions
     } catch (error) {
       throw error

@@ -379,7 +379,7 @@ export class QuickImage {
     }
 
     const textureOptions = this.services.material.buildOptions({ textureSrc: config.path })
-    this.services.material.set(this.entity, 'pbr', textureOptions)
+    this.services.material.set(this.entity, 'basic', textureOptions)
     this.services.mesh.set(this.entity, 'plane')
     this.services.collider.set(this.entity, 'plane', config.colliders)
     this.services.transform.set(this.entity, {
