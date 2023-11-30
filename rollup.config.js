@@ -40,6 +40,7 @@ export default {
     }),
     resolve({
       preferBuiltins: true,
+      platform: 'node'
     }),
     isProduction && terser({ format: { comments: false } }),
   ].filter(Boolean), // This filters out the falsy values from the array
