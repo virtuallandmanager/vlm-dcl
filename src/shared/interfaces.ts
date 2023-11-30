@@ -118,7 +118,7 @@ export type VLMDynamicMedia = {
 }
 
 export type VLMTextureOptions = {
-  textureSrc?: string
+  textureSrc: string
   bumpSrc?: string
   emissiveSrc?: string
   alphaSrc?: string

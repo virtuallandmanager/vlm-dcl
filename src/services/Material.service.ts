@@ -1,7 +1,9 @@
-import { Entity, PBMaterial_PbrMaterial, PBMaterial_UnlitMaterial, Material } from '@dcl/sdk/ecs'
+import { Entity, PBMaterial_PbrMaterial, PBMaterial_UnlitMaterial, Material, MaterialTransparencyMode } from '@dcl/sdk/ecs'
+import { Color3, Color4 } from '@dcl/sdk/math'
 import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 import { VLMTextureOptions } from '../shared/interfaces'
+import { changeRealm } from '~system/RestrictedActions'
 
 export class MaterialService {
   entities: Entity[] = []
@@ -56,27 +58,22 @@ export class MaterialService {
    * @returns void
    */
   buildOptions: CallableFunction = (config: VLMTextureOptions) => {
-    const textureOptions: PBMaterial_PbrMaterial = {}
     try {
-      const { textureSrc, bumpSrc, emissiveSrc, alphaSrc, emission } = config
-
-      if (textureSrc) {
-        textureOptions.texture = Material.Texture.Common({ src: textureSrc })
-      }
-      if (bumpSrc) {
-        textureOptions.bumpTexture = Material.Texture.Common({ src: bumpSrc })
-      }
-      if (emissiveSrc) {
-        textureOptions.emissiveTexture = Material.Texture.Common({ src: emissiveSrc })
-      }
-      if (alphaSrc) {
-        textureOptions.alphaTexture = Material.Texture.Common({ src: alphaSrc })
-      }
-      if (emission) {
-        textureOptions.emissiveIntensity = emission || 1
+      const textureOptions: PBMaterial_PbrMaterial = {
+        alphaTest: 0,
+        castShadows: true,
+        albedoColor: Color4.White(),
+        emissiveColor: Color4.Black(),
+        reflectivityColor: Color3.White(),
+        transparencyMode: MaterialTransparencyMode.MTM_AUTO,
+        metallic: 0.5,
+        roughness: 0.5,
+        specularIntensity: 1,
+        emissiveIntensity: 1,
+        directIntensity: 1,
       }
 
-      textureOptions.castShadows = config.castShadows
+      textureOptions.texture = Material.Texture.Common({ src: config.textureSrc })
 
       console.log('Texture Options: ', textureOptions)
       return textureOptions
