@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "declaration": true,
     "stripInternal": true,
     "outDir": "dist",

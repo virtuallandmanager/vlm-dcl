@@ -148,7 +148,7 @@ export abstract class VLMSessionManager {
         coordinates: baseParcel.split(','),
         parcels,
         realm: realmInfo.currentRealm,
-        integrationData: { sdkVersion: '6.12.2', packageVersion },
+        integrationData: { sdkVersion: sceneJsonData.runtimeVersion, packageVersion },
       }
       platformData.environment = VLMEnvironment.devMode ? 'dev' : 'prod'
       this.dclUserData = userData as UserData

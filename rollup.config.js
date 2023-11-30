@@ -1,28 +1,33 @@
-import replace from '@rollup/plugin-replace';
-import commonjs from "@rollup/plugin-commonjs";
-import typescript from "@rollup/plugin-typescript";
-import { terser } from "rollup-plugin-terser";
-import packageJson from "./package.json";
+import fs from 'fs'
+import path from 'path'
+import replace from '@rollup/plugin-replace'
+import commonjs from '@rollup/plugin-commonjs'
+import typescript from '@rollup/plugin-typescript'
+import resolve from '@rollup/plugin-node-resolve'
+import { terser } from 'rollup-plugin-terser'
 
-const isProduction = process.env.NODE_ENV === 'production';
+const jsonPath = path.resolve(__dirname, './package.json')
+const jsonData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))
+
+const isProduction = process.env.NODE_ENV === 'production'
 export default {
-  input: "src/index.ts",
-  context: "globalThis",
-  // external: id => /@dcl\//.test(id),
+  input: 'src/index.ts',
+  context: 'globalThis',
+  external: (id) => /~system\//.test(id) || /@dcl\//.test(id),
   output: [
     {
-      exports: "named",
-      file: packageJson.main,
-      format: "es",
+      exports: 'named',
+      file: jsonData.main,
+      format: 'es',
     },
   ],
   plugins: [
     replace({
-      __VERSION__: JSON.stringify(require('./package.json').version),
-      preventAssignment: true
+      __VERSION__: JSON.stringify(jsonData.version),
+      preventAssignment: true,
     }),
     typescript({
-      tsconfig: "./tsconfig.json",
+      tsconfig: './tsconfig.json',
       sourceMap: false,
       compilerOptions: {
         sourceMap: false,
@@ -31,9 +36,11 @@ export default {
       },
     }),
     commonjs({
-      exclude: "node_modules",
       ignoreGlobal: false,
     }),
+    resolve({
+      preferBuiltins: true,
+    }),
     isProduction && terser({ format: { comments: false } }),
-  ].filter(Boolean),  // This filters out the falsy values from the array
-};
+  ].filter(Boolean), // This filters out the falsy values from the array
+}

@@ -1,11 +1,11 @@
 {
   "name": "vlm-dcl",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "description": "Virtual Land Manager for Decentraland",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "cross-env NODE_ENV=production rollup -c",
     "link": "npm link"
   },
   "typings": "./dist/index.d.ts",
