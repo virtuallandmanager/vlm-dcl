@@ -5,6 +5,7 @@ import 'xmlhttprequest-polyfill'
 
 // @ts-ignore
 import { URL } from 'whatwg-url-without-unicode'
+import { QuickDanceFloor } from './components/VLMDanceFloor.component'
 
 // @ts-ignore
 globalThis['URL'] = URL
@@ -24,6 +25,7 @@ namespace QuickCreator {
   export class Image extends QuickImage {}
   export class Mesh extends QuickMesh {}
   export class Sound extends QuickSound {}
+  export class DanceFloor extends QuickDanceFloor {}
 }
 
 export default VLM

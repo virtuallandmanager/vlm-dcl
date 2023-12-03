@@ -63,7 +63,7 @@ export class MaterialService {
         alphaTest: 0,
         castShadows: true,
         albedoColor: Color4.White(),
-        emissiveColor: Color4.Black(),
+        emissiveColor: Color4.White(),
         reflectivityColor: Color3.White(),
         transparencyMode: MaterialTransparencyMode.MTM_AUTO,
         metallic: 0.5,
@@ -73,10 +73,9 @@ export class MaterialService {
         directIntensity: 1,
       }
 
-      const texture = Material.Texture.Common({ src: config.textureSrc || '' })
       if (config.textureSrc) {
-        textureOptions.texture = texture
-        textureOptions.emissiveTexture = texture
+        textureOptions.texture = Material.Texture.Common({ src: config.textureSrc || '' })
+        textureOptions.emissiveTexture = textureOptions.texture
       }
       if (config.emissiveSrc) {
         textureOptions.emissiveTexture = Material.Texture.Common({ src: config.emissiveSrc })

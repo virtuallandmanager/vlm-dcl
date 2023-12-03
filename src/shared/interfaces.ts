@@ -131,6 +131,19 @@ export type VLMMeshOptions = {
   withCollisions?: boolean
 }
 
+export type VLMDanceFloorOptions = {
+  emotes?: EmoteList
+  interval?: number
+}
+
+export type EmoteList = TriggeredEmote[]
+
+export type TriggeredEmote = {
+  emote: string
+  isCustom?: string
+  loop: boolean
+}
+
 export type VLMInstanceProperties = VLMBaseProperties & VLMTransformable & VLMClickable & VLMMeshOptions
 
 export type VLMInstancedItem = { instances?: VLMInstanceProperties[] }

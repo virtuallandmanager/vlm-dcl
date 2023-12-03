@@ -295,11 +295,13 @@ export class VLMPathManager {
     if (ecs.Transform.getOrNull(ecs.engine.PlayerEntity) == null || ecs.Transform.getOrNull(ecs.engine.CameraEntity) == null) {
       return
     }
+    const playerPositionObj = ecs.Transform.get(ecs.engine.PlayerEntity)
+    const cameraPositionObj = ecs.Transform.get(ecs.engine.CameraEntity)
 
-    const playerPosition = { ...ecs.Transform.get(ecs.engine.PlayerEntity).position },
-      playerRotation = { ...ecs.Transform.get(ecs.engine.PlayerEntity).rotation },
-      cameraPosition = { ...ecs.Transform.get(ecs.engine.CameraEntity).position },
-      cameraRotation = { ...ecs.Transform.get(ecs.engine.CameraEntity).rotation },
+    const playerPosition = { ...playerPositionObj.position },
+      playerRotation = { ...playerPositionObj.rotation },
+      cameraPosition = { ...cameraPositionObj.position },
+      cameraRotation = { ...cameraPositionObj.rotation },
       floorHeight = 0.17
 
     ;[playerPosition, playerRotation, cameraPosition, cameraRotation].forEach((obj: Vector3Type) => {

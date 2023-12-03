@@ -395,7 +395,7 @@ export namespace VLMVideo {
       // add transform
       config.services.transform.set(this.entity, {
         position: this.position,
-        scale: this.scale,
+        scale: { ...this.scale, z: 0.01 },
         rotation: this.rotation,
         parent: config.parent ? instances[config.parent].entity : undefined,
       })
@@ -474,7 +474,7 @@ export namespace VLMVideo {
 
       config.services.transform.set(this.entity, {
         position: this.position,
-        scale: this.scale,
+        scale: { ...this.scale, z: 0.01 },
         rotation: this.rotation,
         parent: this.parent,
       })
@@ -526,7 +526,7 @@ export namespace VLMVideo {
      */
     updateTextureOptions: CallableFunction = (textureOptions: PBMaterial_PbrMaterial) => {
       const config = configs[this.configId]
-      config.services.material.set(this.entity, 'basic', textureOptions)
+      config.services.material.set(this.entity, 'pbr', textureOptions)
     }
 
     /**
@@ -610,7 +610,7 @@ export class QuickVideoScreen {
           sk: '',
           name: '',
           position: config.position,
-          scale: config.scale || Vector3.One(),
+          scale: config.scale || Vector3.create(16 / 2, 9 / 2, 0.01),
           rotation: config.rotation || Vector3.Zero(),
           parent: config.parent,
           enabled: true,

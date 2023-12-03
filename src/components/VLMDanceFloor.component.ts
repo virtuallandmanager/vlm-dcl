@@ -1,48 +1,60 @@
 import { Entity } from '@dcl/sdk/ecs'
 import { VLMBase } from './VLMBase.component'
-import { PBMaterial_PbrMaterial } from '@dcl/sdk/ecs'
-import { Vector3 } from '@dcl/sdk/math'
+import { Vector3, Color4 } from '@dcl/sdk/math'
 import { MaterialService } from '../services/Material.service'
 import { MeshService } from '../services/Mesh.service'
 import { TransformService } from '../services/Transform.service'
-import { ClickEventService } from '../services/ClickEvent.service'
-import { VLMClickEvent } from './VLMClickEvent.component'
-import { ColliderService } from '../services/Collider.service'
 import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 import { VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMInstancedItem, VLMTextureOptions } from '../shared/interfaces'
+import { AutoDanceService } from '../services/AutoDance.service'
 
-export namespace VLMImage {
+export type EmoteList = TriggeredEmote[]
+
+export type TriggeredEmote = {
+  emote: string
+  isCustom?: string
+  loop: boolean
+}
+
+export namespace VLMDanceFloor {
   export const configs: { [uuid: string]: Config } = {}
   export const instances: { [uuid: string]: Instance } = {}
 
-  export type VLMConfig = VLMBaseProperties & VLMClickable & VLMTextureOptions & VLMInstancedItem
+  export type VLMConfig = VLMBaseProperties & VLMInstancedItem
 
   /**
    * @public
-   * VLM Image Config: A config for VLMImage components
+   * VLM Dance Floor Config: A config for VLMDance Floor components
    *
    * Configs are used to define properties shared by multiple instances, such as materials, textures, files, etc.
    *
-   * @param textureOptions - an object of textures for the image
+   * @param textureOptions - an object of textures for the dance floor
    * @param services - an object of services used by the config
    *
    * @constructor - creates a new config
    * @returns void
    */
   export class Config extends VLMBase.Config {
-    textureOptions: PBMaterial_PbrMaterial = {}
-    services: { material: MaterialService; mesh: MeshService; collider: ColliderService; transform: TransformService; clickEvent: ClickEventService }
+    debugMode?: boolean = false
+    emotes?: EmoteList = []
+    interval?: number = 3000
+    services: { material: MaterialService; mesh: MeshService; transform: TransformService; autodance: AutoDanceService }
     constructor(config: VLMConfig) {
       super(config)
-      VLMDebug.log('Creating Image Config', config)
+
+      Object.assign(this, config)
+
+      VLMDebug.log('Creating Dance Floor Config', config)
+
       this.services = {
         material: new MaterialService(),
         mesh: new MeshService(),
-        collider: new ColliderService(),
         transform: new TransformService(),
-        clickEvent: new ClickEventService(),
+        autodance: new AutoDanceService(),
       }
+
+      this.services.autodance.setup({ emotes: this.emotes || [], interval: 5000 })
       this.init(config)
     }
 
@@ -54,8 +66,6 @@ export namespace VLMImage {
     init: CallableFunction = (config: VLMConfig) => {
       try {
         Object.assign(this, config)
-
-        this.textureOptions = this.services.material.buildOptions(config)
 
         configs[this.sk] = this
 
@@ -170,23 +180,11 @@ export namespace VLMImage {
         delete instances[config.sk]
       }
     }
-
-    /**
-     * @public updateDefaultClickEvent
-     * Updates the instance's click event
-     * @param clickEvent - the click event of the instance
-     * @returns void
-     */
-    updateDefaultClickEvent: CallableFunction = (clickEvent: VLMClickEvent.Config) => {
-      this.instanceIds.forEach((instanceId: string) => {
-        instances[instanceId].updateDefaultClickEvent(clickEvent)
-      })
-    }
   }
 
   /**
    * @public Instance
-   * VLM Image Instance: An instance of a VLMImage config
+   * VLM Dance Floor Instance: An instance of a VLMDance Floor config
    *
    * Instances get shared properties from a config while defining their own unique properties, such as position, rotation, scale, etc.
    *
@@ -196,7 +194,7 @@ export namespace VLMImage {
   export class Instance extends VLMBase.Instance {
     constructor(config: Config, instanceConfig: VLMInstanceProperties) {
       super(config, instanceConfig)
-      VLMDebug.log('Creating Image Instance', instanceConfig)
+      VLMDebug.log('Creating Dance Floor Instance', instanceConfig)
       this.init(config, instanceConfig)
     }
 
@@ -219,27 +217,18 @@ export namespace VLMImage {
       }
 
       config.services.mesh.set(this.entity, 'plane')
-      config.services.material.set(this.entity, 'pbr', { ...config.textureOptions })
 
-      if (this.withCollisions || config.withCollisions) {
-        const withCollisions = this.withCollisions || config.withCollisions
-        config.services.collider.set(this.entity, 'plane', withCollisions)
+      if (config.debugMode) {
+        config.services.material.set(this.entity, 'basic', { albedoColor: Color4.create(0, 1, 0, 0.5) })
       }
 
       // add transform
       config.services.transform.set(this.entity, {
         position: this.position,
-        scale: { x: this.scale.x, y: this.scale.y, z: 0.01 },
+        scale: { x: this.scale.x, y: this.scale.y, z: 0 },
         rotation: this.rotation,
         parent: config.parent ? instances[config.parent].entity : undefined,
       })
-
-      // add click event
-      if (this.clickEvent?.synced) {
-        config.services.clickEvent.set(this.entity, this.defaultClickEvent)
-      } else {
-        config.services.clickEvent.set(this.entity, this.clickEvent)
-      }
     }
     /**
      * @public add
@@ -321,74 +310,47 @@ export namespace VLMImage {
 
       this.updateTransform(this.position, this.scale, this.rotation)
     }
-
-    /**
-     * @public updateDefaultClickEvent
-     * Updates the instance's default click event
-     * @param clickEvent - the click event of the instance
-     * @returns void
-     */
-    updateDefaultClickEvent: CallableFunction = (clickEvent: VLMClickEvent.Config) => {
-      this.defaultClickEvent = clickEvent
-
-      this.updateClickEvent(this.clickEvent)
-    }
-
-    /**
-     * @public updateClickEvent
-     * Updates the instance's click event
-     * @param clickEvent - the click event of the instance
-     * @returns void
-     */
-    updateClickEvent: CallableFunction = (clickEvent: VLMClickEvent.Config) => {
-      const config = configs[this.configId]
-      this.clickEvent = clickEvent
-
-      if (this.clickEvent?.synced) {
-        config.services.clickEvent.set(this.entity, this.defaultClickEvent)
-      } else {
-        config.services.clickEvent.set(this.entity, this.clickEvent)
-      }
-    }
   }
 }
 
-type QuickImageConfig = {
-  path: string
+type QuickDanceFloorConfig = {
+  emotes?: EmoteList
+  interval?: number
   position: Vector3
   scale?: Vector3
   rotation?: Vector3
-  colliders?: boolean
   parent?: Entity
+  debug?: boolean
+  enabledOnLoad?: boolean
 } & VLMClickable
 
 /**
- * Quick creator function for VLMImage Configs
+ * Quick creator function for VLMDance Floor Configs
  * @param config - the config object
  * @returns void
  */
-export class QuickImage {
+export class QuickDanceFloor {
   entity: Entity = ecs.engine.addEntity()
-  services: { material: MaterialService; mesh: MeshService; collider: ColliderService; transform: TransformService; clickEvent: ClickEventService }
-  constructor(config: QuickImageConfig) {
+  services: { material: MaterialService; mesh: MeshService; transform: TransformService; autodance: AutoDanceService }
+  constructor(config: QuickDanceFloorConfig) {
     this.services = {
       material: new MaterialService(),
       mesh: new MeshService(),
-      collider: new ColliderService(),
       transform: new TransformService(),
-      clickEvent: new ClickEventService(),
+      autodance: new AutoDanceService(),
     }
 
-    const textureOptions = this.services.material.buildOptions({ textureSrc: config.path })
-    this.services.material.set(this.entity, 'pbr', textureOptions)
-    this.services.mesh.set(this.entity, 'plane')
-    this.services.collider.set(this.entity, 'plane', config.colliders)
+    if (config.debug) {
+      this.services.material.set(this.entity, 'pbr', { albedoColor: Color4.create(0, 1, 0, 0.5) })
+    }
+    this.services.mesh.set(this.entity, 'box')
     this.services.transform.set(this.entity, {
       position: config.position,
-      scale: config.scale || Vector3.create(1, 1, 0.01),
+      scale: config.scale || Vector3.create(4, 2, 4),
       rotation: config.rotation || Vector3.create(0, 0, 0),
       parent: config.parent,
     })
-    this.services.clickEvent.set(this.entity, config.clickEvent)
+    this.services.autodance.addEntity(this.entity)
+    this.services.autodance.setup({ emotes: config.emotes || [], delay: config.interval || 5000, enabledOnLoad: config.enabledOnLoad })
   }
 }

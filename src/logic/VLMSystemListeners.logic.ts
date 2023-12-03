@@ -41,6 +41,8 @@ export abstract class VLMEventListeners {
   static sceneRoom: Room
   static sessionData: VLMSession.Config
   static sessionUser: VLMSession.User
+  public static ignoreNextEmote: boolean = false
+
   static init: CallableFunction = () => {
     try {
       this.sceneRoom = VLMSessionManager.sceneRoom
@@ -82,9 +84,15 @@ export abstract class VLMEventListeners {
       // });
 
       onPlayerExpressionObservable.add(({ expressionId }) => {
-        VLMDebug.log('session', `TRACKED ACTION - Emote triggered - ${expressionId}`)
-        VLMEventManager.events.emit('VLMSessionAction', 'Emote Used', { emote: expressionId })
-        VLMEventManager.events.emit('VLMEmoteAction', expressionId)
+        if (this.ignoreNextEmote) {
+          this.ignoreNextEmote = false
+          VLMDebug.log(`TRACKED ACTION - Emote Ignored - ${expressionId}`)
+          return
+        } else {
+          VLMDebug.log(`TRACKED ACTION - Emote triggered - ${expressionId}`)
+          VLMEventManager.events.emit('VLMSessionAction', 'Emote Used', { emote: expressionId })
+          VLMEventManager.events.emit('VLMEmoteAction', expressionId)
+        }
       })
 
       onPlayerClickedObservable.add((clickEvent) => {

@@ -14,6 +14,7 @@ import { VLMMesh } from './components/VLMMesh.component'
 // import { VLMClaimPoint } from "./components/VLMClaimPoint.component";
 import { configurePaths } from './shared/paths'
 import { VLMDebug } from './logic/VLMDebug.logic'
+import { AutoDanceService } from './services/AutoDance.service'
 
 /**
  * The main entry point for the VLM library.
@@ -115,6 +116,8 @@ export abstract class VLM {
   }
 
   public static storage = this.Storage
+
+  public static toggleAutoDance = AutoDanceService.toggleGlobalAutoDance
 }
 
 export type VLMStorage = {
