@@ -3,7 +3,6 @@ import { Color3, Color4 } from '@dcl/sdk/math'
 import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 import { VLMTextureOptions } from '../shared/interfaces'
-import { changeRealm } from '~system/RestrictedActions'
 
 export class MaterialService {
   entities: Entity[] = []

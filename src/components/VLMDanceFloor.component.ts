@@ -219,7 +219,9 @@ export namespace VLMDanceFloor {
       config.services.mesh.set(this.entity, 'plane')
 
       if (config.debugMode) {
-        config.services.material.set(this.entity, 'basic', { albedoColor: Color4.create(0, 1, 0, 0.5) })
+        config.services.material.set(this.entity, 'pbr', { albedoColor: Color4.create(0, 1, 0, 0.5) })
+      } else {
+        ecs.VisibilityComponent.create(this.entity, { visible: false })
       }
 
       // add transform
@@ -342,6 +344,8 @@ export class QuickDanceFloor {
 
     if (config.debug) {
       this.services.material.set(this.entity, 'pbr', { albedoColor: Color4.create(0, 1, 0, 0.5) })
+    } else {
+      ecs.VisibilityComponent.create(this.entity, { visible: false })
     }
     this.services.mesh.set(this.entity, 'box')
     this.services.transform.set(this.entity, {
