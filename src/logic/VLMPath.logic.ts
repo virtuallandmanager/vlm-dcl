@@ -108,7 +108,7 @@ export class VLMPathManager {
           sessionData: this.sessionData,
           pathId: this.pathId,
           pathSegments: this.pathSegments,
-          metadata: { ...platformData, ...metadata, ts: Date.now() },
+          metadata: { ...platformData, ...metadata, ts: Date.now() / 1000 },
         }),
       }
 
@@ -144,12 +144,12 @@ export class VLMPathManager {
       const isFirstSegment = this.pathSegments[0].type == VLMSession.Path.SegmentType.LOADING
       const latestSegment = this.pathSegments[0]
       const lastSegment = this.pathSegments[1]
-      const latestSegmentStart = isFirstSegment ? this.sessionData?.sessionStart || Date.now() : this.pathSegments[0].path[0][0]
-      const debounced = Date.now() - (latestSegmentStart || 0)
+      const latestSegmentStart = isFirstSegment ? this.sessionData?.sessionStart || Date.now() / 1000 : this.pathSegments[0].path[0][0]
+      const debounced = Date.now() / 1000 - (latestSegmentStart || 0)
 
       if (isFirstSegment) {
         this.initMovement()
-        this.sessionData.sessionStart == this.sessionData?.sessionStart || Date.now()
+        this.sessionData.sessionStart == this.sessionData?.sessionStart || Date.now() / 1000
         this.pathSegments[0].path.push(this.getPathPoint(true))
         VLMDebug.log('path', 'PATH TRACKING - ADDED FIRST PATH SEGMENT')
       }
@@ -232,7 +232,7 @@ export class VLMPathManager {
 
   static getPathPoint: CallableFunction = (firstPoint: boolean): PathPoint => {
     this.approximatePathPoint()
-    const offset = firstPoint ? 0 : Date.now() - (this.sessionData?.sessionStart || 0)
+    const offset = firstPoint ? 0 : Date.now() / 1000 - (this.sessionData?.sessionStart || 0)
     const newPathPoint: PathPoint = [
       offset,
       this.playerPosition?.x || null,
@@ -339,10 +339,10 @@ export class VLMPathManager {
       return
     }
 
-    if (lastPathPoint && Date.now() >= lastPointOffset + 500) {
+    if (lastPathPoint && Date.now() / 1000 >= lastPointOffset + 500) {
       VLMDebug.log('path', 'PATH TRACKING - LOGGING PATH POINT')
       this.logPathPoint()
-    } else if (Date.now() < lastPointOffset + 500) {
+    } else if (Date.now() / 1000 < lastPointOffset + 500) {
       VLMDebug.log('path', 'PATH TRACKING - EXITED - NOT ENOUGH TIME PASSED SINCE LAST POINT')
     } else {
       VLMDebug.log('path', 'PATH TRACKING - EXITED - ' + this.sessionData + lastPointOffset)
