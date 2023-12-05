@@ -17,6 +17,16 @@ export namespace VLMMesh {
 
   export type VLMConfig = VLMBaseProperties & VLMMeshOptions & VLMClickable & VLMTransformable & VLMInstancedItem
 
+  export const reset = () => {
+    Object.keys(configs).forEach((key: string) => {
+      configs[key].delete()
+      delete configs[key]
+    })
+    Object.keys(instances).forEach((key: string) => {
+      delete instances[key]
+    })
+  }
+
   /**
    * @public
    * VLM Mesh Config: A config for VLMMesh components
@@ -156,14 +166,15 @@ export namespace VLMMesh {
      * @param config - the instance config
      * @returns void
      */
-    deleteInstance: CallableFunction = (config: Instance) => {
-      if (!this.instanceIds.includes(config.sk)) {
-        this.instanceIds = this.instanceIds.filter((instanceId: string) => instanceId !== config.sk)
+    deleteInstance: CallableFunction = (_instanceId: string) => {
+      if (!this.instanceIds.includes(_instanceId)) {
+        this.instanceIds = this.instanceIds.filter((instanceId: string) => instanceId !== _instanceId)
       }
+
       //replace instance if it already exists
-      if (instances[config.sk]) {
-        ecs.engine.removeEntity(instances[config.sk].entity)
-        delete instances[config.sk]
+      if (instances[_instanceId]) {
+        ecs.engine.removeEntity(instances[_instanceId].entity)
+        delete instances[_instanceId]
       }
     }
   }
@@ -192,7 +203,7 @@ export namespace VLMMesh {
       Object.assign(this, instanceConfig)
 
       instances[this.sk] = this
-      
+
       if (this.customId) {
         instances[this.customId] = instances[this.sk]
       }
@@ -204,7 +215,6 @@ export namespace VLMMesh {
       config.services.mesh.set(this.entity, 'gltf', { src: getModelPath(config.modelSrc) })
       this.updateTransform(this.position, this.scale, this.rotation)
       this.updateClickEvent(this.clickEvent)
-
     }
     /**
      * @public add

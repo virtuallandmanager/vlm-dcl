@@ -124,6 +124,7 @@ export type VLMTextureOptions = {
   alphaSrc?: string
   emission?: number
   castShadows?: boolean
+  isTransparent?: boolean
 }
 
 export type VLMMeshOptions = {

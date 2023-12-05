@@ -314,6 +314,11 @@ export abstract class VLMEventListeners {
         }
       })
 
+      this.sceneRoom.onMessage('scene_change_preset', (message: VLMSceneMessage) => {
+        VLMDebug.log('event', 'Scene Preset Changed!', message)
+        VLMSceneManager.changeScenePreset(message)
+      })
+
       this.sceneRoom.onMessage('scene_moderator_message', (config: { message: string; color: string; fontSize: number; delay: number }) => {
         VLMNotificationManager.addMessage(config.message, { ...config })
       })

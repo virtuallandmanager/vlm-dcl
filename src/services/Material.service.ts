@@ -64,7 +64,7 @@ export class MaterialService {
         albedoColor: Color4.White(),
         emissiveColor: Color4.White(),
         reflectivityColor: Color3.White(),
-        transparencyMode: MaterialTransparencyMode.MTM_AUTO,
+        transparencyMode: config.isTransparent ? MaterialTransparencyMode.MTM_ALPHA_TEST_AND_ALPHA_BLEND : MaterialTransparencyMode.MTM_OPAQUE,
         metallic: 0.5,
         roughness: 0.5,
         specularIntensity: 1,

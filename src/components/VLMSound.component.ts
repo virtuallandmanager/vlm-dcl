@@ -14,6 +14,16 @@ export namespace VLMSound {
   export const instances: { [uuid: string]: Instance } = {}
 
   export type VLMConfig = VLMBaseProperties & VLMAudible & VLMInstancedItem
+  
+  export const reset = () => {
+    Object.keys(configs).forEach((key: string) => {
+      configs[key].delete()
+      delete configs[key]
+    })
+    Object.keys(instances).forEach((key: string) => {
+      delete instances[key]
+    })
+  }
 
   /**
    * @public

@@ -28,6 +28,16 @@ export namespace VLMVideo {
 
   export type VLMConfig = VLMBaseProperties & VLMClickable & VLMAudible & VLMDynamicMedia & VLMTextureOptions & VLMInstancedItem
 
+  export const reset = () => {
+    Object.keys(configs).forEach((key: string) => {
+      configs[key].delete()
+      delete configs[key]
+    })
+    Object.keys(instances).forEach((key: string) => {
+      delete instances[key]
+    })
+  }
+
   /**
    * @public
    * VLM Image Config: A config for VLMImage components
@@ -120,7 +130,7 @@ export namespace VLMVideo {
           // if off image exists
           // set the video source to the off image
           this.mediaType = DynamicMediaType.IMAGE
-        } else if (this.offType === DynamicMediaType.NONE) {
+        } else if ((!this.enableLiveStream || !this.isLive) && this.offType === DynamicMediaType.NONE) {
           // if no off image exists
           // set the video source to the off image
           this.mediaType = DynamicMediaType.NONE
@@ -241,14 +251,15 @@ export namespace VLMVideo {
      * @param config - the instance config
      * @returns void
      */
-    deleteInstance: CallableFunction = (config: Instance) => {
-      if (!this.instanceIds.includes(config.sk)) {
-        this.instanceIds = this.instanceIds.filter((instanceId: string) => instanceId !== config.sk)
+    deleteInstance: CallableFunction = (_instanceId: string) => {
+      if (!this.instanceIds.includes(_instanceId)) {
+        this.instanceIds = this.instanceIds.filter((instanceId: string) => instanceId !== _instanceId)
       }
+
       //replace instance if it already exists
-      if (instances[config.sk]) {
-        ecs.engine.removeEntity(instances[config.sk].entity)
-        delete instances[config.sk]
+      if (instances[_instanceId]) {
+        ecs.engine.removeEntity(instances[_instanceId].entity)
+        delete instances[_instanceId]
       }
     }
 

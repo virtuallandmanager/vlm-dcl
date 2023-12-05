@@ -7,7 +7,7 @@ import { Room } from 'colyseus.js'
 import { VLMLogManager } from './VLMLogging'
 import { VLMEnvironment, ecs } from '../environment'
 import { InputAction, Vector3Type } from '@dcl/sdk/ecs'
-import { Vector3 } from '@dcl/sdk/math'
+import { Vector3, Quaternion } from '@dcl/sdk/math'
 import { FlatFetchInit, signedFetch } from '~system/SignedFetch'
 import { VLMDebug } from './VLMDebug.logic'
 
@@ -26,6 +26,16 @@ const hasTruthyProperty = (obj: Record<string, any>): boolean => {
     }
   }
   return false
+}
+
+const getOffset = (startTime?: number): number => {
+  if (startTime) {
+    return Math.floor(Date.now() - startTime)
+  } else if (VLMPathManager.sessionData?.sessionStart) {
+    return Math.floor(Date.now() - VLMPathManager.sessionData?.sessionStart)
+  } else {
+    return 0
+  }
 }
 
 export type PathPoint = [
@@ -108,7 +118,7 @@ export class VLMPathManager {
           sessionData: this.sessionData,
           pathId: this.pathId,
           pathSegments: this.pathSegments,
-          metadata: { ...platformData, ...metadata, ts: Date.now() / 1000 },
+          metadata: { ...platformData, ...metadata, ts: getOffset() },
         }),
       }
 
@@ -144,12 +154,12 @@ export class VLMPathManager {
       const isFirstSegment = this.pathSegments[0].type == VLMSession.Path.SegmentType.LOADING
       const latestSegment = this.pathSegments[0]
       const lastSegment = this.pathSegments[1]
-      const latestSegmentStart = isFirstSegment ? this.sessionData?.sessionStart || Date.now() / 1000 : this.pathSegments[0].path[0][0]
-      const debounced = Date.now() / 1000 - (latestSegmentStart || 0)
+      const latestSegmentStart = isFirstSegment ? this.sessionData?.sessionStart || getOffset() : this.pathSegments[0].path[0][0]
+      const debounced = getOffset() - (latestSegmentStart || 0)
 
       if (isFirstSegment) {
         this.initMovement()
-        this.sessionData.sessionStart == this.sessionData?.sessionStart || Date.now() / 1000
+        this.sessionData.sessionStart == this.sessionData?.sessionStart || getOffset()
         this.pathSegments[0].path.push(this.getPathPoint(true))
         VLMDebug.log('path', 'PATH TRACKING - ADDED FIRST PATH SEGMENT')
       }
@@ -232,7 +242,7 @@ export class VLMPathManager {
 
   static getPathPoint: CallableFunction = (firstPoint: boolean): PathPoint => {
     this.approximatePathPoint()
-    const offset = firstPoint ? 0 : Date.now() / 1000 - (this.sessionData?.sessionStart || 0)
+    const offset = firstPoint ? 0 : getOffset()
     const newPathPoint: PathPoint = [
       offset,
       this.playerPosition?.x || null,
@@ -299,9 +309,9 @@ export class VLMPathManager {
     const cameraPositionObj = ecs.Transform.get(ecs.engine.CameraEntity)
 
     const playerPosition = { ...playerPositionObj.position },
-      playerRotation = { ...playerPositionObj.rotation },
+      playerRotation = { ...Quaternion.toEulerAngles(playerPositionObj.rotation) },
       cameraPosition = { ...cameraPositionObj.position },
-      cameraRotation = { ...cameraPositionObj.rotation },
+      cameraRotation = { ...Quaternion.toEulerAngles(playerPositionObj.rotation) },
       floorHeight = 0.17
 
     ;[playerPosition, playerRotation, cameraPosition, cameraRotation].forEach((obj: Vector3Type) => {
@@ -339,10 +349,10 @@ export class VLMPathManager {
       return
     }
 
-    if (lastPathPoint && Date.now() / 1000 >= lastPointOffset + 500) {
+    if (lastPathPoint && getOffset() >= lastPointOffset + 500) {
       VLMDebug.log('path', 'PATH TRACKING - LOGGING PATH POINT')
       this.logPathPoint()
-    } else if (Date.now() / 1000 < lastPointOffset + 500) {
+    } else if (getOffset() < lastPointOffset + 500) {
       VLMDebug.log('path', 'PATH TRACKING - EXITED - NOT ENOUGH TIME PASSED SINCE LAST POINT')
     } else {
       VLMDebug.log('path', 'PATH TRACKING - EXITED - ' + this.sessionData + lastPointOffset)

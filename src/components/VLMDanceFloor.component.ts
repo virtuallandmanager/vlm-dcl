@@ -23,6 +23,16 @@ export namespace VLMDanceFloor {
 
   export type VLMConfig = VLMBaseProperties & VLMInstancedItem
 
+  export const reset = () => {
+    Object.keys(configs).forEach((key: string) => {
+      configs[key].delete()
+      delete configs[key]
+    })
+    Object.keys(instances).forEach((key: string) => {
+      delete instances[key]
+    })
+  }
+
   /**
    * @public
    * VLM Dance Floor Config: A config for VLMDance Floor components
@@ -170,14 +180,15 @@ export namespace VLMDanceFloor {
      * @param config - the instance config
      * @returns void
      */
-    deleteInstance: CallableFunction = (config: Instance) => {
-      if (!this.instanceIds.includes(config.sk)) {
-        this.instanceIds = this.instanceIds.filter((instanceId: string) => instanceId !== config.sk)
+    deleteInstance: CallableFunction = (_instanceId: string) => {
+      if (!this.instanceIds.includes(_instanceId)) {
+        this.instanceIds = this.instanceIds.filter((instanceId: string) => instanceId !== _instanceId)
       }
+
       //replace instance if it already exists
-      if (instances[config.sk]) {
-        ecs.engine.removeEntity(instances[config.sk].entity)
-        delete instances[config.sk]
+      if (instances[_instanceId]) {
+        ecs.engine.removeEntity(instances[_instanceId].entity)
+        delete instances[_instanceId]
       }
     }
   }
