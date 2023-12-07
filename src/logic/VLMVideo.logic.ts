@@ -53,7 +53,7 @@ export abstract class VLMVideoManager {
           if (!config.enabled) {
             this.remove(config?.sk);
           } else if (storedConfig) {
-            this.add(config?.sk);
+            storedConfig.init(config);
           }
           break;
         case "liveSrc":
@@ -156,7 +156,6 @@ export abstract class VLMVideoManager {
   };
   static remove: CallableFunction = (id: string) => {
     VLMVideo.configs[id].remove();
-    VLMVideo.systems[id].kill();
   };
   static delete: CallableFunction = (id: string) => {
     VLMVideo.configs[id].delete();
