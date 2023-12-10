@@ -10,7 +10,7 @@ import { VLMClickEvent } from './VLMClickEvent.component'
 import { ColliderService } from '../services/Collider.service'
 import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
-import { VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMInstancedItem, VLMTextureOptions } from '../shared/interfaces'
+import { TextureType, VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMInstancedItem, VLMTextureOptions } from '../shared/interfaces'
 
 export namespace VLMImage {
   export const configs: { [uuid: string]: Config } = {}
@@ -41,6 +41,7 @@ export namespace VLMImage {
    * @returns void
    */
   export class Config extends VLMBase.Config {
+    textureType: TextureType = TextureType.BASIC
     textureOptions: PBMaterial_PbrMaterial = {}
     services: { material: MaterialService; mesh: MeshService; collider: ColliderService; transform: TransformService; clickEvent: ClickEventService }
     constructor(config: VLMConfig) {
@@ -230,12 +231,10 @@ export namespace VLMImage {
       }
 
       config.services.mesh.set(this.entity, 'plane')
-      config.services.material.set(this.entity, 'pbr', { ...config.textureOptions })
+      config.services.material.set(this.entity, config.textureType, { ...config.textureOptions })
 
-      if (this.withCollisions || config.withCollisions) {
-        const withCollisions = this.withCollisions || config.withCollisions
-        config.services.collider.set(this.entity, 'plane', withCollisions)
-      }
+      const withCollisions = this.withCollisions || config.withCollisions
+      config.services.collider.set(this.entity, 'plane', withCollisions, !!this.clickEvent)
 
       // add transform
       config.services.transform.set(this.entity, {
@@ -246,7 +245,7 @@ export namespace VLMImage {
       })
 
       // add click event
-      if (this.clickEvent?.synced) {
+      if (!this.clickEvent || this.clickEvent?.synced) {
         config.services.clickEvent.set(this.entity, this.defaultClickEvent)
       } else {
         config.services.clickEvent.set(this.entity, this.clickEvent)
@@ -342,7 +341,7 @@ export namespace VLMImage {
     updateDefaultClickEvent: CallableFunction = (clickEvent: VLMClickEvent.Config) => {
       this.defaultClickEvent = clickEvent
 
-      this.updateClickEvent(this.clickEvent)
+      this.updateClickEvent()
     }
 
     /**
@@ -353,9 +352,9 @@ export namespace VLMImage {
      */
     updateClickEvent: CallableFunction = (clickEvent: VLMClickEvent.Config) => {
       const config = configs[this.configId]
-      this.clickEvent = clickEvent
+      this.clickEvent = clickEvent || this.clickEvent
 
-      if (this.clickEvent?.synced) {
+      if (!this.clickEvent || this.clickEvent?.synced) {
         config.services.clickEvent.set(this.entity, this.defaultClickEvent)
       } else {
         config.services.clickEvent.set(this.entity, this.clickEvent)
@@ -391,9 +390,9 @@ export class QuickImage {
     }
 
     const textureOptions = this.services.material.buildOptions({ textureSrc: config.path })
-    this.services.material.set(this.entity, 'pbr', textureOptions)
+    this.services.material.set(this.entity, 'basic', textureOptions)
     this.services.mesh.set(this.entity, 'plane')
-    this.services.collider.set(this.entity, 'plane', config.colliders)
+    this.services.collider.set(this.entity, 'plane', config.colliders, !!config.clickEvent)
     this.services.transform.set(this.entity, {
       position: config.position,
       scale: config.scale || Vector3.create(1, 1, 0.01),

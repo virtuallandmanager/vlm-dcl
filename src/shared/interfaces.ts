@@ -172,6 +172,11 @@ export enum StreamState {
   LIVE,
 }
 
+export enum TextureType {
+  BASIC = 'basic',
+  ADVANCED = 'pbr',
+}
+
 // colyseus extensions
 
 export class ColyseusClient extends Client {

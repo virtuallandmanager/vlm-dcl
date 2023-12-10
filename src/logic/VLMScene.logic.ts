@@ -58,7 +58,7 @@ export abstract class VLMSceneManager {
     VLMImage.reset()
     VLMVideo.reset()
     VLMSound.reset()
-    // VLMClaimPoint.reset();
+    // VLMClaimPoint.reset()
     // VLMWidgetManager.reset()
     this.initScenePreset(message)
   }

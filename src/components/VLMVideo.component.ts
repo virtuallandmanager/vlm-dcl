@@ -141,6 +141,7 @@ export namespace VLMVideo {
           this.services.video.stop()
           this.services.video.clearEventSystem()
         }
+
         if (originalMediaType !== this.mediaType && this.mediaType === DynamicMediaType.NONE) {
           this.remove()
           return
@@ -401,7 +402,8 @@ export namespace VLMVideo {
       }
 
       // add mesh
-      config.services.mesh.set(this.entity, 'plane', this.withCollisions)
+      config.services.mesh.set(this.entity, 'plane')
+      config.services.collider.set(this.entity, 'plane', this.withCollisions || config.withCollisions, !!this.clickEvent)
 
       // add transform
       config.services.transform.set(this.entity, {
@@ -550,8 +552,8 @@ export namespace VLMVideo {
       const config = configs[this.configId]
       this.withCollisions = withCollisions
 
-      if (withCollisions) {
-        config.services.collider.set(this.entity, 'plane')
+      if (withCollisions || this.clickEvent) {
+        config.services.collider.set(this.entity, 'plane', withCollisions, this.clickEvent)
       } else {
         config.services.collider.clear(this.entity)
       }

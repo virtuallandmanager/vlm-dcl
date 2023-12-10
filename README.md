@@ -1,4 +1,4 @@
-# Virtual Land Manager for Decentraland SDK 6
+# Virtual Land Manager for Decentraland SDK 7
 
 ## Getting Started
 

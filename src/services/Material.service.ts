@@ -2,7 +2,7 @@ import { Entity, PBMaterial_PbrMaterial, PBMaterial_UnlitMaterial, Material, Mat
 import { Color3, Color4 } from '@dcl/sdk/math'
 import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
-import { VLMTextureOptions } from '../shared/interfaces'
+import { TextureType, VLMTextureOptions } from '../shared/interfaces'
 
 export class MaterialService {
   entities: Entity[] = []
@@ -13,7 +13,7 @@ export class MaterialService {
     }
   }
 
-  set: CallableFunction = (entity: Entity, type: string, options: PBMaterial_PbrMaterial | PBMaterial_UnlitMaterial): void => {
+  set: CallableFunction = (entity: Entity, type: TextureType, options: PBMaterial_PbrMaterial | PBMaterial_UnlitMaterial): void => {
     this.addEntity(entity)
     VLMDebug.log('Texture Options: ', options)
     switch (type) {

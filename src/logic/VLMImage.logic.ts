@@ -57,10 +57,9 @@ export abstract class VLMImageManager {
           storedConfig.enabled = config.enabled
           if (!config.enabled) {
             this.remove(config.sk)
-          } else if (storedConfig) {
+          } else if (!storedConfig) {
             this.add(config.sk)
           }
-          break
         case 'clickEvent':
           storedConfig.updateDefaultClickEvent(config.clickEvent)
           break

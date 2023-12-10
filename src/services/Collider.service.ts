@@ -1,6 +1,5 @@
 import { Entity, MeshCollider, ColliderLayer } from '@dcl/sdk/ecs'
 import { ecs } from '../environment'
-import { VLMMeshOptions } from '../shared/interfaces'
 
 export class ColliderService {
   entities: Entity[] = []
@@ -11,46 +10,55 @@ export class ColliderService {
     }
   }
 
-  setPlaneShape: CallableFunction = (entity: Entity): void => {
+  setPlaneShape: CallableFunction = (entity: Entity, layers: ColliderLayer[]): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setPlane(entity, [ColliderLayer.CL_POINTER, ColliderLayer.CL_PHYSICS])
+    ecs.MeshCollider.setPlane(entity, layers)
   }
 
-  setCylinderShape: CallableFunction = (entity: Entity, options: { radiusTop?: number; radiusBottom?: number }): void => {
+  setCylinderShape: CallableFunction = (entity: Entity, options: { radiusTop?: number; radiusBottom?: number }, layers: ColliderLayer[]): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setCylinder(entity, options.radiusBottom, options.radiusTop, [ColliderLayer.CL_POINTER, ColliderLayer.CL_PHYSICS])
+    ecs.MeshCollider.setCylinder(entity, options.radiusBottom, options.radiusTop, layers)
   }
 
-  setBoxShape: CallableFunction = (entity: Entity): void => {
+  setBoxShape: CallableFunction = (entity: Entity, layers: ColliderLayer[]): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setBox(entity, [ColliderLayer.CL_POINTER, ColliderLayer.CL_PHYSICS])
+    ecs.MeshCollider.setBox(entity, layers)
   }
 
-  setSphereShape: CallableFunction = (entity: Entity): void => {
+  setSphereShape: CallableFunction = (entity: Entity, layers: ColliderLayer[]): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setSphere(entity, [ColliderLayer.CL_POINTER, ColliderLayer.CL_PHYSICS])
+    ecs.MeshCollider.setSphere(entity, layers)
   }
 
-  set: CallableFunction = (entity: Entity, type: string, withCollisions: boolean): void => {
-    this.addEntity(entity)
-
-    if (withCollisions === false) {
+  set: CallableFunction = (entity: Entity, type: string, withCollisions?: boolean, withClickEvent?: boolean): void => {
+    if (withCollisions === false && withClickEvent === false) {
       this.clear(entity)
       return
+    } else {
+      this.addEntity(entity)
+    }
+
+    const layers = []
+
+    if (withCollisions) {
+      layers.push(ColliderLayer.CL_PHYSICS)
+    }
+    if (withClickEvent) {
+      layers.push(ColliderLayer.CL_POINTER)
     }
 
     switch (type) {
       case 'plane':
-        this.setPlaneShape(entity)
+        this.setPlaneShape(entity, layers)
         break
       case 'cylinder':
-        this.setCylinderShape(entity)
+        this.setCylinderShape(entity, layers)
         break
       case 'box':
-        this.setBoxShape(entity)
+        this.setBoxShape(entity, layers)
         break
       case 'sphere':
-        this.setSphereShape(entity)
+        this.setSphereShape(entity, layers)
         break
     }
   }

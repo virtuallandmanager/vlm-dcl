@@ -92,6 +92,10 @@ export class ClickEventService {
 
     this.addEntity(entity)
 
+    if (ecs.PointerEvents.has(entity)) {
+      ecs.pointerEventsSystem.removeOnPointerDown(entity)
+    }
+
     ecs.pointerEventsSystem.onPointerDown(
       {
         entity,

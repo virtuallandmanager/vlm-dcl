@@ -57,10 +57,9 @@ export abstract class VLMDanceFloorManager {
           storedConfig.enabled = config.enabled
           if (!config.enabled) {
             this.remove(config.sk)
-          } else if (storedConfig) {
+          } else if (!storedConfig) {
             this.add(config.sk)
           }
-          break
         default:
           storedConfig.init(config)
       }
