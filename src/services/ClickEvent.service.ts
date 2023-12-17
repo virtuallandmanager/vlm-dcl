@@ -108,6 +108,22 @@ export class ClickEventService {
     )
   }
 
+  setCustom: CallableFunction = (entity: Entity, clickOptions: VLMClickEvent.Config, callback: CallableFunction): void => {
+    if (ecs.PointerEvents.has(entity)) {
+      ecs.pointerEventsSystem.removeOnPointerDown(entity)
+    }
+
+    ecs.pointerEventsSystem.onPointerDown(
+      {
+        entity,
+        opts: { button: InputAction.IA_POINTER, hoverText: clickOptions.hoverText, showFeedback: clickOptions.showFeedback },
+      },
+      (event: PBPointerEventsResult) => {
+        callback()
+      },
+    )
+  }
+
   setAll: CallableFunction = (options: VLMClickEvent.Config): void => {
     this.entities.forEach((entity: Entity) => {
       this.set(entity, options)

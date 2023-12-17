@@ -66,8 +66,8 @@ export abstract class VLM {
     return VLMWidgetManager.configureWidgets(options)
   }
 
-  public static configureEcs: CallableFunction = async (ecs: any) => {
-    return VLMEnvironment.init({ ecs })
+  public static configureEcs: CallableFunction = async (ecs: any, ui: any) => {
+    return VLMEnvironment.configureEcs(ecs, ui)
   }
 
   public static sendMessage: CallableFunction = async (id: string, data?: unknown) => {

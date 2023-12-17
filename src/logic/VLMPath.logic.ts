@@ -51,10 +51,8 @@ export type PathPoint = [
   number | null,
   number | null,
   number | null,
-  number | null,
-  number | null,
 ]
-// [O, Px, Py, Pz, PRx, PRy, PRz, V, Cx, Cy, Cz, CRx, CRy, CRz]
+// [O, Px, Py, Pz, PRx, PRy, PRz, V, Cx, Cy, CRx, CRy]
 
 export class VLMPathManager {
   static enableDebugging: boolean = false
@@ -254,10 +252,8 @@ export class VLMPathManager {
       this.pov,
       this.cameraPosition?.x || null,
       this.cameraPosition?.y || null,
-      this.cameraPosition?.z || null,
       this.cameraRotation?.x || null,
       this.cameraRotation?.y || null,
-      this.cameraRotation?.z || null,
     ]
     VLMDebug.log('path', 'PATH TRACKING - NEW PATH POINT \n' + JSON.stringify(newPathPoint))
     return newPathPoint

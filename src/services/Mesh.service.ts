@@ -1,4 +1,4 @@
-import { Entity, PBGltfContainer, PBNftShape } from '@dcl/sdk/ecs'
+import { Entity, PBGltfContainer, PBNftShape, MeshRenderer } from '@dcl/sdk/ecs'
 import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 
@@ -27,9 +27,9 @@ export class MeshService {
     VLMDebug.log('Setting Plane Shape', this.entities)
   }
 
-  setCylinderShape: CallableFunction = (entity: Entity, options: { radiusTop?: number; radiusBottom?: number }): void => {
+  setCylinderShape: CallableFunction = (entity: Entity, options?: { radiusTop?: number; radiusBottom?: number }): void => {
     this.addEntity(entity)
-    ecs.MeshRenderer.setCylinder(entity, options.radiusBottom, options.radiusTop)
+    ecs.MeshRenderer.setCylinder(entity, options?.radiusBottom, options?.radiusTop)
   }
 
   setBoxShape: CallableFunction = (entity: Entity, options?: { uvs: number[] }): void => {

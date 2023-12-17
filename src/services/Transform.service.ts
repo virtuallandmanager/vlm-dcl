@@ -1,6 +1,7 @@
 import { Entity, TransformType } from '@dcl/sdk/ecs'
 import { Quaternion, Vector3 } from '@dcl/sdk/math'
 import { ecs } from '../environment'
+import { VLMDebug } from '../logic/VLMDebug.logic'
 
 export class TransformService {
   entities: Entity[] = []
@@ -13,14 +14,18 @@ export class TransformService {
 
   set: CallableFunction = (entity: Entity, options: TransformType): void => {
     const { position, rotation, scale, parent } = options
-    const vectorOptions = {
-      position: Vector3.create(position.x, position.y, position.z),
-      rotation: Quaternion.fromEulerDegrees(rotation.x, rotation.y, rotation.z),
-      scale: Vector3.create(scale.x, scale.y, scale.z),
-      parent: parent ? parent : undefined,
-    }
+    try {
+      const vectorOptions = {
+        position: Vector3.create(position.x, position.y, position.z),
+        rotation: Quaternion.fromEulerDegrees(rotation.x, rotation.y, rotation.z),
+        scale: Vector3.create(scale.x, scale.y, scale.z),
+        parent: parent ? parent : undefined,
+      }
 
-    ecs.Transform.createOrReplace(entity, vectorOptions)
+      ecs.Transform.createOrReplace(entity, vectorOptions)
+    } catch (e) {
+      VLMDebug.logError('Error setting transform', e)
+    }
   }
 
   setAll: CallableFunction = (options: TransformType): void => {

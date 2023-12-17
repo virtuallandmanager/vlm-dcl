@@ -15,9 +15,9 @@ export class ColliderService {
     ecs.MeshCollider.setPlane(entity, layers)
   }
 
-  setCylinderShape: CallableFunction = (entity: Entity, options: { radiusTop?: number; radiusBottom?: number }, layers: ColliderLayer[]): void => {
+  setCylinderShape: CallableFunction = (entity: Entity, options?: { radiusTop?: number; radiusBottom?: number }, layers?: ColliderLayer[]): void => {
     this.addEntity(entity)
-    ecs.MeshCollider.setCylinder(entity, options.radiusBottom, options.radiusTop, layers)
+    ecs.MeshCollider.setCylinder(entity, options?.radiusBottom, options?.radiusTop, layers)
   }
 
   setBoxShape: CallableFunction = (entity: Entity, layers: ColliderLayer[]): void => {

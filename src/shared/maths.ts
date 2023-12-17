@@ -24,4 +24,8 @@ export class VLMQuaternion {
     let conj = this.conjugate()
     return new VLMQuaternion(conj.x / mag, conj.y / mag, conj.z / mag, conj.w / mag)
   }
+
+  static fromEulerDegrees: CallableFunction = (x: number, y: number, z: number): Quaternion => {
+    return Quaternion.fromEulerDegrees(x, y, z)
+  }
 }

@@ -13,6 +13,7 @@ import { VLMEventManager } from './VLMSystemEvents.logic'
 import { VLMMeshManager } from './VLMMesh.logic'
 import { VLMMesh } from '../components/VLMMesh.component'
 import { VLMDebug } from './VLMDebug.logic'
+import { VLMClaimPointManager } from './VLMClaimPoint.logic'
 
 export type VLMSceneElement = VLMImage.VLMConfig | VLMSound.VLMConfig | VLMVideo.VLMConfig | VLMMesh.VLMConfig
 //| VLMClaimPoint.VLMConfig;
@@ -34,7 +35,7 @@ export abstract class VLMSceneManager {
       VLMImageManager.init(scenePreset.images)
       VLMVideoManager.init(scenePreset.videos)
       VLMSoundManager.init(scenePreset.sounds)
-      // VLMClaimPointManager.init(scenePreset.claimPoints);
+      VLMClaimPointManager.init(scenePreset.claimPoints)
 
       if (scenePreset?.widgets?.length) {
         // set initial widget states
@@ -89,7 +90,7 @@ export abstract class VLMSceneManager {
           VLMWidgetManager.create(message.elementData)
           break
         case 'claimpoint':
-          // VLMClaimPointManager.create(message.elementData);
+          VLMClaimPointManager.create(message.elementData)
           break
       }
     } catch (error) {
@@ -111,6 +112,9 @@ export abstract class VLMSceneManager {
           break
         case 'sound':
           VLMSoundManager.createInstance(message.elementData, message.instanceData)
+          break
+        case 'claimpoint':
+          VLMClaimPointManager.createInstance(message.elementData, message.instanceData)
           break
       }
     } catch (error) {
@@ -142,7 +146,7 @@ export abstract class VLMSceneManager {
           VLMWidgetManager.update(message.elementData, message.user)
           break
         case 'claimpoint':
-          // VLMClaimPointManager.update(message.elementData, message.property, message.id);
+          VLMClaimPointManager.update(message.elementData, message.property, message.id)
           break
       }
     } catch (error) {
@@ -180,6 +184,9 @@ export abstract class VLMSceneManager {
           break
         case 'sound':
           VLMSoundManager.updateInstance(message.instanceData, message.property, message.id)
+          break
+        case 'claimpoint':
+          VLMClaimPointManager.updateInstance(message.instanceData, message.property, message.id)
           break
       }
     } catch (error) {
