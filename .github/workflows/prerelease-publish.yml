@@ -13,13 +13,20 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          path: ./
       - name: Check branch
         id: check_branch
         run: echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's/refs\/heads\///')" >> $GITHUB_ENV
       - name: Conditionally publish
         if: ${{ steps.check_branch.outputs.BRANCH_NAME != 'master' && steps.check_branch.outputs.BRANCH_NAME != 'main' && github.event_name != 'pull_request' }}
         run: |
+          cd ./my-repo  # Change to the correct directory
           echo "Publishing pre-release version..."
+          # Add your build steps here, such as npm install, npm build, etc.
+          # Then, use your NPM token for publishing
           npm install
           npm run build
           echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc

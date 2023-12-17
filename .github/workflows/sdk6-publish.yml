@@ -1,4 +1,4 @@
-name: Publish SDK7 Package
+name: Publish SDK6 Package
 
 on:
   push:
