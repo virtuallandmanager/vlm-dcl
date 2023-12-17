@@ -1,0 +1,28 @@
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+  release:
+    types:
+      - created
+
+name: Publish NPM package (Pre-release)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch
+        id: check_branch
+        run: echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's/refs\/heads\///')" >> $GITHUB_ENV
+      - name: Conditionally publish
+        if: ${{ steps.check_branch.outputs.BRANCH_NAME != 'master' && steps.check_branch.outputs.BRANCH_NAME != 'main' && github.event_name != 'pull_request' }}
+        run: |
+          echo "Publishing pre-release version..."
+          npm install
+          npm run build
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          npm publish --tag prerelease
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
