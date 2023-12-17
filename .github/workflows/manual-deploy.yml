@@ -1,33 +1,30 @@
-name: Republish NPM package
+name: Manually Release NPM Version
+
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to republish'     
+      branch_or_tag:
+        description: 'Select a branch or tag'
         required: true
+        default: 'sdk7'
 
 jobs:
-  republish:
+  install:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.version }}
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@master
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
         with:
           node-version: 16.x
-          registry-url: 'https://registry.npmjs.org'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build
+      - name: install
+        run: npm install
+      - name: build
         run: npm run build
-
       - name: Publish
-        run: npm publish
+        uses: menduz/oddish-action@master
+        with:
+          # cwd: ./dist
+          access: public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
