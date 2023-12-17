@@ -1,4 +1,4 @@
-name: Manually Publish Pre-release
+name: Manually Release NPM Version
 
 on:
   workflow_dispatch:
@@ -9,33 +9,22 @@ on:
         default: 'sdk7'
 
 jobs:
-  release:
+  install:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Determine commit hash
-        id: commit_hash
-        run: echo "::set-output name=commit_hash::$(git rev-parse HEAD)"
-
-      - name: Create Git Tag
-        id: create_tag
-        run: |
-          tag_name="v${{ github.run_number }}"
-          git tag $tag_name ${{ steps.commit_hash.outputs.commit_hash }}
-          echo "::set-output name=tag_name::$tag_name"
-
-      - name: Push Tag to GitHub
-        run: git push origin ${{ steps.create_tag.outputs.tag_name }}
-
-      - name: Set Package Version
-        run: |
-          tag_name="${{ steps.create_tag.outputs.tag_name }}"
-          echo "{\"version\":\"$tag_name\"}" > package.json
-
-      - name: Publish to NPM
-        run: npm publish --tag ${{ steps.create_tag.outputs.tag_name }}
+      - uses: actions/checkout@master
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+      - name: install
+        run: npm install
+      - name: build
+        run: npm run build
+      - name: Publish
+        uses: menduz/oddish-action@master
+        with:
+          # cwd: ./dist
+          access: public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
