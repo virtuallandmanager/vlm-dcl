@@ -1,0 +1,34 @@
+name: Publish SDK7 Package
+
+on:
+  push:
+    branches:
+      - sdk6
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build 
+
+      - name: Set custom tag
+        run: echo "CUSTOM_TAG=sdk6" >> $GITHUB_ENV
+
+      - name: Publish package
+        run: npm publish --tag ${{ env.CUSTOM_TAG }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
