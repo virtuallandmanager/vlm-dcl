@@ -137,6 +137,35 @@ export type VLMDanceFloorOptions = {
   interval?: number
 }
 
+export enum ClaimPointType {
+  MARKETPLACE_IMAGE,
+  CUSTOM_IMAGE,
+  MODEL,
+  MANNEQUIN,
+}
+
+export enum MannequinType {
+  MALE,
+  FEMALE,
+  MATCH_PLAYER,
+}
+
+export interface VLMClaimPointProperties {
+  enableKiosk?: boolean
+  enableSpin?: boolean
+  type?: ClaimPointType
+  imgSrc?: string
+  modelSrc?: string
+  mannequinType?: MannequinType
+  hoverText?: string
+  color1?: { r: number; g: number; b: number; a: number }
+  color2?: { r: number; g: number; b: number; a: number }
+  color3?: { r: number; g: number; b: number; a: number }
+  kioskImgSrc?: string
+  itemYOffset?: number
+  itemScale?: number
+}
+
 export type EmoteList = TriggeredEmote[]
 
 export type TriggeredEmote = {

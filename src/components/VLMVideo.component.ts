@@ -341,6 +341,7 @@ export namespace VLMVideo {
       }
 
       this.videoOptions.src = this.playlist[this.activePlaylistVideo]
+      this.videoOptions.loop = this.playlist.length == 1
       this.services.video.setPlayer(null, this.videoOptions)
     }
 

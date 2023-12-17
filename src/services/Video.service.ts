@@ -236,7 +236,7 @@ export class VideoService {
         config.mediaType == DynamicMediaType.PLAYLIST &&
         videoEvent.state > VideoState.VS_PLAYING &&
         videoEvent.videoLength > 0 &&
-        videoEvent.currentOffset === videoEvent.videoLength
+        videoEvent.currentOffset >= videoEvent.videoLength
       ) {
         VLMDebug.log('video', 'event - video ended', config)
         config.startPlaylistVideo(config.activePlaylistVideo + 1)

@@ -1,9 +1,11 @@
 import { isPreviewMode } from '~system/EnvironmentApi'
 import { VLMWidget } from './components/VLMWidget.component'
 import * as ecsLib from '@dcl/sdk/ecs'
+import * as uiLib from '@dcl/sdk/react-ecs'
 import { VLMDebug } from './logic/VLMDebug.logic'
 
 export let ecs: any = ecsLib
+export let ui: any = uiLib
 
 export abstract class VLMEnvironment {
   static devMode: boolean
@@ -53,8 +55,9 @@ export abstract class VLMEnvironment {
     }
   }
 
-  static configureEcs: CallableFunction = async (_ecs: any) => {
-    ecs = _ecs
+  static configureEcs: CallableFunction = async (_ecs: any, _ui: any) => {
+    ecs = _ecs || ecs
+    ui = _ui || ui
   }
 }
 
