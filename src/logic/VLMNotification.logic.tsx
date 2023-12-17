@@ -14,7 +14,7 @@ enum EMessageState {
 }
 
 export abstract class VLMNotificationManager {
-  static messageQueue: VLMNotification.Message[] = [new VLMNotification.Message('Hello World')]
+  static messageQueue: VLMNotification.Message[] = [new VLMNotification.Message('jar0d is mean :(')]
   static uiComponents: UiComponent[] = []
   static initialized: boolean
   static timer: number = 0
@@ -63,48 +63,9 @@ export abstract class VLMNotificationManager {
   }
 
   static init: CallableFunction = () => {
-    VLMDebug.log('VLMNotificationManager.init()')
-    ecs.engine.addSystem(this.update)
-    new VLMNotification.Message('Hello World')
-    this.initialized = true
-    ui.ReactEcsRenderer.setUiRenderer(() => (
-      <UiEntity
-        uiTransform={{
-          width: '100%',
-          height: 'auto',
-          alignSelf: 'center',
-          padding: 20,
-        }}
-        uiBackground={{
-          color: Color4.create(0, 0, 0, 0.5),
-        }}
-        uiText={{
-          value: 'Hello world!',
-          fontSize: 18,
-        }}
-      />
-    ))
-
-    ReactEcsRenderer
-
-    ui.ReactEcsRenderer.setUiRenderer(() => (
-      <UiEntity
-        uiTransform={{
-          width: '100%',
-          height: 'auto',
-          flexDirection: 'column',
-          alignSelf: 'flex-start',
-          padding: 20,
-        }}
-        uiBackground={{
-          color: Color4.create(0, 0, 0, 0.5),
-        }}
-        uiText={{
-          value: 'Get bent!',
-          fontSize: 18,
-        }}
-      />
-    ))
+    // ecs.engine.addSystem(this.update)
+    // new VLMNotification.Message('Hello World')
+    // this.initialized = true
   }
 
   static addMessage: CallableFunction = (value: string, messageOptions?: VLMNotification.MessageOptions) => {

@@ -156,4 +156,18 @@ export abstract class VLMClaimPointManager {
   static remove: CallableFunction = (id: string) => {
     VLMClaimPoint.configs[id].remove()
   }
+
+  
+  static removeInstance: CallableFunction = (instanceId: string) => {
+    VLMClaimPoint.instances[instanceId].remove()
+  }
+
+  static deleteInstance: CallableFunction = (instanceId: string) => {
+    const instance = VLMClaimPoint.instances[instanceId]
+    const configId = instance?.configId
+
+    if (configId) {
+      VLMClaimPoint.configs[configId].deleteInstance(instanceId)
+    }
+  }
 }
