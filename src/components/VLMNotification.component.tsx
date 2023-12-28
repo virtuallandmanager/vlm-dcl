@@ -1,20 +1,18 @@
-import ReactEcs, { UiEntity } from '@dcl/sdk/react-ecs'
 import { Color4 } from '@dcl/sdk/math'
-import { UIService } from '../services/UI.service'
+import { UiCanvasInformation, engine } from '@dcl/sdk/ecs'
+import { ecs } from '../environment'
 
 export namespace VLMNotification {
   export class Message {
     vAlign: string = 'center'
     hAlign: string = 'center'
-    fontSize: number = 16
+    fontSize: number = 32
     color: Color4 = Color4.White()
-    delay: number = 5
-    outlineColor: Color4 = Color4.Black()
-    outlineWidth: number = 0.125
+    delay: number = 3
     adaptWidth: boolean = true
     adaptHeight: boolean = true
-    opacity: number = 1
-    visible = false
+    opacity: number = 0
+    fadeSpeed: number = 1
     value: string = ''
 
     constructor(_value: string, _messageOptions?: MessageOptions) {
@@ -22,18 +20,20 @@ export namespace VLMNotification {
     }
 
     init: CallableFunction = (value: string, messageOptions?: MessageOptions) => {
+      let canvas = ecs.UiCanvasInformation.get(ecs.engine.RootEntity),
+        proportionalFontSize = Math.ceil(canvas.width / 50) < 12 ? 12 : Math.ceil(canvas.width / 50)
       const color = messageOptions?.color || 'white',
         fontSize = messageOptions?.fontSize
       this.delay = messageOptions?.delay || this.delay
+      this.fadeSpeed = messageOptions?.fadeSpeed || this.fadeSpeed
       this.value = value
-      this.fontSize = fontSize || this.fontSize
+      this.fontSize = fontSize || proportionalFontSize
       if (!color) {
         return
       }
       switch (color.toLowerCase()) {
         case 'black':
           this.color = Color4.Black()
-          this.outlineColor = Color4.White()
           break
         case 'blue':
           this.color = Color4.Blue()
@@ -64,21 +64,12 @@ export namespace VLMNotification {
           this.color = Color4.White()
       }
     }
-
-    render: CallableFunction = () => {
-      return (
-        <UiEntity
-          key={'NotificationMessage'}
-          uiTransform={{ width: 80, height: 20 }}
-          uiText={{ value: this.value, textAlign: 'middle-center', fontSize: 14, color: this.color }}
-        />
-      )
-    }
   }
 
   export type MessageOptions = {
-    color: string
-    fontSize: number
-    delay: number
+    color?: string
+    fontSize?: number
+    delay?: number
+    fadeSpeed?: number
   }
 }

@@ -9,7 +9,7 @@ export default {
   claimInProgress: "Your claim is still being processed...",
 
   // Message displayed after a successful claim:
-  successfulClaim: "Success! Your item will appear in your backpack soon.",
+  successfulClaim: "Success!\nYour item will appear in your backpack soon.",
 
   // Message displayed if the current time is before the event starts:
   beforeEventTime: "This item cannot be claimed yet.",
@@ -19,13 +19,17 @@ export default {
 
   // Message displayed if someone tries to hit claim again after already making a claim:
   existingClaim:
-    "Your claim was received and your item should appear in your backpack soon.",
+    "You've already claimed this giveaway.\nYour item should appear in your backpack soon.",
+
+  // Message displayed if someone tries to hit claim again after their wearable was already delivered:
+  claimComplete:
+    "Your item was sent!.\nIf it's not in your backpack, try refreshing.",
 
   // Message displayed if a daily limit has been reached:
-  dailyLimitReached: "All of the giveaway items for today have been claimed. Please try again tomorrow.",
+  dailyLimitReached: "All of the giveaway items for today have been claimed.\nPlease try again tomorrow.",
 
   // Message displayed if a daily limit has been reached:
-  otherLimitReached: "Sorry, this giveaway item has reached its limit for now. Please try again later.",
+  otherLimitReached: "Sorry, this giveaway item has reached its limit for now.\nPlease try again later.",
 
   // Message displayed if someone has reached the limit for claims from one IP address:
   ipLimitReached: "This item can no longer be claimed.",
@@ -34,7 +38,7 @@ export default {
   noSupply: "All of the giveaway items have been claimed.",
 
   // Message displayed if the server detects a VPN connection or other ways to circumvent the IP limit:
-  inauthenticConnection: "VPN detected. Please disconnect to claim this item.",
+  inauthenticConnection: "VPN detected.\nPlease disconnect to claim this item.",
 
   // Message displayed if the server cannot find a linked event for the giveaway:
   noLinkedEvents: "No linked events have been found for this giveaway.",

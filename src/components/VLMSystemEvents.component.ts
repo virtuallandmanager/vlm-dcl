@@ -11,6 +11,8 @@ import { VLMWidget } from "./VLMWidget.component";
 // import { VLMClaimPoint } from "./VLMClaimPoint.component";
 import { VLMSound } from "./VLMSound.component";
 import { StreamState } from "../shared/interfaces";
+import { VLMClaimPoint } from "./VLMClaimPoint.component";
+import { VLMNotification } from "./VLMNotification.component";
 // import { VLMClaimPoint } from "./VLMClaimPoint.component";
 
 
@@ -142,23 +144,23 @@ export class VLMWitnessedAction {
   }
 }
 
-// export class VLMClaimEvent implements VLMClaimPoint.ClaimResponse {
-//   action: "giveaway_claim" | "giveaway_claim_response";
-//   giveawayId: string;
-//   sk: string;
-//   // messageOptions?: VLMNotification.MessageOptions;
-//   // type?: VLMClaimPoint.ClaimResponseType;
-//   // reason?: VLMClaimPoint.ClaimRejection;
-//   sessionToken?: string;
-//   constructor(config: VLMClaimEvent) {
-//     this.sk = config.sk;
-//     this.action = config.action;
-//     this.giveawayId = config.giveawayId;
-//     // this.reason = config.reason;
-//     // this.messageOptions = config.messageOptions;
-//     this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
-//   }
-// }
+export class VLMClaimEvent implements VLMClaimPoint.ClaimResponse {
+  action: "giveaway_claim" | "giveaway_claim_response";
+  giveawayId: string;
+  sk: string;
+  messageOptions?: VLMNotification.MessageOptions;
+  type?: VLMClaimPoint.ClaimResponseType;
+  reason?: VLMClaimPoint.ClaimRejection;
+  sessionToken?: string;
+  constructor(config: VLMClaimEvent) {
+    this.sk = config.sk;
+    this.action = config.action;
+    this.giveawayId = config.giveawayId;
+    this.reason = config.reason;
+    this.messageOptions = config.messageOptions;
+    this.sessionToken = VLMSessionManager.sessionData?.sessionToken;
+  }
+}
 
 
 export class VLMVideoStatusEvent {

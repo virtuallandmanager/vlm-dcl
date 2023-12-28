@@ -4,6 +4,7 @@ export namespace VLMSession {
     sk?: string;
     userId?: string;
     connectedWallet?: string;
+    hasConnectedWeb3?: boolean;
     sessionStart: number;
     sessionEnd?: number;
     sessionToken?: string;
@@ -17,8 +18,9 @@ export namespace VLMSession {
 
     constructor(config: Config) {
       this.sk = config.sk || this.sk;
-      this.userId = config.userId;
-      this.connectedWallet = config.connectedWallet;
+      this.userId = config?.userId;
+      this.connectedWallet = config?.connectedWallet;
+      this.hasConnectedWeb3 = config?.hasConnectedWeb3;
       this.sessionStart = config?.sessionStart || Date.now();
       this.sessionEnd = config?.sessionEnd;
       this.sessionToken = config?.sessionToken;
@@ -26,7 +28,7 @@ export namespace VLMSession {
       this.sceneId = config?.sceneId;
       this.world = config?.world;
       this.worldLocation = config?.worldLocation;
-      this.ts = config.ts || this.ts;
+      this.ts = config?.ts || this.ts;
     }
   }
 

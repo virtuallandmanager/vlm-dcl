@@ -1,6 +1,5 @@
 import { VLMClaimPoint } from '../components'
 import { VLMNotificationManager } from './VLMNotification.logic'
-import messages from '../messages/giveaway'
 import { VLMDebug } from './VLMDebug.logic'
 
 export abstract class VLMClaimPointManager {
@@ -109,9 +108,12 @@ export abstract class VLMClaimPointManager {
     if (!VLMNotificationManager.initialized) {
       VLMNotificationManager.init()
     }
+    VLMDebug.log('info', 'VLMClaimPointManager.showMessage', response)
 
     const claimPoint = VLMClaimPoint.configs[response.sk],
-      messageOptions = claimPoint.messageOptions || null
+      messageOptions = claimPoint.messageOptions || null,
+      messages = claimPoint.messages
+      
     if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_ACCEPTED) {
       VLMNotificationManager.addMessage(messages.successfulClaim, messageOptions)
     } else if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_SERVER_ERROR) {
@@ -122,6 +124,8 @@ export abstract class VLMClaimPointManager {
       VLMNotificationManager.addMessage(messages.afterEventTime, messageOptions)
     } else if (response.reason === VLMClaimPoint.ClaimRejection.EXISTING_WALLET_CLAIM) {
       VLMNotificationManager.addMessage(messages.existingClaim, messageOptions)
+    } else if (response.reason === VLMClaimPoint.ClaimRejection.CLAIM_COMPLETE) {
+      VLMNotificationManager.addMessage(messages.claimComplete, messageOptions)
     } else if (response.reason === VLMClaimPoint.ClaimRejection.OVER_IP_LIMIT) {
       VLMNotificationManager.addMessage(messages.ipLimitReached, messageOptions)
     } else if (response.reason === VLMClaimPoint.ClaimRejection.SUPPLY_DEPLETED) {
@@ -157,7 +161,6 @@ export abstract class VLMClaimPointManager {
     VLMClaimPoint.configs[id].remove()
   }
 
-  
   static removeInstance: CallableFunction = (instanceId: string) => {
     VLMClaimPoint.instances[instanceId].remove()
   }

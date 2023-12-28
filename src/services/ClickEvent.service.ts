@@ -1,4 +1,4 @@
-import { Entity, InputAction, EventSystemCallback, PBPointerEventsResult } from '@dcl/sdk/ecs'
+import { Entity, InputAction, EventSystemCallback, PBPointerEventsResult, pointerEventsSystem, inputSystem, PointerEventType } from '@dcl/sdk/ecs'
 import { VLMClickEvent } from '../components/VLMClickEvent.component'
 import { movePlayerTo, openExternalUrl } from '~system/RestrictedActions'
 import { Vector3 } from '@dcl/sdk/math'
@@ -108,8 +108,8 @@ export class ClickEventService {
     )
   }
 
-  setCustom: CallableFunction = (entity: Entity, clickOptions: VLMClickEvent.Config, callback: CallableFunction): void => {
-    if (ecs.PointerEvents.has(entity)) {
+  setCustomDown: CallableFunction = (entity: Entity, clickOptions: VLMClickEvent.Config, callback: CallableFunction): void => {
+    if (ecs.inputSystem.getInputCommand(InputAction.IA_POINTER, PointerEventType.PET_DOWN, entity)) {
       ecs.pointerEventsSystem.removeOnPointerDown(entity)
     }
 
@@ -122,6 +122,31 @@ export class ClickEventService {
         callback()
       },
     )
+  }
+
+  setCustomUp: CallableFunction = (entity: Entity, clickOptions: VLMClickEvent.Config, callback: CallableFunction): void => {
+    if (ecs.inputSystem.getInputCommand(InputAction.IA_POINTER, PointerEventType.PET_UP, entity)) {
+      ecs.pointerEventsSystem.removeOnPointerUp(entity)
+    }
+
+    ecs.pointerEventsSystem.onPointerUp(
+      {
+        entity,
+        opts: { button: InputAction.IA_POINTER },
+      },
+      (event: PBPointerEventsResult) => {
+        callback()
+      },
+    )
+  }
+
+  clearAll: CallableFunction = (entity: Entity, clickOptions: VLMClickEvent.Config, callback: CallableFunction): void => {
+    if (ecs.inputSystem.getInputCommand(InputAction.IA_POINTER, PointerEventType.PET_UP, entity)) {
+      ecs.pointerEventsSystem.removeOnPointerUp(entity)
+    }
+    if (ecs.inputSystem.getInputCommand(InputAction.IA_POINTER, PointerEventType.PET_DOWN, entity)) {
+      ecs.pointerEventsSystem.removeOnPointerDown(entity)
+    }
   }
 
   setAll: CallableFunction = (options: VLMClickEvent.Config): void => {

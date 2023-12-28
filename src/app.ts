@@ -15,6 +15,7 @@ import { VLMMesh } from './components/VLMMesh.component'
 import { configurePaths } from './shared/paths'
 import { VLMDebug } from './logic/VLMDebug.logic'
 import { AutoDanceService } from './services/AutoDance.service'
+import { UIService } from './services/UI.service'
 
 /**
  * The main entry point for the VLM library.
@@ -47,7 +48,7 @@ export abstract class VLM {
           await VLMWidgetManager.configureWidgets(config.widgets)
         }
         await VLMEnvironment.init(config)
-        await VLMNotificationManager.init()
+        UIService.render()
         const session = await VLMSessionManager.start(VLM.version)
         if (!session?.sceneRoom) {
           VLMDebug.log('INIT ERROR: Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file.')

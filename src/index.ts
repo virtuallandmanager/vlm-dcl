@@ -1,11 +1,11 @@
 import { VLM } from './app'
 import { VLMVideo, VLMImage, VLMSound, VLMWidget, QuickVideoScreen, QuickImage, QuickSound, QuickMesh, VLMMesh, QuickNull } from './components/index'
-import { VLMEnvironment } from './environment'
 import 'xmlhttprequest-polyfill'
 
 // @ts-ignore
 import { URL } from 'whatwg-url-without-unicode'
 import { QuickDanceFloor } from './components/VLMDanceFloor.component'
+import { ReactEcsRenderer } from './services/UI.service'
 
 // @ts-ignore
 globalThis['URL'] = URL
@@ -31,6 +31,7 @@ namespace QuickCreator {
 export default VLM
 export {
   VLM,
+  ReactEcsRenderer,
   QuickCreator,
   VideoConfig,
   VideoInstanceConfig,

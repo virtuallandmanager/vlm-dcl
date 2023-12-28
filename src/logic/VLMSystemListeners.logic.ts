@@ -9,7 +9,7 @@ import {
   onLeaveScene,
 } from '@dcl/sdk/observables'
 import {
-  // VLMClaimEvent,
+  VLMClaimEvent,
   VLMPathClientEvent,
   VLMPathServerEvent,
   VLMPlayerPosition,
@@ -32,8 +32,8 @@ import { VLMPathManager } from './VLMPath.logic'
 import { VLMNotificationManager, VLMSessionManager, VLMWidgetManager } from './index'
 import { VLMVideo } from '../components/VLMVideo.component'
 import { VLMSound } from '../components/VLMSound.component'
-// import { VLMClaimPointManager } from './VLMClaimPoint.logic'
-// import { VLMClaimPoint } from '../components'
+import { VLMClaimPointManager } from './VLMClaimPoint.logic'
+import { VLMClaimPoint } from '../components'
 import { VLMDebug } from './VLMDebug.logic'
 
 export abstract class VLMEventListeners {
@@ -159,19 +159,18 @@ export abstract class VLMEventListeners {
         // VLMModerationManager.updateSettings(message.settingData.settingValue);
       })
 
-      // VLMEventManager.events.on('VLMClaimEvent', (message: VLMClaimEvent) => {
-      //   VLMDebug.log('GIVEAWAY CLAIM - ', message)
-      //   if (message.action == 'giveaway_claim') {
-      //     this.sceneRoom.send('giveaway_claim', { ...message, sessionToken: this.sessionData?.sessionToken, sceneId: this.sessionData?.sceneId })
-      //   } else if (message.action == 'giveaway_claim_response') {
-      //     const claimPoint = VLMClaimPoint.configs[message.sk]
-      //     VLMDebug.log(claimPoint)
-      //     if (claimPoint) {
-      //       claimPoint.requestInProgress = false
-      //       VLMClaimPointManager.showMessage(message)
-      //     }
-      //   }
-      // })
+      VLMEventManager.events.on('VLMClaimEvent', (message: VLMClaimEvent) => {
+        VLMDebug.log('GIVEAWAY CLAIM - ', message)
+        if (message.action == 'giveaway_claim') {
+          this.sceneRoom.send('giveaway_claim', { ...message, sessionToken: this.sessionData?.sessionToken, sceneId: this.sessionData?.sceneId })
+        } else if (message.action == 'giveaway_claim_response') {
+          const claimPoint = VLMClaimPoint.configs[message.sk]
+          if (claimPoint) {
+            claimPoint.requestInProgress = false
+            VLMClaimPointManager.showMessage(message)
+          }
+        }
+      })
 
       VLMEventManager.events.on('VLMSessionAction', (action: string, metadata: unknown) => {
         if (this.sessionData?.sessionToken) {
@@ -338,10 +337,10 @@ export abstract class VLMEventListeners {
         VLMEventManager.events.emit('VLMSettingsEvent', message)
       })
 
-      // this.sceneRoom.onMessage('giveaway_claim_response', (message: VLMClaimEvent) => {
-      //   VLMDebug.log('event', 'Claim response received', message)
-      //   VLMEventManager.events.emit('VLMClaimEvent', { ...message, action: 'giveaway_claim_response' })
-      // })
+      this.sceneRoom.onMessage('giveaway_claim_response', (message: VLMClaimEvent) => {
+        VLMDebug.log('event', 'Claim response received', message)
+        VLMEventManager.events.emit('VLMClaimEvent', { ...message, action: 'giveaway_claim_response' })
+      })
 
       this.sceneRoom.onMessage('request_player_position', (message: VLMPlayerPosition) => {
         VLMDebug.log('event', 'Player Position Requested', message)
