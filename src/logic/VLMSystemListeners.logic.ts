@@ -45,6 +45,7 @@ export abstract class VLMEventListeners {
 
   static init: CallableFunction = () => {
     try {
+      VLMDebug.log('INITIALIZING EVENT LISTENERS')
       this.sceneRoom = VLMSessionManager.sceneRoom
       this.sessionData = VLMSessionManager.sessionData
       this.sessionUser = VLMSessionManager.sessionUser
@@ -173,10 +174,13 @@ export abstract class VLMEventListeners {
       })
 
       VLMEventManager.events.on('VLMSessionAction', (action: string, metadata: unknown) => {
+        console.log('VLMSessionAction', action, metadata)
         if (this.sessionData?.sessionToken) {
           let pathPoint = VLMPathManager.getPathPoint()
           this.sceneRoom.send('session_action', { action, metadata, pathPoint, sessionToken: this.sessionData?.sessionToken })
           VLMDebug.log('LOGGED ANALYTICS ACTION - ', action, pathPoint, metadata)
+        } else {
+          VLMDebug.log('error', 'ERROR LOGGING ANALYTICS ACTION - NO SESSION TOKEN', action, metadata)
         }
       })
 

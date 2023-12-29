@@ -1,11 +1,11 @@
 {
   "name": "vlm-dcl",
-  "version": "1.0.0-alpha.19",
+  "version": "1.0.0-alpha.20",
   "description": "Virtual Land Manager for Decentraland SDK7",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "cross-env NODE_ENV=production rollup -c",
     "dev": "tsc -p tsconfig.json --watch",
     "link": "npm link"
   },
@@ -26,8 +26,7 @@
     "url": "git+https://github.com/virtuallandmanager/vlm-dcl"
   },
   "files": [
-    "dist",
-    "!dist/types"
+    "dist"
   ],
   "devDependencies": {
     "@babel/core": "^7.21.5",
@@ -65,5 +64,10 @@
     "colyseus.js": "^0.15.14",
     "whatwg-url-without-unicode": "^8.0.0-3",
     "xmlhttprequest-polyfill": "^0.1.2"
-  }
+  },
+  "bundledDependencies": [
+    "colyseus.js",
+    "whatwg-url-without-unicode",
+    "xmlhttprequest-polyfill"
+  ]
 }

@@ -22,6 +22,7 @@ export namespace ReactEcsRenderer {
 export class UIService {
   public static uiComponent: CallableFunction = () => (
     <UiEntity
+    key={Date.now()}
       uiTransform={{
         width: '100%',
         height: '100%',

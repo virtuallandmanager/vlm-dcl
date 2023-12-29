@@ -30,6 +30,7 @@ export default {
       tsconfig: './tsconfig.json',
       sourceMap: false,
       compilerOptions: {
+        declaration: true,
         sourceMap: false,
         inlineSourceMap: false,
         inlineSources: false,

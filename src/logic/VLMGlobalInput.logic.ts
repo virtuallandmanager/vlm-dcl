@@ -12,6 +12,7 @@ export class VLMGlobalEvents {
     VLMPathManager.updateMovingState("shift", ecs.inputSystem.isPressed(InputAction.IA_WALK));
 
     if (ecs.inputSystem.isTriggered(InputAction.IA_JUMP, PointerEventType.PET_DOWN)) {
+      console.log("Player Jumped");
       VLMEventManager.events.emit('VLMSessionAction', "Player Jumped");
     }
   }
