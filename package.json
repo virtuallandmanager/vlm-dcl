@@ -1,6 +1,6 @@
 {
   "name": "vlm-dcl",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Virtual Land Manager for Decentraland",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

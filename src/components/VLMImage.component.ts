@@ -10,16 +10,16 @@ export namespace VLMImage {
   export const instances: { [uuid: string]: DCLInstanceConfig } = {};
 
   export class DCLConfig extends Material implements HasImageTexture, Emissive {
-    sk: string;
-    customId?: string;
-    customRendering: boolean;
+    public sk: string;
+    public customId?: string;
+    public customRendering: boolean;
     albedoTexture: Texture = new Texture("");
     alphaTexture: Texture = new Texture("");
     emissiveColor = Color3.White();
     emissiveIntensity: number;
     emissiveTexture: Texture = new Texture("");
     parent?: string;
-    enabled: boolean;
+    public enabled: boolean;
     instanceIds: string[] = [];
     imageSrc: string;
     roughness: number = 1.0;
@@ -34,9 +34,11 @@ export namespace VLMImage {
       this.init(config);
     };
 
-    private init: CallableFunction = (config: VLMConfig) => {
+    init: CallableFunction = (config: VLMConfig) => {
       try {
+        log("VLM - IMAGE CONFIG:", config)
         this.sk = config.sk;
+        this.instanceIds = config.instances.map((instance: VLMInstanceConfig) => instance.sk);
         this.customId = config.customId;
         this.customRendering = !!config.customRendering;
         this.parent = config.parent;
@@ -49,7 +51,12 @@ export namespace VLMImage {
 
         this.updateTexture(config);
 
+        log("VLM - IMAGE CONFIG OBJECT:", this)
+        log("VLM - IMAGE PROPERTIES:", this.sk, this.customId, this.customRendering, this.parent, this.enabled, this.emissiveIntensity, this.imageSrc, this.withCollisions, this.isTransparent, this.clickEvent)
         configs[this.sk] = this;
+
+        log("VLM - IMAGE STORED CONFIG OBJECT:", configs[this.sk].sk)
+
         if (this.customId) {
           configs[this.customId] = configs[this.sk];
         }
@@ -62,12 +69,14 @@ export namespace VLMImage {
           this.createInstance(instance);
         });
       } catch (error) {
+        log("VLM - IMAGE CONFIG ERROR:", error)
         throw error
       }
     }
 
     showAll: CallableFunction = () => {
       try {
+        log("VLM - SHOWING ALL INSTANCES", this.instanceIds)
         this.instanceIds.forEach((instanceId: string) => {
           const visible = instances[instanceId].enabled,
             parent = instances[instanceId].parent || this.parent;
@@ -297,15 +306,18 @@ export namespace VLMImage {
 
     add: CallableFunction = () => {
       try {
-        if (this.isAddedToEngine() || this.customRendering || !configs[this.configId].enabled || !this.enabled) {
+        log("VLM - ADDING INSTANCE", this.sk)
+
+        if (this.customRendering || !configs[this.configId].enabled || !this.enabled) {
+          log("VLM - ADDING INSTANCE - RETURNED", this.sk)
           return;
         }
-
+  
+          engine.addEntity(this);
+        
         if (this.parent) {
           this.updateParent(this.parent);
-        } else if (this.enabled) {
-          engine.addEntity(this);
-        }
+        }  
       } catch (error) {
         throw error;
       }

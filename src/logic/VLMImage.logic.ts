@@ -22,7 +22,10 @@ export abstract class VLMImageManager {
     }
   };
 
-  static createInstance: CallableFunction = (config: VLMImage.VLMConfig, instance: VLMImage.VLMInstanceConfig) => {
+  static createInstance: CallableFunction = (
+    config: VLMImage.VLMConfig,
+    instance: VLMImage.VLMInstanceConfig
+  ) => {
     try {
       if (!config.enabled || !instance.enabled) {
         return;
@@ -34,50 +37,50 @@ export abstract class VLMImageManager {
     }
   };
 
-  static update: CallableFunction = (config: VLMImage.VLMConfig | any, property: string, id: string) => {
+  static update: CallableFunction = (
+    config: VLMImage.VLMConfig | any,
+    property: string,
+    id: string
+  ) => {
     try {
-      const storedConfig: VLMImage.DCLConfig = VLMImage.configs[config.sk || id];
+      const storedConfig: VLMImage.DCLConfig =
+        VLMImage.configs[config.sk || id];
 
+      log(
+        "VLM - IMAGE Updating",
+        config,
+        property,
+        id,
+        storedConfig,
+        storedConfig.enabled
+      );
       if (!config || (!storedConfig && !config.enabled)) {
         return;
       } else if (!storedConfig && config.enabled) {
-        this.create(config)
+        this.create(config);
         return this.update(config, property, id);
       }
 
       switch (property) {
         case "enabled":
-          if (!config.enabled) {
+          storedConfig.enabled = config.enabled;
+          if (!storedConfig.enabled) {
             this.remove(config.sk);
           } else if (storedConfig) {
             this.add(config.sk);
           }
-          break;
-        case "imageSrc":
-          storedConfig.updateTexture(config);
-          break;
-        case "emission":
-          storedConfig.emissiveIntensity = config.emission;
-          break;
-        case "clickEvent":
-          storedConfig.updateClickEvent(config.clickEvent);
-          break;
-        case "isTransparent":
-          storedConfig.updateTransparency(config.isTransparent);
-          break;
-        case "parent":
-          storedConfig.updateParent(config.parent);
-          break;
-        case "customId":
-          storedConfig.updateCustomId(config.customId);
-          break;
       }
+      storedConfig.init(config);
     } catch (error) {
       throw error;
     }
   };
 
-  static updateInstance: CallableFunction = (instanceConfig: VLMImage.VLMInstanceConfig, property: string, id: string) => {
+  static updateInstance: CallableFunction = (
+    instanceConfig: VLMImage.VLMInstanceConfig,
+    property: string,
+    id: string
+  ) => {
     try {
       const instance = VLMImage.instances[instanceConfig.sk],
         configId = instance.configId,
@@ -142,28 +145,28 @@ export abstract class VLMImageManager {
   };
 
   static removeInstance: CallableFunction = (instanceId: string) => {
-    VLMImage.instances[instanceId].remove()
+    VLMImage.instances[instanceId].remove();
   };
 
   static deleteInstance: CallableFunction = (instanceId: string) => {
-    log("VLM - Deleting Instance - Step 1", instanceId)
+    log("VLM - Deleting Instance - Step 1", instanceId);
 
     const instanceids = Object.keys(VLMImage.instances).map((key) => {
-      return key
-    })
+      return key;
+    });
     const instancenames = Object.keys(VLMImage.instances).map((key) => {
-      return VLMImage.instances[key].name
-    })
-    log(instanceids)
-    log(instancenames)
+      return VLMImage.instances[key].name;
+    });
+    log(instanceids);
+    log(instancenames);
 
     const instance = VLMImage.instances[instanceId];
     const configId = instance?.configId;
 
-    log("VLM - Deleting Instance - Step 2", instance, instanceId)
+    log("VLM - Deleting Instance - Step 2", instance, instanceId);
 
     if (configId) {
-      log("VLM - Deleting Instance - Step 3", instanceId, configId)
+      log("VLM - Deleting Instance - Step 3", instanceId, configId);
       VLMImage.configs[configId].deleteInstance(instanceId);
     }
   };
