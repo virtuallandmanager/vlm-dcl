@@ -14,7 +14,7 @@ export namespace VLMSound {
   export const instances: { [uuid: string]: Instance } = {}
 
   export type VLMConfig = VLMBaseProperties & VLMAudible & VLMInstancedItem
-  
+
   export const reset = () => {
     Object.keys(configs).forEach((key: string) => {
       configs[key].delete()
@@ -333,15 +333,39 @@ export namespace VLMSound {
   }
 }
 
+export type QuickSoundConfig = {
+  audioSrc?: string
+  path?: string
+  position?: Vector3
+  volume?: number
+  loop?: boolean
+}
+
 /**
  * Quick creator function for VLMImage Configs
  * @param config - the config object
  * @returns void
  */
 export class QuickSound {
-  constructor(config: { path?: string } & VLMSound.VLMConfig & VLMSound.Instance) {
+  config: VLMSound.Config
+  instance: VLMSound.Instance
+  constructor(config: QuickSoundConfig) {
     config.audioSrc = config.path || config.audioSrc
-    const soundConfig = new VLMSound.Config(config)
-    new VLMSound.Instance(soundConfig, config)
+    this.config = new VLMSound.Config({
+      pk: '',
+      sk: '',
+      name: '',
+      enabled: true,
+      ...config,
+    })
+    this.instance = new VLMSound.Instance(this.config, {
+      pk: '',
+      sk: '',
+      name: '',
+      enabled: true,
+      position: config.position || Vector3.create(8, 1, 8),
+      scale: Vector3.One(),
+      rotation: Vector3.Zero(),
+    })
   }
 }

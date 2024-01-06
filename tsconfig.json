@@ -4,6 +4,7 @@
     "resolveJsonModule": true,
     "declaration": true,
     "stripInternal": true,
+    "skipLibCheck": true,
     "outDir": "dist",
     "target": "es2020",
     "module": "esnext",

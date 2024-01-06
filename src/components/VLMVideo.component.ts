@@ -570,7 +570,7 @@ export namespace VLMVideo {
   }
 }
 
-type QuickVideoConfig = {
+export type QuickVideoConfig = {
   liveUrl: string
   playlist?: string[]
   position: Vector3

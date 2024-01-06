@@ -16,6 +16,7 @@ import { configurePaths } from './shared/paths'
 import { VLMDebug } from './logic/VLMDebug.logic'
 import { AutoDanceService } from './services/AutoDance.service'
 import { UIService } from './services/UI.service'
+import { VLMClaimPoint } from './components'
 
 /**
  * The main entry point for the VLM library.
@@ -91,7 +92,7 @@ export abstract class VLM {
     VLMEventListeners.recordAction(id, data)
   }
 
-  public static Storage = {
+  public static Storage: VLMStorage = {
     videos: {
       configs: VLMVideo.configs,
       instances: VLMVideo.instances,
@@ -108,9 +109,10 @@ export abstract class VLM {
       configs: VLMSound.configs,
       instances: VLMSound.instances,
     },
-    // claimPoints: {
-    //   configs: VLMClaimPoint.configs,
-    // },
+    claimPoints: {
+      configs: VLMClaimPoint.configs,
+      instances: VLMClaimPoint.instances,
+    },
     widgets: {
       configs: VLMWidget.configs,
     },
@@ -122,12 +124,12 @@ export abstract class VLM {
 }
 
 export type VLMStorage = {
-  video: {
+  videos: {
     configs: { [customId: string]: VLMVideo.Config }
     instances: { [customId: string]: VLMVideo.Instance }
     // systems: { [customId: string]: VLMVideo.VLMVideoPlaylistSystem }
   }
-  image: {
+  images: {
     configs: { [customId: string]: VLMImage.Config }
     instances: { [customId: string]: VLMImage.Instance }
   }
@@ -135,12 +137,16 @@ export type VLMStorage = {
     configs: { [customId: string]: VLMMesh.Config }
     instances: { [customId: string]: VLMMesh.Instance }
   }
-  sound: {
+  sounds: {
     configs: { [customId: string]: VLMSound.Config }
     instances: { [customId: string]: VLMSound.Instance }
     // systems: { [customId: string]: VLMSound.DCLSoundSystem }
   }
-  widget: {
+  claimPoints: {
+    configs: { [customId: string]: VLMClaimPoint.Config }
+    instances: { [customId: string]: VLMClaimPoint.Instance }
+  }
+  widgets: {
     configs: { [customId: string]: VLMWidget.Config }
   }
 }

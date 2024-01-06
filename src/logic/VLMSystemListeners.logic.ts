@@ -168,6 +168,10 @@ export abstract class VLMEventListeners {
           const claimPoint = VLMClaimPoint.configs[message.sk]
           if (claimPoint) {
             claimPoint.requestInProgress = false
+          }
+          if (claimPoint.hasCustomFunctions) {
+            claimPoint.runClaimFunction(message)
+          } else {
             VLMClaimPointManager.showMessage(message)
           }
         }

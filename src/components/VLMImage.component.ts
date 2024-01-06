@@ -363,7 +363,7 @@ export namespace VLMImage {
   }
 }
 
-type QuickImageConfig = {
+export type QuickImageConfig = {
   path: string
   position: Vector3
   scale?: Vector3

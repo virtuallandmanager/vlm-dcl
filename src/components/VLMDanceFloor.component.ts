@@ -326,7 +326,7 @@ export namespace VLMDanceFloor {
   }
 }
 
-type QuickDanceFloorConfig = {
+export type QuickDanceFloorConfig = {
   emotes?: EmoteList
   interval?: number
   position: Vector3

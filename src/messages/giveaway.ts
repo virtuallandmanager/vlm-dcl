@@ -50,4 +50,3 @@ export default {
   // Message displayed when some sort of error occurs on the back end:
   errorMessage: 'Sorry, something went wrong.',
 }
-

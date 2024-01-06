@@ -1,6 +1,6 @@
 import { VLMBase } from './VLMBase.component'
 import { Vector3 } from '@dcl/sdk/math'
-import { Entity } from '@dcl/sdk/ecs'
+import { Entity, ColliderLayer } from '@dcl/sdk/ecs'
 import { MeshService } from '../services/Mesh.service'
 import { TransformService } from '../services/Transform.service'
 import { ClickEventService } from '../services/ClickEvent.service'
@@ -177,6 +177,18 @@ export namespace VLMMesh {
         delete instances[_instanceId]
       }
     }
+
+    /**
+     * @public updateDefaultClickEvent
+     * Updates the instance's click event
+     * @param clickEvent - the click event of the instance
+     * @returns void
+     */
+    updateDefaultClickEvent: CallableFunction = (clickEvent: VLMClickEvent.Config) => {
+      this.instanceIds.forEach((instanceId: string) => {
+        instances[instanceId].updateDefaultClickEvent(clickEvent)
+      })
+    }
   }
 
   /**
@@ -299,6 +311,18 @@ export namespace VLMMesh {
     }
 
     /**
+     * @public updateDefaultClickEvent
+     * Updates the instance's default click event
+     * @param clickEvent - the click event of the instance
+     * @returns void
+     */
+    updateDefaultClickEvent: CallableFunction = (clickEvent: VLMClickEvent.Config) => {
+      this.defaultClickEvent = clickEvent
+
+      this.updateClickEvent()
+    }
+
+    /**
      * @public updateClickEvent
      * Updates the instance's click event
      * @param clickEvent - the click event of the instance
@@ -306,9 +330,13 @@ export namespace VLMMesh {
      */
     updateClickEvent: CallableFunction = (clickEvent: VLMClickEvent.Config) => {
       const config = configs[this.configId]
-      this.clickEvent = clickEvent
+      this.clickEvent = clickEvent || this.clickEvent
 
-      config.services.clickEvent.set(this.entity, this.clickEvent)
+      if (!this.clickEvent || this.clickEvent?.synced) {
+        config.services.clickEvent.set(this.entity, this.defaultClickEvent)
+      } else {
+        config.services.clickEvent.set(this.entity, this.clickEvent)
+      }
     }
   }
 }
@@ -347,6 +375,13 @@ export class QuickMesh {
       rotation: config.rotation || Vector3.create(0, 0, 0),
       parent: config.parent,
     })
-    this.services.clickEvent.set(this.entity, config.clickEvent)
+
+    if (config.clickEvent) {
+      this.services.clickEvent.set(this.entity, config.clickEvent)
+    }
+    if (config.colliders) {
+      // this.services.collider.set(this.entity, 'box', true, true)
+    }
+    console.log('QuickMesh created!', config.clickEvent)
   }
 }

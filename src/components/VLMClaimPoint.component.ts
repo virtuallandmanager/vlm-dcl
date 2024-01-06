@@ -1,4 +1,4 @@
-import { Entity, Material, EntityState, EasingFunction, Tween, TweenLoop, MaterialTransparencyMode } from '@dcl/sdk/ecs'
+import { Entity, Material, EntityState, ColliderLayer, EasingFunction, Tween, TweenLoop, MaterialTransparencyMode } from '@dcl/sdk/ecs'
 import { Vector3, Color3, Color4, Quaternion } from '@dcl/sdk/math'
 import { ecs } from '../environment'
 import messages from '../messages/giveaway'
@@ -16,6 +16,8 @@ import { ColliderService } from '../services/Collider.service'
 import { ClickEventService } from '../services/ClickEvent.service'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 import defaultMessages from '../messages/giveaway'
+import { VLMClaimEvent } from './VLMSystemEvents.component'
+import { VLMClaimPointManager } from '../logic/VLMClaimPoint.logic'
 
 export namespace VLMClaimPoint {
   export const configs: { [uuid: string]: VLMClaimPoint.Config } = {}
@@ -31,6 +33,8 @@ export namespace VLMClaimPoint {
     giveawayId: string = ''
     properties: ClaimPointProperties = {}
     messages: typeof defaultMessages = defaultMessages
+    hasCustomFunctions: boolean = false
+    customFunctions?: CustomFunctions
     public requestInProgress: boolean = false
 
     constructor(config: VLMConfig) {
@@ -166,6 +170,85 @@ export namespace VLMClaimPoint {
         instances[config.sk].delete()
       }
     }
+
+    claim: CallableFunction = async () => {
+      const giveawayId = this.giveawayId
+
+      if (!VLMSessionManager.sessionData.hasConnectedWeb3 && this.customFunctions?.noWallet) {
+        this.customFunctions.noWallet()
+        return
+      } else if (!VLMSessionManager.sessionData.hasConnectedWeb3 && !this.customFunctions?.noWallet) {
+        VLMNotificationManager.addMessage(messages.noWallet)
+        return
+      } else if (this.requestInProgress && VLMNotificationManager.messageQueue.length < 1 && !this.hasCustomFunctions) {
+        VLMNotificationManager.addMessage(messages.claimInProgress)
+        return
+      } else if (this.requestInProgress && VLMNotificationManager.messageQueue.length > 0) {
+        return
+      }
+      this.requestInProgress = true
+
+      if (!this.hasCustomFunctions) {
+        VLMNotificationManager.addMessage(messages.claimSubmitted, { delay: 0.5 })
+      } else if (this.customFunctions?.claimSubmitted) {
+        this.customFunctions.claimSubmitted()
+      }
+
+      VLMEventManager.events.emit('VLMClaimEvent', { action: 'giveaway_claim', giveawayId, sk: this.sk || '' })
+    }
+
+    setClaimFunctions: CallableFunction = (claimFunctions: CustomFunctions) => {
+      if (claimFunctions) {
+        this.hasCustomFunctions = true
+      } else {
+        this.hasCustomFunctions = false
+      }
+      this.customFunctions = claimFunctions
+    }
+
+    runClaimFunction: CallableFunction = (response: VLMClaimPoint.ClaimResponse) => {
+      VLMDebug.log('info', 'VLMClaimPoin.runClaimFunction', response)
+
+      const claimPoint = VLMClaimPoint.configs[response.sk],
+        messageOptions = claimPoint.messageOptions || null,
+        messages = claimPoint.messages
+
+      if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_ACCEPTED && this.customFunctions?.successfulClaim) {
+        this.customFunctions.successfulClaim()
+      } else if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_SERVER_ERROR && this.customFunctions?.errorMessage) {
+        this.customFunctions.errorMessage()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.BEFORE_EVENT_START && this.customFunctions?.beforeEventTime) {
+        this.customFunctions.beforeEventTime()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.AFTER_EVENT_END && this.customFunctions?.afterEventTime) {
+        this.customFunctions.afterEventTime()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.EXISTING_WALLET_CLAIM && this.customFunctions?.existingClaim) {
+        this.customFunctions.existingClaim()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.CLAIM_COMPLETE && this.customFunctions?.claimComplete) {
+        this.customFunctions.claimComplete()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.OVER_IP_LIMIT && this.customFunctions?.ipLimitReached) {
+        this.customFunctions.ipLimitReached()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.SUPPLY_DEPLETED && this.customFunctions?.noSupply) {
+        this.customFunctions.noSupply()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.INAUTHENTIC && this.customFunctions?.inauthenticConnection) {
+        this.customFunctions.inauthenticConnection()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.NO_LINKED_EVENTS && this.customFunctions?.noLinkedEvents) {
+        this.customFunctions.noLinkedEvents()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.PAUSED && this.customFunctions?.paused) {
+        this.customFunctions.paused()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.OVER_DAILY_LIMIT && this.customFunctions?.dailyLimitReached) {
+        this.customFunctions.dailyLimitReached()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.OVER_WEEKLY_LIMIT && this.customFunctions?.otherLimitReached) {
+        this.customFunctions.otherLimitReached()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.OVER_MONTHLY_LIMIT && this.customFunctions?.otherLimitReached) {
+        this.customFunctions.otherLimitReached()
+      } else if (response.reason === VLMClaimPoint.ClaimRejection.OVER_YEARLY_LIMIT && this.customFunctions?.otherLimitReached) {
+        this.customFunctions.otherLimitReached()
+      } else if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_DENIED && this.customFunctions?.claimDenied) {
+        this.customFunctions.claimDenied()
+      } else {
+        VLMClaimPointManager.showMessage(response, messageOptions, messages)
+      }
+    }
   }
 
   export class Instance extends VLMBase.Instance {
@@ -206,7 +289,7 @@ export namespace VLMClaimPoint {
         this.properties = config.properties
       }
 
-      if (!config.enabled || !this.enabled) {
+      if (config.customRendering || !config.enabled || !this.enabled) {
         this.remove()
         return
       }
@@ -225,9 +308,9 @@ export namespace VLMClaimPoint {
         this.removeKiosk()
       }
 
-      if (this.properties.enableSpin) {
+      if (this.properties.enableKiosk && this.properties.enableSpin) {
+        this.spinClaimItem()
       }
-      this.spinClaimItem()
     }
     /**
      * @public add
@@ -301,7 +384,23 @@ export namespace VLMClaimPoint {
       this.claimItemEntity = this.claimItemEntity || ecs.engine.addEntity()
 
       if (this.properties.type == ClaimPointType.MODEL && this.properties.modelSrc) {
-        config.services.mesh.set(this.claimItemEntity, 'gltf', { src: `${getModelPath(this.properties.modelSrc)}` })
+        config.services.mesh.set(this.claimItemEntity, 'gltf', {
+          src: `${getModelPath(this.properties.modelSrc)}`,
+        })
+        config.services.transform.set(this.claimItemEntity, {
+          position: {
+            x: 0,
+            y: 0,
+            z: 0,
+          },
+          scale: {
+            x: 1,
+            y: 1,
+            z: 1,
+          },
+          rotation: { x: 0, y: 0, z: 0 },
+          parent: this.entity,
+        })
       } else if (this.properties.type == ClaimPointType.CUSTOM_IMAGE && this.properties.imgSrc) {
         const texture = Material.Texture.Common({ src: this.properties.imgSrc })
         config.services.mesh.set(this.claimItemEntity, 'plane')
@@ -315,24 +414,26 @@ export namespace VLMClaimPoint {
         })
       }
 
-      config.services.transform.set(this.claimItemEntity, {
-        position: {
-          x: 0,
-          y: 1 + (this.properties.itemYOffset || 0),
-          z: 0,
-        },
-        scale: {
-          x: this.scale.x * (this.properties.itemScale || 1),
-          y: this.scale.y * (this.properties.itemScale || 1),
-          z: this.properties.type == ClaimPointType.CUSTOM_IMAGE ? 0.01 : this.scale.z * (this.properties.itemScale || 1),
-        },
-        rotation: { x: 0, y: 0, z: 0 },
-        parent: this.entity,
-      })
+      if (!this.properties.enableKiosk && this.properties.type == ClaimPointType.CUSTOM_IMAGE) {
+        config.services.transform.set(this.claimItemEntity, {
+          position: {
+            x: 0,
+            y: 1 + (this.properties.itemYOffset || 0),
+            z: 0,
+          },
+          scale: {
+            x: this.scale.x * (this.properties.itemScale || 1),
+            y: this.scale.y * (this.properties.itemScale || 1),
+            z: this.properties.type == ClaimPointType.CUSTOM_IMAGE ? 0.01 : this.scale.z * (this.properties.itemScale || 1),
+          },
+          rotation: { x: 0, y: 0, z: 0 },
+          parent: this.entity,
+        })
+      }
 
-      if (this.properties.enableButton) {
+      if (!this.properties.enableKiosk || !this.properties.enableButton) {
         config.services.clickEvent.setCustomDown(this.claimItemEntity, { hoverText }, async () => {
-          await objThis.claim()
+          await config.claim()
         })
       } else {
         config.services.clickEvent.clearAll(this.claimItemEntity)
@@ -462,17 +563,32 @@ export namespace VLMClaimPoint {
         emissiveIntensity: 0.1,
       })
 
+      config.services.transform.set(this.claimItemEntity, {
+        position: {
+          x: 0,
+          y: 1 + (this.properties.itemYOffset || 0),
+          z: 0,
+        },
+        scale: {
+          x: this.scale.x * (this.properties.itemScale || 1),
+          y: this.scale.y * (this.properties.itemScale || 1),
+          z: this.properties.type == ClaimPointType.CUSTOM_IMAGE ? 0.01 : this.scale.z * (this.properties.itemScale || 1),
+        },
+        rotation: { x: 0, y: 0, z: 0 },
+        parent: this.entity,
+      })
+
       if (!this.properties.enableButton) {
         config.services.clickEvent.setCustomDown(this.kioskEntities.baseEntity, { hoverText }, async () => {
-          await objThis.claim()
+          await config.claim()
         })
 
         config.services.clickEvent.setCustomDown(this.kioskEntities.baseTopEntity, { hoverText }, async () => {
-          await objThis.claim()
+          await config.claim()
         })
 
         config.services.clickEvent.setCustomDown(this.kioskEntities.glassEntity, { hoverText }, async () => {
-          await objThis.claim()
+          await config.claim()
         })
       } else {
         config.services.clickEvent.clearAll(this.claimItemEntity)
@@ -522,7 +638,7 @@ export namespace VLMClaimPoint {
 
       config.services.clickEvent.setCustomDown(this.kioskEntities.buttonEntity, { hoverText }, async () => {
         objThis.pressButton()
-        await objThis.claim()
+        await config.claim()
       })
     }
 
@@ -580,27 +696,6 @@ export namespace VLMClaimPoint {
           },
         ],
       })
-    }
-
-    claim: CallableFunction = async () => {
-      const config = configs[this.configId],
-        sk = this.configId,
-        giveawayId = config.giveawayId
-
-      if (!VLMSessionManager.sessionData.hasConnectedWeb3) {
-        VLMNotificationManager.addMessage(messages.noWallet)
-        return
-      } else if (config.requestInProgress && VLMNotificationManager.messageQueue.length < 1) {
-        VLMNotificationManager.addMessage(messages.claimInProgress)
-        return
-      } else if (config.requestInProgress && VLMNotificationManager.messageQueue.length > 0) {
-        return
-      }
-      config.requestInProgress = true
-
-      VLMNotificationManager.addMessage(messages.claimSubmitted, { delay: 0.5 })
-
-      VLMEventManager.events.emit('VLMClaimEvent', { action: 'giveaway_claim', giveawayId, sk: sk || '' })
     }
 
     /**
@@ -695,5 +790,58 @@ export namespace VLMClaimPoint {
     MALE,
     FEMALE,
     MATCH_PLAYER,
+  }
+
+  export type CustomFunctions = {
+    // Message displayed when the user has no wallet connected
+    noWallet: CallableFunction
+
+    // Message displayed while the claim is being processed:
+    claimSubmitted: CallableFunction
+
+    // Message displayed while the claim is being processed:
+    claimInProgress: CallableFunction
+
+    // Message displayed after a successful claim:
+    successfulClaim: CallableFunction
+
+    // Message displayed if the current time is before the event starts:
+    beforeEventTime: CallableFunction
+
+    // Message displayed if the event has ended:
+    afterEventTime: CallableFunction
+
+    // Message displayed if someone tries to hit claim again after already making a claim:
+    existingClaim: CallableFunction
+
+    // Message displayed if someone tries to hit claim again after their wearable was already delivered:
+    claimComplete: CallableFunction
+
+    // Message displayed if a daily limit has been reached:
+    dailyLimitReached: CallableFunction
+
+    // Message displayed if a daily limit has been reached:
+    otherLimitReached: CallableFunction
+
+    // Message displayed if someone has reached the limit for claims from one IP address:
+    ipLimitReached: CallableFunction
+
+    // Message displayed if all items have been claimed:
+    noSupply: CallableFunction
+
+    // Message displayed if the server detects a VPN connection or other ways to circumvent the IP limit:
+    inauthenticConnection: CallableFunction
+
+    // Message displayed if the server cannot find a linked event for the giveaway:
+    noLinkedEvents: CallableFunction
+
+    // Message displayed if the giveaway is paused:
+    paused: CallableFunction
+
+    // Generic default message displayed if the server rejects the claim for some other reason:
+    claimDenied: CallableFunction
+
+    // Message displayed when some sort of error occurs on the back end:
+    errorMessage: CallableFunction
   }
 }
