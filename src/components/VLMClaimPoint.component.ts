@@ -34,6 +34,7 @@ export namespace VLMClaimPoint {
     properties: ClaimPointProperties = {}
     messages: typeof defaultMessages = defaultMessages
     hasCustomFunctions: boolean = false
+    disableDefaults: boolean = false
     customFunctions?: CustomFunctions
     public requestInProgress: boolean = false
 
@@ -236,13 +237,13 @@ export namespace VLMClaimPoint {
         this.customFunctions.otherLimitReached()
       } else if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_DENIED && this.customFunctions?.claimDenied) {
         this.customFunctions.claimDenied()
-      } else {
+      } else if (!this.disableDefaults) {
         VLMClaimPointManager.showMessage(response, messageOptions, messages)
       }
     }
   }
 
-  export const setClaimFunctions: CallableFunction = (customId: string, claimFunctions: CustomFunctions) => {
+  export const setClaimFunctions: CallableFunction = (customId: string, claimFunctions: CustomFunctions, options?: { disableDefaults: boolean }) => {
     if (customId && claimFunctions && configs[customId]) {
       configs[customId].hasCustomFunctions = true
     } else {
@@ -253,6 +254,7 @@ export namespace VLMClaimPoint {
     const config = configs[customId],
       originalConfig = configs[config.sk]
 
+    config.disableDefaults = !!options?.disableDefaults
     config.customFunctions = claimFunctions
     originalConfig.customFunctions = claimFunctions
   }

@@ -92,8 +92,12 @@ export abstract class VLM {
     VLMEventListeners.recordAction(id, data)
   }
 
-  public static setClaimFunctions: CallableFunction = async (customId: string, claimFunctions: VLMClaimPoint.Config[]) => {
-    return VLMClaimPoint.setClaimFunctions(customId, claimFunctions)
+  public static setClaimFunctions: CallableFunction = async (
+    customId: string,
+    claimFunctions: VLMClaimPoint.Config[],
+    options: { disableDefaults: boolean },
+  ) => {
+    return VLMClaimPoint.setClaimFunctions(customId, claimFunctions, options)
   }
 
   public static Storage: VLMStorage = {
