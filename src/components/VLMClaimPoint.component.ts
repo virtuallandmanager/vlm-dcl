@@ -33,6 +33,7 @@ export namespace VLMClaimPoint {
     giveawayId: string = ''
     properties: ClaimPointProperties = {}
     messages: typeof defaultMessages = defaultMessages
+    requestComplete: boolean = false
     hasCustomFunctions: boolean = false
     disableDefaults: boolean = false
     customFunctions?: CustomFunctions
@@ -181,12 +182,20 @@ export namespace VLMClaimPoint {
       } else if (!VLMSessionManager.sessionData.hasConnectedWeb3 && !this.customFunctions?.noWallet) {
         VLMNotificationManager.addMessage(messages.noWallet)
         return
-      } else if (this.requestInProgress && VLMNotificationManager.messageQueue.length < 1 && !this.hasCustomFunctions) {
+      } else if (
+        (this.requestComplete || this.requestInProgress) &&
+        !this.disableDefaults &&
+        VLMNotificationManager.messageQueue.length < 1 &&
+        !this.hasCustomFunctions
+      ) {
         VLMNotificationManager.addMessage(messages.claimInProgress)
         return
-      } else if (this.requestInProgress && VLMNotificationManager.messageQueue.length > 0) {
+      } else if ((this.requestInProgress || this.requestComplete) && VLMNotificationManager.messageQueue.length > 0) {
+        return
+      } else if (this.requestComplete) {
         return
       }
+      
       this.requestInProgress = true
 
       if (!this.hasCustomFunctions) {
@@ -205,6 +214,9 @@ export namespace VLMClaimPoint {
         messageOptions = claimPoint.messageOptions || null,
         messages = claimPoint.messages
 
+      if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_DENIED) {
+        this.requestComplete = true
+      }
       if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_ACCEPTED && this.customFunctions?.successfulClaim) {
         this.customFunctions.successfulClaim()
       } else if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_SERVER_ERROR && this.customFunctions?.errorMessage) {
