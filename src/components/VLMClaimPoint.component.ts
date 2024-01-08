@@ -197,15 +197,6 @@ export namespace VLMClaimPoint {
       VLMEventManager.events.emit('VLMClaimEvent', { action: 'giveaway_claim', giveawayId, sk: this.sk || '' })
     }
 
-    setClaimFunctions: CallableFunction = (claimFunctions: CustomFunctions) => {
-      if (claimFunctions) {
-        this.hasCustomFunctions = true
-      } else {
-        this.hasCustomFunctions = false
-      }
-      this.customFunctions = claimFunctions
-    }
-
     runClaimFunction: CallableFunction = (response: VLMClaimPoint.ClaimResponse) => {
       VLMDebug.log('info', 'VLMClaimPoin.runClaimFunction', response)
 
@@ -249,6 +240,21 @@ export namespace VLMClaimPoint {
         VLMClaimPointManager.showMessage(response, messageOptions, messages)
       }
     }
+  }
+
+  export const setClaimFunctions: CallableFunction = (customId: string, claimFunctions: CustomFunctions) => {
+    if (customId && claimFunctions && configs[customId]) {
+      configs[customId].hasCustomFunctions = true
+    } else {
+      configs[customId].hasCustomFunctions = false
+      return
+    }
+
+    const config = configs[customId],
+      originalConfig = configs[config.sk]
+
+    config.customFunctions = claimFunctions
+    originalConfig.customFunctions = claimFunctions
   }
 
   export class Instance extends VLMBase.Instance {

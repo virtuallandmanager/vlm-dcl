@@ -92,6 +92,10 @@ export abstract class VLM {
     VLMEventListeners.recordAction(id, data)
   }
 
+  public static setClaimFunctions: CallableFunction = async (customId: string, claimFunctions: VLMClaimPoint.Config[]) => {
+    return VLMClaimPoint.setClaimFunctions(customId, claimFunctions)
+  }
+
   public static Storage: VLMStorage = {
     videos: {
       configs: VLMVideo.configs,
