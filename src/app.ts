@@ -4,14 +4,12 @@ import { VLMSessionManager } from './logic/VLMSession.logic'
 import { VLMEventListeners } from './logic/VLMSystemListeners.logic'
 import { VLMLogManager } from './logic/VLMLogging'
 import { VLMWidgetManager } from './logic/VLMWidget.logic'
-import { VLMNotificationManager } from './logic/VLMNotification.logic'
 import { VLMEventManager } from './logic/VLMSystemEvents.logic'
 import { VLMWidget } from './components/VLMWidget.component'
 import { VLMVideo } from './components/VLMVideo.component'
 import { VLMImage } from './components/VLMImage.component'
 import { VLMSound } from './components/VLMSound.component'
 import { VLMMesh } from './components/VLMMesh.component'
-// import { VLMClaimPoint } from "./components/VLMClaimPoint.component";
 import { configurePaths } from './shared/paths'
 import { VLMDebug } from './logic/VLMDebug.logic'
 import { AutoDanceService } from './services/AutoDance.service'
@@ -129,6 +127,8 @@ export abstract class VLM {
   public static storage = this.Storage
 
   public static toggleAutoDance = AutoDanceService.toggleGlobalAutoDance
+
+  public static UI = () => UIService.internalComponents()
 }
 
 export type VLMStorage = {

@@ -1,4 +1,4 @@
-import { VLMClaimPoint } from '../components'
+import { VLMClaimPoint } from '../components/VLMClaimPoint.component'
 import { VLMNotificationManager } from './VLMNotification.logic'
 import { VLMDebug } from './VLMDebug.logic'
 

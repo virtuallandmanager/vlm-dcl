@@ -42,6 +42,8 @@ export abstract class VLMEventListeners {
   static sessionData: VLMSession.Config
   static sessionUser: VLMSession.User
   public static ignoreNextEmote: boolean = false
+  public static ignoredEmote: string | null = null
+  // ignoredEmote: keeps track of the last emote that was used, or the one that's currently looping. Gets cleared out upon movement.
 
   static init: CallableFunction = () => {
     try {
@@ -86,11 +88,16 @@ export abstract class VLMEventListeners {
 
       onPlayerExpressionObservable.add(({ expressionId }) => {
         if (this.ignoreNextEmote) {
+          this.ignoredEmote = expressionId
           this.ignoreNextEmote = false
           VLMDebug.log(`TRACKED ACTION - Emote Ignored - ${expressionId}`)
           return
+        } else if (this.ignoredEmote == expressionId) {
+          VLMDebug.log(`TRACKED ACTION - Ignored stationary re-trigger - ${expressionId}`)
+          return
         } else {
           VLMDebug.log(`TRACKED ACTION - Emote triggered - ${expressionId}`)
+          this.ignoredEmote = expressionId
           VLMEventManager.events.emit('VLMSessionAction', 'Emote Used', { emote: expressionId })
           VLMEventManager.events.emit('VLMEmoteAction', expressionId)
         }
@@ -206,6 +213,9 @@ export abstract class VLMEventListeners {
             break
           case 'path_segments_add':
             this.sceneRoom.send('path_segments_add', message)
+            break
+          case 'path_movement_started':
+            this.ignoredEmote = null;
             break
         }
       })

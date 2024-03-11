@@ -61,7 +61,7 @@ export class VLMWidgetInitEvent {
 
 
 export class VLMPathClientEvent {
-  action: "path_start" | "path_segments_add" | "path_end";
+  action: "path_start" | "path_movement_started" | "path_segments_add" | "path_end";
   pathId?: string;
   pathSegments?: VLMSession.Path.Segment[];
   sessionToken?: string;

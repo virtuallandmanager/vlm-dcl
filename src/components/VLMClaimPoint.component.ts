@@ -16,8 +16,6 @@ import { ColliderService } from '../services/Collider.service'
 import { ClickEventService } from '../services/ClickEvent.service'
 import { VLMDebug } from '../logic/VLMDebug.logic'
 import defaultMessages from '../messages/giveaway'
-import { VLMClaimEvent } from './VLMSystemEvents.component'
-import { VLMClaimPointManager } from '../logic/VLMClaimPoint.logic'
 
 export namespace VLMClaimPoint {
   export const configs: { [uuid: string]: VLMClaimPoint.Config } = {}
@@ -249,8 +247,6 @@ export namespace VLMClaimPoint {
         this.customFunctions.otherLimitReached()
       } else if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_DENIED && this.customFunctions?.claimDenied) {
         this.customFunctions.claimDenied()
-      } else if (!this.disableDefaults) {
-        VLMClaimPointManager.showMessage(response, messageOptions, messages)
       }
     }
   }

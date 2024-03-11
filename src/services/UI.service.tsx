@@ -1,16 +1,16 @@
 import ReactEcs, { UiComponent, UiEntity, Label } from '@dcl/sdk/react-ecs'
-import { Color4 } from '@dcl/sdk/math'
 import { ecs, ui } from '../environment'
-
-let externalComponents: UiComponent = () => []
 
 export namespace ReactEcsRenderer {
   export const setUiRenderer = (components?: UiComponent) => {
-    const internalComponents: UiComponent = () => [UIService.uiComponent(), UIService.notificationComponent()]
+    let externalComponents: UiComponent = () => []
+    UIService.internalComponents = () => [UIService.uiComponent(), UIService.notificationComponent()]
+
     if (components) {
       externalComponents = components
     }
-    const mainComponent = () => [internalComponents(), externalComponents()]
+
+    const mainComponent = () => [UIService.internalComponents(), externalComponents()]
     ui.ReactEcsRenderer.setUiRenderer(mainComponent)
   }
 
@@ -20,17 +20,17 @@ export namespace ReactEcsRenderer {
 }
 
 export class UIService {
+  public static internalComponents: UiComponent = () => [this.uiComponent(), this.notificationComponent()]
   public static uiComponent: CallableFunction = () => (
     <UiEntity
-    key={Date.now()}
+      key={Date.now()}
       uiTransform={{
         width: '100%',
         height: '100%',
         positionType: 'absolute',
       }}
       uiBackground={{}}
-    >
-    </UiEntity>
+    ></UiEntity>
   )
   public static notificationComponent: CallableFunction = () => {}
   static modules: UiComponent[] = []

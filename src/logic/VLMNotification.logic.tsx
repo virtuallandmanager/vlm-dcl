@@ -90,7 +90,6 @@ export abstract class VLMNotificationManager {
       />
     )
     UIService.notificationComponent = this.uiComponent
-    UIService.render()
   }
 
   static removeMessage: CallableFunction = () => {

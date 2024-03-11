@@ -147,6 +147,7 @@ export class VLMPathManager {
       VLMDebug.log('path', "PATH TRACKING - EXITED - PATH HASN'T STARTED")
       return
     }
+
     try {
       const thousandPointPaths = this.pathSegments.some((segment) => segment?.path && segment.path?.length >= 1000)
       const isFirstSegment = this.pathSegments[0].type == VLMSession.Path.SegmentType.LOADING
@@ -173,6 +174,7 @@ export class VLMPathManager {
       ) {
         latestSegment.type = segmentType
         VLMDebug.log('path', 'PATH TRACKING - CHANGED SEGMENT TYPE - STARTED MOVING')
+        VLMEventManager.events.emit('VLMPathClientEvent', { action: 'path_movement_started', pathId: this.pathId, pathSegments: this.pathSegments })
         return
       }
 
