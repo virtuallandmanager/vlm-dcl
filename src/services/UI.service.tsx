@@ -1,10 +1,11 @@
-import ReactEcs, { UiComponent, UiEntity, Label } from '@dcl/sdk/react-ecs'
+import ReactEcs, { UiComponent, UiEntity } from '@dcl/sdk/react-ecs'
 import { ecs, ui } from '../environment'
 
 export namespace ReactEcsRenderer {
+  export let rendererSet = false;
   export const setUiRenderer = (components?: UiComponent) => {
     let externalComponents: UiComponent = () => []
-    UIService.internalComponents = () => [UIService.uiComponent(), UIService.notificationComponent()]
+    UIService.internalComponents = () => [UIService.notificationComponent()]
 
     if (components) {
       externalComponents = components
@@ -12,30 +13,18 @@ export namespace ReactEcsRenderer {
 
     const mainComponent = () => [UIService.internalComponents(), externalComponents()]
     ui.ReactEcsRenderer.setUiRenderer(mainComponent)
-  }
-
-  export const render = () => {
-    setUiRenderer()
+    rendererSet = true
   }
 }
 
 export class UIService {
-  public static internalComponents: UiComponent = () => [this.uiComponent(), this.notificationComponent()]
-  public static uiComponent: CallableFunction = () => (
-    <UiEntity
-      key={Date.now()}
-      uiTransform={{
-        width: '100%',
-        height: '100%',
-        positionType: 'absolute',
-      }}
-      uiBackground={{}}
-    ></UiEntity>
-  )
+  public static internalComponents: UiComponent = () => [this.notificationComponent()]
   public static notificationComponent: CallableFunction = () => {}
   static modules: UiComponent[] = []
+}
 
-  static render: CallableFunction = (): void => {
-    ReactEcsRenderer.render()
-  }
+export enum UIMode {
+  AUTO,
+  LIBRARY,
+  SCENE,
 }

@@ -13,7 +13,7 @@ import { VLMMesh } from './components/VLMMesh.component'
 import { configurePaths } from './shared/paths'
 import { VLMDebug } from './logic/VLMDebug.logic'
 import { AutoDanceService } from './services/AutoDance.service'
-import { UIService } from './services/UI.service'
+import { ReactEcsRenderer, UIMode, UIService } from './services/UI.service'
 import { VLMClaimPoint } from './components'
 
 /**
@@ -25,10 +25,10 @@ export abstract class VLM {
 
   public static activeServer: string
 
-  // public static uiCanvas: UICanvas = new UICanvas();
-
   public static user: UserData
 
+  public static defaultConfig: VLMInitConfig = { env: 'prod', uiMode: UIMode.AUTO, modelFolder: 'models', soundFolder: 'sounds' }
+  
   /**
    * Initializes the VLM library with the given configuration.
    * @param config - The VLM initialization options.
@@ -37,23 +37,32 @@ export abstract class VLM {
   public static init: CallableFunction = async (config: VLMInitConfig) => {
     return new Promise(async (resolve, reject) => {
       try {
-        if (config?.modelFolder || config?.soundFolder) {
-          configurePaths({ modelFolder: config?.modelFolder, soundFolder: config?.soundFolder })
-        }
+        config = { ...this.defaultConfig, ...config }
+
+        configurePaths({ modelFolder: config?.modelFolder, soundFolder: config?.soundFolder })
+
         VLMEventManager.events.on('VLMSceneInitEvent', () => {
           resolve(VLM.storage)
         })
+
         if (config?.widgets) {
           await VLMWidgetManager.configureWidgets(config.widgets)
         }
+
+        if (!ReactEcsRenderer.rendererSet && config.uiMode !== UIMode.SCENE) {
+          ReactEcsRenderer.setUiRenderer()
+        }
+
         await VLMEnvironment.init(config)
-        UIService.render()
+
         const session = await VLMSessionManager.start(VLM.version)
+
         if (!session?.sceneRoom) {
           VLMDebug.log('INIT ERROR: Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file.')
           resolve({ error: 'Failed to connect to the scene server. This may be due to a missing sceneId in the scene.json file.' })
           return
         }
+
         await VLMEventListeners.init()
       } catch (error) {
         VLMLogManager.logError(error, { ...config, message: 'VLM INIT ERROR', version: VLM.version, env: config?.env || 'prod' })

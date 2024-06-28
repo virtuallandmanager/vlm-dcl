@@ -1,6 +1,6 @@
 {
   "name": "vlm-dcl",
-  "version": "1.0.0-alpha.24",
+  "version": "1.0.0-alpha.25",
   "description": "Virtual Land Manager for Decentraland SDK7",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -61,11 +61,16 @@
     "yarn": "please use npm"
   },
   "dependencies": {
-    "colyseus.js": "^0.15.14",
+    "colyseus.js": "^0.15.24",
     "whatwg-url-without-unicode": "^8.0.0-3",
     "xmlhttprequest-polyfill": "^0.1.2"
   },
   "bundledDependencies": [
+    "colyseus.js",
+    "whatwg-url-without-unicode",
+    "xmlhttprequest-polyfill"
+  ],
+  "bundleDependencies": [
     "colyseus.js",
     "whatwg-url-without-unicode",
     "xmlhttprequest-polyfill"

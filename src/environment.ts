@@ -3,6 +3,7 @@ import { VLMWidget } from './components/VLMWidget.component'
 import * as ecsLib from '@dcl/sdk/ecs'
 import * as uiLib from '@dcl/sdk/react-ecs'
 import { VLMDebug } from './logic/VLMDebug.logic'
+import { UIMode } from './services/UI.service'
 
 export let ecs: any = ecsLib
 export let ui: any = uiLib
@@ -62,7 +63,9 @@ export abstract class VLMEnvironment {
 }
 
 /**
- * Environment initialization options. Allow you to choose which server to connect to.
+ * Environment initialization options. Allow you to choose which server to connect to, 
+ * what folders are used in your project, and how the UI is set up.
+ *
  * @public
  */
 export type VLMInitConfig = {
@@ -71,5 +74,6 @@ export type VLMInitConfig = {
   modelFolder?: string
   soundFolder?: string
   debug?: boolean | string[]
+  uiMode?: UIMode
   ecs?: any
 }

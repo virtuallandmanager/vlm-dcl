@@ -280,7 +280,11 @@ export class VideoService {
     }
   }
 
-  getVideoState: CallableFunction = (): DeepReadonlyObject<PBVideoEvent> | undefined => {
-    return ecs.videoEventsSystem.getVideoState(this.videoPlayerEntity)
+  getVideoState: CallableFunction = (): DeepReadonlyObject<PBVideoEvent> => {
+    const stateObj = ecs.videoEventsSystem.getVideoState(this.videoPlayerEntity)
+    if (!stateObj) {
+      return { state: VideoState.VS_NONE, currentOffset: 0, videoLength: 0, timestamp: 0, tickNumber: 0 }
+    }
+    return stateObj
   }
 }

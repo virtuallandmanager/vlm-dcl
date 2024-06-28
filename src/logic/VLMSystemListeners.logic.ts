@@ -209,7 +209,7 @@ export abstract class VLMEventListeners {
 
         switch (message.action) {
           case 'path_start':
-            this.sceneRoom.send('path_start', { session: this.sessionData })
+            // this.sceneRoom.send('path_start', { session: this.sessionData })
             break
           case 'path_segments_add':
             this.sceneRoom.send('path_segments_add', message)
