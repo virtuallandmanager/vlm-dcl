@@ -223,6 +223,7 @@ export class VideoService {
   }
 
   initEventSystem: CallableFunction = (config: VLMVideo.Config): void => {
+    const objThis = this
     if (ecs.videoEventsSystem.hasVideoEventsEntity(this.videoPlayerEntity)) {
       return
     }
@@ -233,26 +234,41 @@ export class VideoService {
         config,
       )
       if (
-        config.mediaType == DynamicMediaType.PLAYLIST &&
-        videoEvent.state > VideoState.VS_PLAYING &&
-        videoEvent.videoLength > 0 &&
-        videoEvent.currentOffset >= videoEvent.videoLength
+        config.mediaType == DynamicMediaType.PLAYLIST && // is a playlist
+        videoEvent.state > VideoState.VS_PLAYING && // is playing
+        videoEvent.videoLength > 0 && // video has a length
+        videoEvent.currentOffset >= videoEvent.videoLength - 0.01 && // video is at the end
+        config.activePlaylistVideo < config.playlist.length - 1 // there are more videos in the playlist
       ) {
         VLMDebug.log('video', 'event - video ended', config)
         config.startPlaylistVideo(config.activePlaylistVideo + 1)
+      } else if (
+        config.mediaType == DynamicMediaType.PLAYLIST && // is a playlist
+        videoEvent.state > VideoState.VS_PLAYING && // is playing
+        videoEvent.videoLength > 0 && // video has a length
+        videoEvent.currentOffset >= videoEvent.videoLength - 0.01 && // video is at the end
+        config.activePlaylistVideo >= config.playlist.length - 1 // there are no more videos in the playlist
+      ) {
+        VLMDebug.log('video', 'event - video ended', config)
+        config.startPlaylistVideo(0)
       }
 
       switch (videoEvent.state) {
         case VideoState.VS_READY:
           VLMDebug.log('video', 'event - video is READY')
+          objThis.play()
           break
         case VideoState.VS_NONE:
           VLMDebug.log('video', 'event - video is in NO STATE')
           break
         case VideoState.VS_ERROR:
           VLMDebug.log('video', 'event - video ERROR')
-          if (config.mediaType == DynamicMediaType.PLAYLIST) {
+          if (config.mediaType == DynamicMediaType.PLAYLIST && config.activePlaylistVideo < config.playlist.length - 1) {
             config.startPlaylistVideo(config.activePlaylistVideo + 1)
+          } else if (config.mediaType == DynamicMediaType.PLAYLIST && config.activePlaylistVideo >= config.playlist.length - 1) {
+            config.startPlaylistVideo(0)
+          } else {
+            objThis.stop()
           }
           break
         case VideoState.VS_SEEKING:
@@ -269,6 +285,7 @@ export class VideoService {
           break
         case VideoState.VS_PAUSED:
           VLMDebug.log('video', 'event - video is PAUSED')
+          objThis.play()
           break
       }
     })
