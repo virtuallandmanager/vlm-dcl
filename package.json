@@ -1,6 +1,6 @@
 {
   "name": "vlm-dcl",
-  "version": "1.0.0-alpha.25",
+  "version": "1.0.0-beta.0",
   "description": "Virtual Land Manager for Decentraland SDK7",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -36,8 +36,8 @@
     "@babel/plugin-transform-private-property-in-object": "^7.22.5",
     "@babel/preset-env": "^7.21.5",
     "@babel/preset-typescript": "^7.22.5",
-    "@dcl/asset-packs": "latest",
-    "@dcl/js-runtime": "7.3.35",
+    "@dcl/asset-packs": "^1.20.0",
+    "@dcl/js-runtime": "7.5.6",
     "@microsoft/api-documenter": "^7.17.11",
     "@rollup/plugin-babel": "^6.0.3",
     "@rollup/plugin-commonjs": "^21.1.0",
