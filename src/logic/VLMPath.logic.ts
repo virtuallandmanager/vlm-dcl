@@ -240,7 +240,7 @@ export class VLMPathManager {
     this.updateCounter = 0
   }
 
-  static getPathPoint: CallableFunction = (firstPoint: boolean): PathPoint => {
+  static getPathPoint: CallableFunction = (firstPoint?: boolean): PathPoint => {
     this.approximatePathPoint()
     const offset = firstPoint ? 0 : getOffset()
     const newPathPoint: PathPoint = [
@@ -309,8 +309,7 @@ export class VLMPathManager {
     const playerPosition = { ...playerPositionObj.position },
       playerRotation = { ...Quaternion.toEulerAngles(playerPositionObj.rotation) },
       cameraPosition = { ...cameraPositionObj.position },
-      cameraRotation = { ...Quaternion.toEulerAngles(playerPositionObj.rotation) },
-      floorHeight = 0.17
+      cameraRotation = { ...Quaternion.toEulerAngles(playerPositionObj.rotation) };
 
     ;[playerPosition, playerRotation, cameraPosition, cameraRotation].forEach((obj: Vector3Type) => {
       Object.keys(obj).forEach(() => {

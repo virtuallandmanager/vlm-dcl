@@ -1,14 +1,4 @@
 import {
-  onEnterSceneObservable,
-  onLeaveSceneObservable,
-  onPlayerDisconnectedObservable,
-  onPlayerClickedObservable,
-  onPlayerExpressionObservable,
-  onProfileChanged,
-  onEnterScene,
-  onLeaveScene,
-} from '@dcl/sdk/observables'
-import {
   VLMClaimEvent,
   VLMPathClientEvent,
   VLMPathServerEvent,
@@ -27,7 +17,7 @@ import { VLMEventManager } from './VLMSystemEvents.logic'
 import { Room } from 'colyseus.js'
 import { VLMSceneManager } from './VLMScene.logic'
 import { VLMSession } from '../components/VLMSession.component'
-import { getPlayerData, getPlayersInScene } from '~system/Players'
+import { onEnterScene, onLeaveScene } from '@dcl/sdk/src/players'
 import { VLMPathManager } from './VLMPath.logic'
 import { VLMNotificationManager, VLMSessionManager, VLMWidgetManager } from './index'
 import { VLMVideo } from '../components/VLMVideo.component'
@@ -35,6 +25,8 @@ import { VLMSound } from '../components/VLMSound.component'
 import { VLMClaimPointManager } from './VLMClaimPoint.logic'
 import { VLMClaimPoint } from '../components'
 import { VLMDebug } from './VLMDebug.logic'
+import { ecs } from '../environment'
+import { getPlayerData, getPlayersInScene } from '~system/Players'
 
 export abstract class VLMEventListeners {
   static inboundMessageFunctions: { [uuid: string]: CallableFunction } = {}
@@ -51,6 +43,46 @@ export abstract class VLMEventListeners {
       this.sceneRoom = VLMSessionManager.sceneRoom
       this.sessionData = VLMSessionManager.sessionData
       this.sessionUser = VLMSessionManager.sessionUser
+
+      onEnterScene(async (player) => {
+        if (!player) return
+        if (!this.sessionUser?.connectedWallet) {
+          return
+        }
+        const userId = player.userId
+        let otherPlayers = await getPlayersInScene({})
+        if (userId == this.sessionUser?.connectedWallet) {
+          VLMDebug.log('SESSION ACTION: Player Entered Scene Boundaries', userId)
+          VLMEventManager.events.emit('VLMSessionAction', 'Player Entered Scene Boundaries', { userId, otherPlayers })
+        } else if (VLMPathManager.moving || VLMPathManager.engaged) {
+          VLMDebug.log('SESSION ACTION: Witnessed Player Enter Scene Boundaries', userId)
+          let user = await getPlayerData({ userId })
+          VLMEventManager.events.emit('VLMSessionAction', `Witnessed Scene Entry`, {
+            userId,
+            otherPlayers,
+            witness: this.sessionUser.connectedWallet,
+          })
+        }
+      })
+
+      onLeaveScene(async (userId) => {
+        if (!userId) return
+        console.log('LEFT SCENE', userId)
+        if (!this.sessionUser?.connectedWallet) {
+          return
+        }
+        let otherPlayers = await getPlayersInScene({})
+        if (userId == this.sessionUser?.connectedWallet) {
+          VLMEventManager.events.emit('VLMSessionAction', 'Left Scene Boundaries', { userId, otherPlayers })
+        } else if (VLMPathManager.moving || VLMPathManager.engaged) {
+          let user = await getPlayerData({ userId })
+          VLMEventManager.events.emit('VLMSessionAction', `Witnessed Scene Departure`, {
+            userId,
+            otherPlayers,
+            witness: this.sessionUser.connectedWallet,
+          })
+        }
+      })
 
       // onIdleStateChangedObservable.add(({ isIdle }) => {
       //   if (isIdle) {
@@ -86,28 +118,46 @@ export abstract class VLMEventListeners {
       //   }
       // });
 
-      onPlayerExpressionObservable.add(({ expressionId }) => {
+      // onPlayerExpressionObservable.add(({ expressionId }) => {
+      //   if (this.ignoreNextEmote) {
+      //     this.ignoredEmote = expressionId
+      //     this.ignoreNextEmote = false
+      //     VLMDebug.log(`TRACKED ACTION - Emote Ignored - ${expressionId}`)
+      //     return
+      //   } else if (this.ignoredEmote == expressionId) {
+      //     VLMDebug.log(`TRACKED ACTION - Ignored stationary re-trigger - ${expressionId}`)
+      //     return
+      //   } else {
+      //     VLMDebug.log(`TRACKED ACTION - Emote triggered - ${expressionId}`)
+      //     this.ignoredEmote = expressionId
+      //     VLMEventManager.events.emit('VLMSessionAction', 'Emote Used', { emote: expressionId })
+      //     VLMEventManager.events.emit('VLMEmoteAction', expressionId)
+      //   }
+      // })
+
+      ecs.AvatarEmoteCommand.onChange(ecs.engine.PlayerEntity, (emote?: { emoteUrn: string; loop: boolean; timestamp: number }) => {
+        if (!emote) return
         if (this.ignoreNextEmote) {
-          this.ignoredEmote = expressionId
+          this.ignoredEmote = emote.emoteUrn
           this.ignoreNextEmote = false
-          VLMDebug.log(`TRACKED ACTION - Emote Ignored - ${expressionId}`)
+          VLMDebug.log(`TRACKED ACTION - Emote Ignored - ${emote.emoteUrn}`)
           return
-        } else if (this.ignoredEmote == expressionId) {
-          VLMDebug.log(`TRACKED ACTION - Ignored stationary re-trigger - ${expressionId}`)
+        } else if (this.ignoredEmote == emote.emoteUrn) {
+          VLMDebug.log(`TRACKED ACTION - Ignored stationary re-trigger - ${emote.emoteUrn}`)
           return
         } else {
-          VLMDebug.log(`TRACKED ACTION - Emote triggered - ${expressionId}`)
-          this.ignoredEmote = expressionId
-          VLMEventManager.events.emit('VLMSessionAction', 'Emote Used', { emote: expressionId })
-          VLMEventManager.events.emit('VLMEmoteAction', expressionId)
+          VLMDebug.log(`TRACKED ACTION - Emote triggered - ${emote.emoteUrn}`)
+          this.ignoredEmote = emote.emoteUrn
+          VLMEventManager.events.emit('VLMSessionAction', 'Emote Used', { emote })
+          VLMEventManager.events.emit('VLMEmoteAction', emote.emoteUrn)
         }
       })
 
-      onPlayerClickedObservable.add((clickEvent) => {
-        VLMEventManager.events.emit('VLMSessionAction', 'Viewed A User Profile', clickEvent)
+      // onPlayerClickedObservable.add((clickEvent) => {
+      //   VLMEventManager.events.emit('VLMSessionAction', 'Viewed A User Profile', clickEvent)
 
-        VLMDebug.log('session', 'TRACKED ACTION - Viewed A User Profile', clickEvent.userId)
-      })
+      //   VLMDebug.log('session', 'TRACKED ACTION - Viewed A User Profile', clickEvent.userId)
+      // })
 
       // onPlayerConnectedObservable.add(async ({ userId }) => {
       //   if (VLMPathManager.engaged || VLMPathManager.moving) {
@@ -127,41 +177,41 @@ export abstract class VLMEventListeners {
       //   }
       // });
 
-      onEnterSceneObservable.add(async ({ userId }) => {
-        if (!this.sessionUser?.connectedWallet) {
-          return
-        }
-        let otherPlayers = await getPlayersInScene({})
-        if (userId == this.sessionUser?.connectedWallet) {
-          VLMDebug.log('SESSION ACTION: Player Entered Scene Boundaries', userId)
-          VLMEventManager.events.emit('VLMSessionAction', 'Player Entered Scene Boundaries', { userId, otherPlayers })
-        } else if (VLMPathManager.moving || VLMPathManager.engaged) {
-          VLMDebug.log('SESSION ACTION: Witnessed Player Enter Scene Boundaries', userId)
-          let user = await getPlayerData({ userId })
-          VLMEventManager.events.emit('VLMSessionAction', `Witnessed Scene Entry`, {
-            userId,
-            otherPlayers,
-            witness: this.sessionUser.connectedWallet,
-          })
-        }
-      })
+      // onEnterSceneObservable.add(async ({ userId }) => {
+      //   if (!this.sessionUser?.connectedWallet) {
+      //     return
+      //   }
+      //   let otherPlayers = await getPlayersInScene({})
+      //   if (userId == this.sessionUser?.connectedWallet) {
+      //     VLMDebug.log('SESSION ACTION: Player Entered Scene Boundaries', userId)
+      //     VLMEventManager.events.emit('VLMSessionAction', 'Player Entered Scene Boundaries', { userId, otherPlayers })
+      //   } else if (VLMPathManager.moving || VLMPathManager.engaged) {
+      //     VLMDebug.log('SESSION ACTION: Witnessed Player Enter Scene Boundaries', userId)
+      //     let user = await getPlayerData({ userId })
+      //     VLMEventManager.events.emit('VLMSessionAction', `Witnessed Scene Entry`, {
+      //       userId,
+      //       otherPlayers,
+      //       witness: this.sessionUser.connectedWallet,
+      //     })
+      //   }
+      // })
 
-      onLeaveSceneObservable.add(async ({ userId }) => {
-        if (!this.sessionUser?.connectedWallet) {
-          return
-        }
-        let otherPlayers = await getPlayersInScene({})
-        if (userId == this.sessionUser?.connectedWallet) {
-          VLMEventManager.events.emit('VLMSessionAction', 'Left Scene Boundaries', { userId, otherPlayers })
-        } else if (VLMPathManager.moving || VLMPathManager.engaged) {
-          let user = await getPlayerData({ userId })
-          VLMEventManager.events.emit('VLMSessionAction', `Witnessed Scene Departure`, {
-            userId,
-            otherPlayers,
-            witness: this.sessionUser.connectedWallet,
-          })
-        }
-      })
+      // onLeaveSceneObservable.add(async ({ userId }) => {
+      //   if (!this.sessionUser?.connectedWallet) {
+      //     return
+      //   }
+      //   let otherPlayers = await getPlayersInScene({})
+      //   if (userId == this.sessionUser?.connectedWallet) {
+      //     VLMEventManager.events.emit('VLMSessionAction', 'Left Scene Boundaries', { userId, otherPlayers })
+      //   } else if (VLMPathManager.moving || VLMPathManager.engaged) {
+      //     let user = await getPlayerData({ userId })
+      //     VLMEventManager.events.emit('VLMSessionAction', `Witnessed Scene Departure`, {
+      //       userId,
+      //       otherPlayers,
+      //       witness: this.sessionUser.connectedWallet,
+      //     })
+      //   }
+      // })
 
       VLMEventManager.events.on('VLMSettingsEvent', (message: VLMSettingsEvent) => {
         // VLMModerationManager.updateSettings(message.settingData.settingValue);
@@ -215,7 +265,7 @@ export abstract class VLMEventListeners {
             this.sceneRoom.send('path_segments_add', message)
             break
           case 'path_movement_started':
-            this.ignoredEmote = null;
+            this.ignoredEmote = null
             break
         }
       })
@@ -362,7 +412,11 @@ export abstract class VLMEventListeners {
 
       this.sceneRoom.onMessage('request_player_position', (message: VLMPlayerPosition) => {
         VLMDebug.log('event', 'Player Position Requested', message)
-        this.sceneRoom.send('send_player_position', { positionData: VLMPathManager.getPathPoint(), userId: this.sessionUser?.sk })
+        this.sceneRoom.send('send_player_position', {
+          positionData: VLMPathManager.getPathPoint(),
+          userId: this.sessionUser?.sk,
+          connectedWallet: this.sessionUser?.connectedWallet,
+        })
       })
 
       this.sceneRoom.send('session_start', this.sessionData)
@@ -390,5 +444,21 @@ export abstract class VLMEventListeners {
 
   static recordAction: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
     VLMEventManager.events.emit('VLMSessionAction', id, data)
+  }
+
+  static getPlayersInScene: CallableFunction = async () => {
+    const players = []
+    for (const [entity, data, transform] of ecs.engine.getEntitiesWith(ecs.PlayerIdentityData, ecs.Transform)) {
+      players.push({ entity, data, transform })
+    }
+    return players
+  }
+
+  static getUserIdsInScene: CallableFunction = async () => {
+    const userIds = []
+    for (const [entity, data, transform] of ecs.engine.getEntitiesWith(ecs.PlayerIdentityData, ecs.Transform)) {
+      userIds.push(data.userId)
+    }
+    return userIds
   }
 }

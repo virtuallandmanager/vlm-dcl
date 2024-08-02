@@ -34,8 +34,8 @@ export abstract class VLMEnvironment {
         VLMDebug.log('No config provided, defaulting to prod')
       }
 
-      if (!config.env || (config.env !== 'prod' && !this.devMode)) {
-        config.env = 'prod'
+      if (!config?.env || (config.env !== 'prod' && !this.devMode)) {
+        config = { ...config, env: 'prod' }
       }
 
       if (config?.debug) {
@@ -63,7 +63,7 @@ export abstract class VLMEnvironment {
 }
 
 /**
- * Environment initialization options. Allow you to choose which server to connect to, 
+ * Environment initialization options. Allow you to choose which server to connect to,
  * what folders are used in your project, and how the UI is set up.
  *
  * @public

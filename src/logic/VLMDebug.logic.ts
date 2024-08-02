@@ -27,6 +27,7 @@ export class VLMDebug {
           case 'session':
             this.scope.session = true
           case 'videos':
+          case 'video':
             this.scope.videos = true
           case 'widgets':
             this.scope.widgets = true
