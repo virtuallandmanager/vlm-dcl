@@ -15,7 +15,7 @@ export namespace VLMMesh {
   export const configs: { [uuid: string]: Config } = {}
   export const instances: { [uuid: string]: Instance } = {}
 
-  export type VLMConfig = VLMBaseProperties & VLMMeshOptions & VLMClickable & VLMTransformable & VLMInstancedItem
+  export type VLMConfig = VLMBaseProperties & VLMMeshOptions & VLMClickable & VLMInstancedItem
 
   export const reset = () => {
     Object.keys(configs).forEach((key: string) => {
@@ -51,15 +51,19 @@ export namespace VLMMesh {
         transform: new TransformService(),
         clickEvent: new ClickEventService(),
       }
+      if (config?.instances?.length) {
+        config.instances.forEach((instance: VLMInstanceProperties) => {
+          this.createOrReplaceInstance(instance)
+        })
+      }
+      if (this.customRendering) {
+        this.setStorage(config)
+        return
+      }
       this.init(config)
     }
 
-    /**
-     * @public init
-     * Initializes the config
-     * @returns void
-     */
-    init: CallableFunction = (config: VLMConfig) => {
+    setStorage: CallableFunction = (config: VLMConfig) => {
       try {
         Object.assign(this, config)
 
@@ -67,6 +71,23 @@ export namespace VLMMesh {
 
         if (this.customId) {
           configs[this.customId] = configs[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
+    }
+
+    /**
+     * @public init
+     * Initializes the config
+     * @returns void
+     */
+    init: CallableFunction = (config?: VLMConfig) => {
+      try {
+        if (config) {
+          this.setStorage(config)
+        } else {
+          config = this
         }
 
         if (!config.instances || config?.instances.length < 1) {
@@ -203,7 +224,25 @@ export namespace VLMMesh {
   export class Instance extends VLMBase.Instance {
     constructor(config: Config, instanceConfig: VLMInstanceProperties) {
       super(config, instanceConfig)
-      this.init(config, instanceConfig)
+      if (!this.customRendering) {
+        this.init(config, instanceConfig)
+      } else {
+        this.setStorage(instanceConfig)
+      }
+    }
+
+    setStorage: CallableFunction = (config: VLMConfig) => {
+      try {
+        Object.assign(this, config)
+
+        instances[this.sk] = this
+
+        if (this.customId) {
+          instances[this.customId] = instances[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
     }
 
     /**
@@ -212,13 +251,7 @@ export namespace VLMMesh {
      * @returns void
      */
     init: CallableFunction = (config: Config, instanceConfig: VLMInstanceProperties) => {
-      Object.assign(this, instanceConfig)
-
-      instances[this.sk] = this
-
-      if (this.customId) {
-        instances[this.customId] = instances[this.sk]
-      }
+      this.setStorage(instanceConfig)
 
       if (!this.enabled || !config.enabled) {
         return
@@ -382,6 +415,7 @@ export class QuickMesh {
     if (config.colliders) {
       // this.services.collider.set(this.entity, 'box', true, true)
     }
+
     console.log('QuickMesh created!', config.clickEvent)
   }
 }

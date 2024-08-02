@@ -54,7 +54,30 @@ export namespace VLMImage {
         transform: new TransformService(),
         clickEvent: new ClickEventService(),
       }
+      if (config?.instances?.length) {
+        config.instances.forEach((instance: VLMInstanceProperties) => {
+          this.createOrReplaceInstance(instance)
+        })
+      }
+      if (this.customRendering) {
+        this.setStorage(config)
+        return
+      }
       this.init(config)
+    }
+
+    setStorage: CallableFunction = (config:VLMConfig) => {
+      try {
+        Object.assign(this, config)
+
+        configs[this.sk] = this
+
+        if (this.customId) {
+          configs[this.customId] = configs[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
     }
 
     /**
@@ -62,16 +85,12 @@ export namespace VLMImage {
      * Initializes the config
      * @returns void
      */
-    init: CallableFunction = (config: VLMConfig) => {
+    init: CallableFunction = (config?: VLMConfig) => {
       try {
-        Object.assign(this, config)
-
-        this.textureOptions = this.services.material.buildOptions(config)
-
-        configs[this.sk] = this
-
-        if (this.customId) {
-          configs[this.customId] = configs[this.sk]
+        if (config) {
+          this.setStorage(config)
+        } else {
+          config = this
         }
 
         if (!config.instances || config.instances.length < 1) {
@@ -209,7 +228,26 @@ export namespace VLMImage {
     constructor(config: Config, instanceConfig: VLMInstanceProperties) {
       super(config, instanceConfig)
       VLMDebug.log('Creating Image Instance', instanceConfig)
-      this.init(config, instanceConfig)
+
+      if (!this.customRendering) {
+        this.init(config, instanceConfig)
+      } else {
+        this.setStorage(config)
+      }
+    }
+
+    setStorage: CallableFunction = (config:VLMConfig) => {
+      try {
+        Object.assign(this, config)
+
+        instances[this.sk] = this
+
+        if (this.customId) {
+          instances[this.customId] = instances[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
     }
 
     /**

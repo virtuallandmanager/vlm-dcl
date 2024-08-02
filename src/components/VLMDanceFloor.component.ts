@@ -52,9 +52,6 @@ export namespace VLMDanceFloor {
     services: { material: MaterialService; mesh: MeshService; transform: TransformService; autodance: AutoDanceService }
     constructor(config: VLMConfig) {
       super(config)
-
-      Object.assign(this, config)
-
       VLMDebug.log('Creating Dance Floor Config', config)
 
       this.services = {

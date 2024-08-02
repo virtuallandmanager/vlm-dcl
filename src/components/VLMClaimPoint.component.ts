@@ -47,7 +47,30 @@ export namespace VLMClaimPoint {
         transform: new TransformService(),
         clickEvent: new ClickEventService(),
       }
+      if (config?.instances?.length) {
+        config.instances.forEach((instance: VLMInstanceProperties) => {
+          this.createOrReplaceInstance(instance)
+        })
+      }
+      if (this.customRendering) {
+        this.setStorage(config)
+        return
+      }
       this.init(config)
+    }
+
+    setStorage: CallableFunction = (config: VLMConfig) => {
+      try {
+        Object.assign(this, config)
+
+        configs[this.sk] = this
+
+        if (this.customId) {
+          configs[this.customId] = configs[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
     }
 
     /**
@@ -193,7 +216,7 @@ export namespace VLMClaimPoint {
       } else if (this.requestComplete) {
         return
       }
-      
+
       this.requestInProgress = true
 
       if (!this.hasCustomFunctions) {
@@ -282,9 +305,27 @@ export namespace VLMClaimPoint {
     entity: Entity = ecs.engine.addEntity()
     properties: ClaimPointProperties = {}
 
-    constructor(config: Config, instance: VLMInstanceProperties) {
-      super(config, instance)
-      this.init(config, instance)
+    constructor(config: Config, instanceConfig: VLMInstanceProperties) {
+      super(config, instanceConfig)
+      if (!this.customRendering) {
+        this.init(config, instanceConfig)
+      } else {
+        this.setStorage(instanceConfig)
+      }
+    }
+
+    setStorage: CallableFunction = (config: VLMConfig) => {
+      try {
+        Object.assign(this, config)
+
+        instances[this.sk] = this
+
+        if (this.customId) {
+          instances[this.customId] = instances[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
     }
 
     /**
@@ -293,13 +334,7 @@ export namespace VLMClaimPoint {
      * @returns void
      */
     init: CallableFunction = (config: Config, instanceConfig: Instance) => {
-      Object.assign(this, instanceConfig)
-
-      instances[this.sk] = this
-
-      if (this.customId) {
-        instances[this.customId] = instances[this.sk]
-      }
+      this.setStorage(instanceConfig)
 
       if (!this.properties) {
         this.properties = config.properties

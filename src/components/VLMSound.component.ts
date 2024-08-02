@@ -48,7 +48,30 @@ export namespace VLMSound {
         material: new MaterialService(),
         transform: new TransformService(),
       }
+      if (config?.instances?.length) {
+        config.instances.forEach((instance: VLMInstanceProperties) => {
+          this.createOrReplaceInstance(instance)
+        })
+      }
+      if (this.customRendering) {
+        this.setStorage(config)
+        return
+      }
       this.init(config)
+    }
+
+    setStorage: CallableFunction = (config: VLMConfig) => {
+      try {
+        Object.assign(this, config)
+
+        configs[this.sk] = this
+
+        if (this.customId) {
+          configs[this.customId] = configs[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
     }
 
     /**
@@ -58,12 +81,10 @@ export namespace VLMSound {
      */
     init: CallableFunction = (config: VLMConfig) => {
       try {
-        Object.assign(this, config)
-
-        configs[this.sk] = this
-
-        if (this.customId) {
-          configs[this.customId] = configs[this.sk]
+        if (config) {
+          this.setStorage(config)
+        } else {
+          config = this
         }
 
         this.audioOptions = this.services.audio.buildOptions(config)
@@ -205,7 +226,25 @@ export namespace VLMSound {
     hasLocator: boolean = false
     constructor(config: Config, instanceConfig: VLMInstanceProperties) {
       super(config, instanceConfig)
-      this.init(config, instanceConfig)
+      if (!this.customRendering) {
+        this.init(config, instanceConfig)
+      } else {
+        this.setStorage(instanceConfig)
+      }
+    }
+
+    setStorage: CallableFunction = (config: VLMConfig) => {
+      try {
+        Object.assign(this, config)
+
+        instances[this.sk] = this
+
+        if (this.customId) {
+          instances[this.customId] = instances[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
     }
 
     /**

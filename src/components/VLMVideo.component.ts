@@ -93,15 +93,20 @@ export namespace VLMVideo {
         clickEvent: new ClickEventService(),
         video: new VideoService(),
       }
+
+      if (config?.instances?.length) {
+        config.instances.forEach((instance: VLMInstanceProperties) => {
+          this.createOrReplaceInstance(instance)
+        })
+      }
+      if (this.customRendering) {
+        this.setStorage(config)
+        return
+      }
       this.init(config)
     }
 
-    /**
-     * @public init
-     * Initializes the config
-     * @returns void
-     */
-    init: CallableFunction = (config: VLMConfig) => {
+    setStorage: CallableFunction = (config: VLMConfig) => {
       try {
         Object.assign(this, config)
 
@@ -110,9 +115,26 @@ export namespace VLMVideo {
         if (this.customId) {
           configs[this.customId] = configs[this.sk]
         }
+      } catch (error) {
+        throw error
+      }
+    }
+
+    /**
+     * @public init
+     * Initializes the config
+     * @returns void
+     */
+    init: CallableFunction = (config?: VLMConfig) => {
+      try {
+        VLMDebug.log('Storing Video Config', config)
+        if (config) {
+          this.setStorage(config)
+        } else {
+          config = this
+        }
 
         VLMDebug.log('Creating Video Config', config)
-
         const originalMediaType = this.mediaType
 
         if (this.liveSrc && this.enableLiveStream && this.isLive) {
@@ -125,7 +147,6 @@ export namespace VLMVideo {
           // set the video source to the current video in the playlist
           this.mediaType = DynamicMediaType.PLAYLIST
           this.videoOptions.src = this.playlist[this.activePlaylistVideo]
-          this.services.video.initEventSystem(this)
         } else if (this.offImageSrc && this.offType === DynamicMediaType.IMAGE) {
           // if off image exists
           // set the video source to the off image
@@ -149,13 +170,16 @@ export namespace VLMVideo {
 
         VLMDebug.log('Video Media Type', this.mediaType)
 
-        if (!config.instances || config.instances.length < 1 || this.mediaType === DynamicMediaType.NONE) {
+        if (!config?.instances || config.instances.length < 1 || this.mediaType === DynamicMediaType.NONE) {
           return
         }
 
         config.instances.forEach((instance: VLMInstanceProperties) => {
           this.createOrReplaceInstance(instance)
         })
+        if (this.playlist.length > 0 && this.offType === DynamicMediaType.PLAYLIST) {
+          this.services.video.initEventSystem(this)
+        }
       } catch (error) {
         throw error
       }
@@ -307,9 +331,12 @@ export namespace VLMVideo {
       if (this.playlist.includes(currentlyPlaying)) {
         // if so, set the playlist index to the index of the currently playing video
         this.activePlaylistVideo = this.playlist.indexOf(currentlyPlaying)
+        this.services.video.clearEventSystem();
+        this.services.video.initEventSystem(this);
       } else {
         // if not, set the playlist index to 0 and re-init
         this.activePlaylistVideo = 0
+        this.services.video.clearEventSystem();
         this.init(this)
       }
     }
@@ -371,7 +398,26 @@ export namespace VLMVideo {
   export class Instance extends VLMBase.Instance {
     constructor(config: Config, instanceConfig: VLMInstanceProperties) {
       super(config, instanceConfig)
-      this.init(config, instanceConfig)
+
+      if (!this.customRendering) {
+        this.init(config, instanceConfig)
+      } else {
+        this.setStorage(instanceConfig)
+      }
+    }
+
+    setStorage: CallableFunction = (config: VLMConfig) => {
+      try {
+        Object.assign(this, config)
+
+        instances[this.sk] = this
+
+        if (this.customId) {
+          instances[this.customId] = instances[this.sk]
+        }
+      } catch (error) {
+        throw error
+      }
     }
 
     /**
@@ -380,12 +426,10 @@ export namespace VLMVideo {
      * @returns void
      */
     init: CallableFunction = (config: Config, instanceConfig: Instance) => {
-      Object.assign(this, instanceConfig)
-
-      instances[this.sk] = this
-
-      if (this.customId) {
-        instances[this.customId] = instances[this.sk]
+      if (instanceConfig) {
+        this.setStorage(instanceConfig)
+      } else {
+        instanceConfig = this
       }
 
       if (!this.enabled || !config.enabled) {
