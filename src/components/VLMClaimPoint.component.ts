@@ -29,7 +29,7 @@ export namespace VLMClaimPoint {
     services: { material: MaterialService; mesh: MeshService; collider: ColliderService; transform: TransformService; clickEvent: ClickEventService }
     messageOptions?: VLMNotification.MessageOptions
     giveawayId: string = ''
-    properties: ClaimPointProperties = {}
+    properties: ClaimPointProperties = { hoverText: '' }
     messages: typeof defaultMessages = defaultMessages
     requestComplete: boolean = false
     hasCustomFunctions: boolean = false
@@ -39,7 +39,7 @@ export namespace VLMClaimPoint {
 
     constructor(config: VLMConfig) {
       super(config)
-      VLMDebug.log('Creating Image Config', config)
+      VLMDebug.log('Creating Claim Point Config', config)
       this.services = {
         material: new MaterialService(),
         mesh: new MeshService(),
@@ -65,8 +65,8 @@ export namespace VLMClaimPoint {
 
         configs[this.sk] = this
 
-        if (this.customId) {
-          configs[this.customId] = configs[this.sk]
+        if (config.customId) {
+          configs[config.customId] = configs[this.sk]
         }
       } catch (error) {
         throw error
@@ -80,13 +80,7 @@ export namespace VLMClaimPoint {
      */
     init: CallableFunction = (config: VLMConfig) => {
       try {
-        Object.assign(this, config)
-
-        configs[this.sk] = this
-
-        if (this.customId) {
-          configs[this.customId] = configs[this.sk]
-        }
+        this.setStorage(config)
 
         if (!config.instances || config.instances.length < 1) {
           return
@@ -301,9 +295,9 @@ export namespace VLMClaimPoint {
       buttonHousingEntity?: Entity
       boothLightEntity?: Entity
     } = {}
-    claimItemEntity?: Entity
+    claimItemEntity?: Entity = ecs.engine.addEntity()
     entity: Entity = ecs.engine.addEntity()
-    properties: ClaimPointProperties = {}
+    properties: ClaimPointProperties = { hoverText: '' }
 
     constructor(config: Config, instanceConfig: VLMInstanceProperties) {
       super(config, instanceConfig)
@@ -337,7 +331,7 @@ export namespace VLMClaimPoint {
       this.setStorage(instanceConfig)
 
       if (!this.properties) {
-        this.properties = config.properties
+        this.properties = config.properties || { hoverText: '' }
       }
 
       if (config.customRendering || !config.enabled || !this.enabled) {
@@ -345,13 +339,13 @@ export namespace VLMClaimPoint {
         return
       }
 
-      config.services.transform.set(this.entity, {
+      config?.services?.transform?.set(this.entity, {
         position: this.position,
         scale: this.scale,
         rotation: this.rotation,
       })
 
-      this.generateClaimItem()
+      this.generateClaimItem(config)
 
       if (this.properties.enableKiosk) {
         this.generateStandardBooth()
@@ -427,23 +421,18 @@ export namespace VLMClaimPoint {
       }
     }
 
-    generateClaimItem: CallableFunction = () => {
+    generateClaimItem: CallableFunction = (config: Config) => {
       const objThis = this,
-        config = configs[this.configId],
         { hoverText } = this.properties
 
       this.claimItemEntity = this.claimItemEntity || ecs.engine.addEntity()
 
+      if (!config?.services) {
+        return
+      }
       if (this.properties.type == ClaimPointType.MODEL && this.properties.modelSrc) {
-        config.services.mesh.set(this.claimItemEntity, 'gltf', {
-          src: `${getModelPath(this.properties.modelSrc)}`,
-        })
-        config.services.transform.set(this.claimItemEntity, {
-          position: {
-            x: 0,
-            y: 0,
-            z: 0,
-          },
+        config?.services.transform.set(this.claimItemEntity, {
+          position: Vector3.Zero(),
           scale: {
             x: 1,
             y: 1,
@@ -451,6 +440,9 @@ export namespace VLMClaimPoint {
           },
           rotation: { x: 0, y: 0, z: 0 },
           parent: this.entity,
+        })
+        config?.services.mesh.set(this.claimItemEntity, 'gltf', {
+          src: `${getModelPath(this.properties.modelSrc)}`,
         })
       } else if (this.properties.type == ClaimPointType.CUSTOM_IMAGE && this.properties.imgSrc) {
         const texture = Material.Texture.Common({ src: this.properties.imgSrc })
