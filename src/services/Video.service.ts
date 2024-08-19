@@ -26,8 +26,9 @@ export class VideoService {
     if (!this.entities.includes(entity)) {
       this.entities.push(entity)
     }
-    if (!VideoService.videoPlayerEntity) {
-      VideoService.videoPlayerEntity = ecs.engine.addEntity()
+    const serviceEntityIndex = this.entities.findIndex((e) => e === entity)
+    if (serviceEntityIndex > -1) {
+      this.entities[serviceEntityIndex] = ecs.engine.addEntity()
     }
   }
 
@@ -85,8 +86,9 @@ export class VideoService {
   }
 
   setPlayer: CallableFunction = (entity: Entity | null, videoOptions: PBVideoPlayer, textureOptions?: PBMaterial_PbrMaterial): void => {
+    const serviceEntity = this.entities.find((e) => e === entity)
     this.videoTexture = ecs.Material.Texture.Video({
-      videoPlayerEntity: this.videoPlayerEntity,
+      videoPlayerEntity: serviceEntity,
     })
 
     const defaultVideoOptions = {
@@ -98,7 +100,7 @@ export class VideoService {
       playbackRate: 1.0,
     }
 
-    ecs.VideoPlayer.createOrReplace(this.videoPlayerEntity, {
+    ecs.VideoPlayer.createOrReplace(serviceEntity, {
       ...defaultVideoOptions,
       ...videoOptions,
     })
@@ -138,16 +140,16 @@ export class VideoService {
     })
   }
 
-  play: CallableFunction = (): void => {
-    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(this.videoPlayerEntity)
+  play: CallableFunction = (entity: Entity): void => {
+    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(entity)
     if (!videoPlayer) {
       return
     }
     videoPlayer.playing = true
   }
 
-  stop: CallableFunction = (): void => {
-    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(this.videoPlayerEntity)
+  stop: CallableFunction = (entity: Entity): void => {
+    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(entity)
     if (!videoPlayer) {
       return
     }
@@ -156,16 +158,16 @@ export class VideoService {
     ecs.VideoPlayer.deleteFrom(this.videoPlayerEntity)
   }
 
-  pause: CallableFunction = (): void => {
-    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(this.videoPlayerEntity)
+  pause: CallableFunction = (entity: Entity): void => {
+    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(entity)
     if (!videoPlayer) {
       return
     }
     videoPlayer.playing = false
   }
 
-  toggle: CallableFunction = (): void => {
-    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(this.videoPlayerEntity)
+  toggle: CallableFunction = (entity: Entity): void => {
+    const videoPlayer = ecs.VideoPlayer.getMutableOrNull(entity)
     if (!videoPlayer) {
       return
     }

@@ -59,6 +59,8 @@ export abstract class VLMMeshManager {
             this.remove(config.sk)
           } else if (storedConfig) {
             this.add(config.sk)
+          } else {
+            this.create(config)
           }
           break
         default:

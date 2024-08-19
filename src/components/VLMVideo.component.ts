@@ -82,6 +82,7 @@ export namespace VLMVideo {
     mediaType?: DynamicMediaType = DynamicMediaType.NONE
     offType?: DynamicMediaType = DynamicMediaType.NONE
     volume?: number = 1
+    videoPlayerEntity?: Entity
 
     constructor(config: VLMConfig) {
       super(config)
@@ -134,6 +135,10 @@ export namespace VLMVideo {
           config = this
         }
 
+        if (!this.videoPlayerEntity) {
+          this.videoPlayerEntity = ecs.engine.addEntity()
+        }
+
         VLMDebug.log('Creating Video Config', config)
         const originalMediaType = this.mediaType
 
@@ -157,10 +162,10 @@ export namespace VLMVideo {
           this.mediaType = DynamicMediaType.NONE
         }
 
-        if (originalMediaType !== this.mediaType || !this.enabled || !config.enabled) {
+        if (originalMediaType !== this.mediaType || !this.enabled || !config?.enabled) {
           VLMDebug.log('Video Media Type Changed', originalMediaType, this.mediaType)
-          this.services.video.stop()
-          this.services.video.clearEventSystem()
+          this.services?.video?.stop()
+          this.services?.video?.clearEventSystem()
         }
 
         if (originalMediaType !== this.mediaType && this.mediaType === DynamicMediaType.NONE) {
@@ -210,9 +215,10 @@ export namespace VLMVideo {
     remove: CallableFunction = () => {
       try {
         if (this.services.video.getVideoState().state === VideoState.VS_PLAYING) {
-          this.services.video.stop()
+          this.services.video.stop(this.videoPlayerEntity)
         }
         this.instanceIds.forEach((instanceId: string) => {
+          this.services.video.stop(instances[instanceId].entity)
           instances[instanceId].remove()
         })
       } catch (error) {
@@ -228,7 +234,7 @@ export namespace VLMVideo {
     delete: CallableFunction = () => {
       try {
         if (this.services.video.getVideoState().state === VideoState.VS_PLAYING) {
-          this.services.video.stop()
+          this.services.video.stop(this.videoPlayerEntity)
         }
         delete configs[this.sk]
         this.instanceIds.forEach((instanceId: string) => {
@@ -331,12 +337,12 @@ export namespace VLMVideo {
       if (this.playlist.includes(currentlyPlaying)) {
         // if so, set the playlist index to the index of the currently playing video
         this.activePlaylistVideo = this.playlist.indexOf(currentlyPlaying)
-        this.services.video.clearEventSystem();
-        this.services.video.initEventSystem(this);
+        this.services.video.clearEventSystem()
+        this.services.video.initEventSystem(this)
       } else {
         // if not, set the playlist index to 0 and re-init
         this.activePlaylistVideo = 0
-        this.services.video.clearEventSystem();
+        this.services.video.clearEventSystem()
         this.init(this)
       }
     }

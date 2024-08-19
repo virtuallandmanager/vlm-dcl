@@ -54,8 +54,10 @@ export abstract class VLMVideoManager {
           storedConfig.enabled = config.enabled
           if (!config.enabled) {
             this.remove(config.sk)
-          } else if (!storedConfig) {
+          } else if (storedConfig) {
             this.add(config.sk)
+          } else {
+            this.create(config)
           }
         default:
           storedConfig.init(config)

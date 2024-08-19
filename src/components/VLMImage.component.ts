@@ -54,6 +54,7 @@ export namespace VLMImage {
         transform: new TransformService(),
         clickEvent: new ClickEventService(),
       }
+
       if (config?.instances?.length) {
         config.instances.forEach((instance: VLMInstanceProperties) => {
           this.createOrReplaceInstance(instance)
@@ -66,7 +67,7 @@ export namespace VLMImage {
       this.init(config)
     }
 
-    setStorage: CallableFunction = (config:VLMConfig) => {
+    setStorage: CallableFunction = (config: VLMConfig) => {
       try {
         Object.assign(this, config)
 
@@ -92,6 +93,8 @@ export namespace VLMImage {
         } else {
           config = this
         }
+
+        this.textureOptions = this.services.material.buildOptions({ textureSrc: config.textureSrc, isTransparent: config.isTransparent })
 
         if (!config.instances || config.instances.length < 1) {
           return
@@ -236,7 +239,7 @@ export namespace VLMImage {
       }
     }
 
-    setStorage: CallableFunction = (config:VLMConfig) => {
+    setStorage: CallableFunction = (config: VLMConfig) => {
       try {
         Object.assign(this, config)
 

@@ -52,8 +52,10 @@ export abstract class VLMClaimPointManager {
           storedConfig.enabled = config.enabled
           if (!config.enabled) {
             this.remove(config.sk)
-          } else if (!storedConfig) {
+          } else if (storedConfig) {
             this.add(config.sk)
+          } else {
+            this.create(config)
           }
         default:
           storedConfig.init(config)
@@ -113,7 +115,7 @@ export abstract class VLMClaimPointManager {
     const claimPoint = VLMClaimPoint.configs[response.sk],
       messageOptions = claimPoint.messageOptions || null,
       messages = claimPoint.messages
-      
+
     if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_ACCEPTED) {
       VLMNotificationManager.addMessage(messages.successfulClaim, messageOptions)
     } else if (response.responseType === VLMClaimPoint.ClaimResponseType.CLAIM_SERVER_ERROR) {
