@@ -2,18 +2,13 @@ import { VLMSessionManager } from "../logic/VLMSession.logic";
 import { VLMSceneElement, VLMSceneElementInstance } from "../logic/VLMScene.logic";
 import { PathPoint } from "../logic/VLMPath.logic";
 import { VLMModeration } from "./VLMModeration.component";
-// import { VLMNotification } from "./VLMNotification.component";
 import { VLMScene } from "./VLMScene.component";
 import { VLMSession } from "./VLMSession.component";
-// import { VLMSound } from "./VLMSound.component";
-import { VLMVideo } from "./VLMVideo.component";
 import { VLMWidget } from "./VLMWidget.component";
-// import { VLMClaimPoint } from "./VLMClaimPoint.component";
 import { VLMSound } from "./VLMSound.component";
 import { StreamState } from "../shared/interfaces";
 import { VLMClaimPoint } from "./VLMClaimPoint.component";
 import { VLMNotification } from "./VLMNotification.component";
-// import { VLMClaimPoint } from "./VLMClaimPoint.component";
 
 
 export class VLMSystemEvent {

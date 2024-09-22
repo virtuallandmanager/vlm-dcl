@@ -7,3 +7,4 @@ export * from "./VLMNotification.component";
 export * from './VLMSound.component'
 export * from './VLMVideo.component'
 export * from './VLMWidget.component'
+export * from './VLMDanceFloor.component'

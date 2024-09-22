@@ -8,6 +8,7 @@ import {
   QuickImage,
   QuickSound,
   QuickMesh,
+  QuickDanceFloor,
   VLMMesh,
   QuickNull,
   QuickNullConfig,
@@ -15,12 +16,12 @@ import {
   QuickImageConfig,
   QuickMeshConfig,
   QuickSoundConfig,
+  QuickDanceFloorConfig,
 } from './components/index'
-import 'xmlhttprequest-polyfill'
 
+import 'xmlhttprequest-polyfill'
 // @ts-ignore
 import { URL } from 'whatwg-url-without-unicode'
-import { QuickDanceFloor, QuickDanceFloorConfig } from './components/VLMDanceFloor.component'
 import { ReactEcsRenderer } from './services/UI.service'
 
 // @ts-ignore

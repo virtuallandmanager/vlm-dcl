@@ -4,14 +4,12 @@ import {
   VLMPathServerEvent,
   VLMPlayerPosition,
   VLMSceneMessage,
-  VLMSessionAction,
   VLMSessionEvent,
   VLMSettingsEvent,
   VLMSoundStateEvent,
   VLMUserMessage,
   VLMVideoStatusEvent,
   VLMWidgetInitEvent,
-  VLMWitnessedAction,
 } from '../components/VLMSystemEvents.component'
 import { VLMEventManager } from './VLMSystemEvents.logic'
 import { Room } from 'colyseus.js'

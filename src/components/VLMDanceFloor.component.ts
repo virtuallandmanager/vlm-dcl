@@ -1,12 +1,12 @@
 import { Entity } from '@dcl/sdk/ecs'
-import { VLMBase } from './VLMBase.component'
 import { Vector3, Color4 } from '@dcl/sdk/math'
+import { ecs } from '../environment'
+import { VLMBase } from './VLMBase.component'
 import { MaterialService } from '../services/Material.service'
 import { MeshService } from '../services/Mesh.service'
 import { TransformService } from '../services/Transform.service'
-import { ecs } from '../environment'
 import { VLMDebug } from '../logic/VLMDebug.logic'
-import { VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMInstancedItem, VLMTextureOptions } from '../shared/interfaces'
+import { VLMBaseProperties, VLMClickable, VLMInstanceProperties, VLMInstancedItem } from '../shared/interfaces'
 import { AutoDanceService } from '../services/AutoDance.service'
 
 export type EmoteList = TriggeredEmote[]
