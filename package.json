@@ -1,75 +1,34 @@
 {
   "name": "vlm-dcl",
-  "version": "1.0.0-alpha.50",
+  "version": "1.0.0-alpha.60",
   "description": "Virtual Land Manager for Decentraland SDK7",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "cross-env NODE_ENV=production rollup -c",
+    "start": "sdk-commands start",
     "dev": "tsc -p tsconfig.json --watch",
-    "link": "npm link"
+    "build": "sdk-commands build",
+    "upgrade-sdk": "npm install --save-dev @dcl/sdk@latest",
+    "upgrade-sdk:next": "npm install --save-dev @dcl/sdk@next"
   },
-  "typings": "./dist/index.d.ts",
-  "decentralandLibrary": {
-    "main": "./dist/index.js"
-  },
-  "keywords": [
-    "dcl",
-    "decentraland",
-    "sdk",
-    "library"
-  ],
-  "author": "-",
-  "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/virtuallandmanager/vlm-dcl"
-  },
-  "files": [
-    "dist"
-  ],
   "devDependencies": {
-    "@babel/core": "^7.21.5",
-    "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@babel/plugin-proposal-decorators": "^7.22.7",
-    "@babel/plugin-transform-private-methods": "^7.22.5",
-    "@babel/plugin-transform-private-property-in-object": "^7.22.5",
-    "@babel/preset-env": "^7.21.5",
-    "@babel/preset-typescript": "^7.22.5",
-    "@dcl/asset-packs": "^1.20.0",
-    "@dcl/js-runtime": "7.5.6",
-    "@microsoft/api-documenter": "^7.17.11",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-commonjs": "^21.1.0",
-    "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^13.1.3",
-    "@rollup/plugin-replace": "^5.0.2",
-    "@rollup/plugin-typescript": "^8.5.0",
-    "@types/jest": "^27.4.1",
-    "@types/node": "^20.10.5",
-    "cross-env": "^7.0.3",
-    "jest": "^27.5.1",
-    "prettier": "^3.1.0",
-    "rollup": "^2.79.1",
-    "rollup-plugin-dts": "^1.4.13",
-    "rollup-plugin-terser": "^7.0.2",
-    "ts-jest": "^27.1.4"
+    "@dcl/asset-packs": "latest",
+    "@dcl/js-runtime": "7.5.7",
+    "@dcl/sdk": "latest"
   },
   "engines": {
     "node": ">=16.0.0",
-    "npm": ">=8.0.0",
-    "yarn": "please use npm"
+    "npm": ">=6.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "none"
   },
   "dependencies": {
-    "colyseus.js": "^0.15.24",
+    "colyseus.js": "^0.15.26",
     "whatwg-url-without-unicode": "^8.0.0-3",
-    "xmlhttprequest-polyfill": "^0.1.2"
+    "xmlhttprequest-polyfill": "^1.0.1"
   },
-  "bundledDependencies": [
-    "colyseus.js",
-    "whatwg-url-without-unicode",
-    "xmlhttprequest-polyfill"
-  ],
   "bundleDependencies": [
     "colyseus.js",
     "whatwg-url-without-unicode",

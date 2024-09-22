@@ -20,6 +20,7 @@ export namespace ReactEcsRenderer {
 export class UIService {
   public static internalComponents: UiComponent = () => [this.notificationComponent()]
   public static notificationComponent: CallableFunction = () => {}
+  public static controlPadComponent: CallableFunction = () => {}
   static modules: UiComponent[] = []
 }
 
