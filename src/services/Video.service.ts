@@ -69,7 +69,7 @@ export class VideoService {
         specularIntensity: 0,
         metallic: 0,
         emissiveTexture: this.videoTexture,
-        emissiveIntensity: 0.6,
+        emissiveIntensity: textureOptions?.emissiveIntensity || 1,
         emissiveColor: Color3.White(),
       }
       VLMDebug.log('setting texture', {
@@ -104,6 +104,8 @@ export class VideoService {
       ...defaultVideoOptions,
       ...videoOptions,
     })
+
+    VLMDebug.log('video', 'setting video texture', textureOptions)
 
     if (entity) {
       this.setTexture(entity, textureOptions)

@@ -355,7 +355,10 @@ export namespace VLMVideo {
     startLiveStream: CallableFunction = () => {
       if (this.liveSrc) {
         this.videoOptions.src = this.liveSrc
-        this.services.video.setPlayer(null, this.videoOptions)
+
+        this.instanceIds.forEach((instanceId: string) => {
+          instances[instanceId].startLiveStream()
+        })
       } else {
         VLMDebug.log('error', 'Tried to start live stream but no url was provided')
       }
@@ -386,7 +389,7 @@ export namespace VLMVideo {
     showOffImage: CallableFunction = () => {
       this.services.video.clearEventSystem()
       this.services.video.clear()
-      this.services.material.buildOptions({ textureSrc: this.offImageSrc, emission: this.emission })
+      this.textureOptions = this.services.material.buildOptions({ textureSrc: this.offImageSrc, emission: this.emission })
       this.services.video.setAllImageTextures(this)
       VLMDebug.log('showing off image', this.textureOptions)
     }
@@ -443,6 +446,8 @@ export namespace VLMVideo {
       }
 
       config.services.video.addEntity(this.entity)
+
+      // this.updateTextureOptions(config.textureOptions)
 
       if (config.mediaType === DynamicMediaType.LIVE) {
         config.startLiveStream()
@@ -520,6 +525,23 @@ export namespace VLMVideo {
       const config = configs[this.configId]
 
       config.services.video.setPlayer(this.entity, config.videoOptions)
+    }
+
+    /**
+     * @public startLiveStream
+     * Starts a video in the playlist
+     * @returns void
+     */
+    startLiveStream: CallableFunction = () => {
+      const config = configs[this.configId]
+
+      if (config.liveSrc) {
+        config.videoOptions.src = config.liveSrc
+        config.textureOptions = config.services.material.buildOptions({ emission: config.emission })
+        config.services.video.setPlayer(this.entity, config.videoOptions, config.textureOptions)
+      } else {
+        VLMDebug.log('error', 'Tried to start live stream but no url was provided')
+      }
     }
     /**
      * @public updateTransform
