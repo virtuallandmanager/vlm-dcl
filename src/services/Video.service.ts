@@ -8,7 +8,6 @@ import {
   VideoState,
   TextureUnion,
   Material,
-  VideoPlayer,
 } from '@dcl/sdk/ecs'
 import { Color3 } from '@dcl/sdk/math'
 import { ecs } from '../environment'
@@ -20,14 +19,17 @@ export class VideoService {
   entities: Entity[] = []
   static videoPlayerEntity: Entity = ecs?.engine?.addEntity()
   videoPlayerEntity: Entity = VideoService.videoPlayerEntity
+  static videoPlayerEntities: Entity[] = [];
   videoTexture?: TextureUnion
 
   addEntity: CallableFunction = (entity: Entity): void => {
     if (!this.entities.includes(entity)) {
       this.entities.push(entity)
     }
-    if (!VideoService.videoPlayerEntity) {
-      VideoService.videoPlayerEntity = ecs.engine.addEntity()
+
+    const serviceEntityIndex = this.entities.findIndex((e) => e === entity)
+    if (serviceEntityIndex > -1) {
+      this.entities[serviceEntityIndex] = ecs.engine.addEntity()
     }
   }
 
@@ -42,7 +44,7 @@ export class VideoService {
         specularIntensity: 0,
         metallic: 0,
         emissiveTexture: texture,
-        emissiveIntensity: 0.6,
+        emissiveIntensity: textureOptions?.emissiveIntensity || 0.6,
         emissiveColor: Color3.White(),
       }
       VLMDebug.log('setting texture', {
@@ -68,7 +70,7 @@ export class VideoService {
         specularIntensity: 0,
         metallic: 0,
         emissiveTexture: this.videoTexture,
-        emissiveIntensity: 0.6,
+        emissiveIntensity: textureOptions?.emissiveIntensity || 0.6,
         emissiveColor: Color3.White(),
       }
       VLMDebug.log('setting texture', {
@@ -85,8 +87,9 @@ export class VideoService {
   }
 
   setPlayer: CallableFunction = (entity: Entity | null, videoOptions: PBVideoPlayer, textureOptions?: PBMaterial_PbrMaterial): void => {
+    const serviceEntity = this.entities.find((e) => e === entity)
     this.videoTexture = ecs.Material.Texture.Video({
-      videoPlayerEntity: this.videoPlayerEntity,
+      videoPlayerEntity: serviceEntity,
     })
 
     const defaultVideoOptions = {
@@ -98,7 +101,7 @@ export class VideoService {
       playbackRate: 1.0,
     }
 
-    ecs.VideoPlayer.createOrReplace(this.videoPlayerEntity, {
+    ecs.VideoPlayer.createOrReplace(serviceEntity, {
       ...defaultVideoOptions,
       ...videoOptions,
     })

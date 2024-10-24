@@ -4,14 +4,12 @@ import {
   VLMPathServerEvent,
   VLMPlayerPosition,
   VLMSceneMessage,
-  VLMSessionAction,
   VLMSessionEvent,
   VLMSettingsEvent,
   VLMSoundStateEvent,
   VLMUserMessage,
   VLMVideoStatusEvent,
   VLMWidgetInitEvent,
-  VLMWitnessedAction,
 } from '../components/VLMSystemEvents.component'
 import { VLMEventManager } from './VLMSystemEvents.logic'
 import { Room } from 'colyseus.js'
@@ -26,7 +24,7 @@ import { VLMClaimPointManager } from './VLMClaimPoint.logic'
 import { VLMClaimPoint } from '../components'
 import { VLMDebug } from './VLMDebug.logic'
 import { ecs } from '../environment'
-import { getPlayerData, getPlayersInScene } from '~system/Players'
+import { getPlayerData, getPlayersInScene, Player } from '~system/Players'
 
 export abstract class VLMEventListeners {
   static inboundMessageFunctions: { [uuid: string]: CallableFunction } = {}
@@ -44,7 +42,7 @@ export abstract class VLMEventListeners {
       this.sessionData = VLMSessionManager.sessionData
       this.sessionUser = VLMSessionManager.sessionUser
 
-      onEnterScene(async (player) => {
+      onEnterScene(async (player: Player) => {
         if (!player) return
         if (!this.sessionUser?.connectedWallet) {
           return
@@ -65,7 +63,7 @@ export abstract class VLMEventListeners {
         }
       })
 
-      onLeaveScene(async (userId) => {
+      onLeaveScene(async (userId: string) => {
         if (!userId) return
         console.log('LEFT SCENE', userId)
         if (!this.sessionUser?.connectedWallet) {
@@ -355,6 +353,10 @@ export abstract class VLMEventListeners {
           this.sceneRoom.send('get_user_state', message)
         } else if (message?.type == 'setState') {
           this.sceneRoom.send('set_user_state', message)
+        } else if (message?.type == 'getPlayerState') {
+          this.sceneRoom.send('get_player_state', message)
+        } else if (message?.type == 'setPlayerState') {
+          this.sceneRoom.send('set_player_state', message)
         }
       })
 
@@ -440,6 +442,14 @@ export abstract class VLMEventListeners {
 
   static getState: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
     VLMEventManager.events.emit('VLMUserMessage', { id, data, type: 'getState' })
+  }
+
+  static setPlayerState: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
+    VLMEventManager.events.emit('VLMUserMessage', { id, data, type: 'setPlayerState' })
+  }
+
+  static getPlayerState: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {
+    VLMEventManager.events.emit('VLMUserMessage', { id, data, type: 'getPlayerState' })
   }
 
   static recordAction: CallableFunction = (id: string, data: boolean | string | number | Object | Array<unknown>) => {

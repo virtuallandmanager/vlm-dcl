@@ -1,8 +1,10 @@
-import { parcelSize } from "../shared/defaults";
-import { VLMModeration } from "../components/VLMModeration.component";
-import { VLMSessionManager } from "./VLMSession.logic";
+// import { parcelSize } from "../shared/defaults";
+// import { VLMModeration } from "../components/VLMModeration.component";
+// import { VLMSessionManager } from "./VLMSession.logic";
 // import { VLMSessionManager } from "./VLMSession.logic";
 // import { VLMNotificationManager } from "./VLMNotification.logic";
+
+import { VLMModeration } from "../components";
 
 type PlayerConfig = {
   connectedWallet?: string;

@@ -1,0 +1,16 @@
+{
+	"ecs7": true,
+	"runtimeVersion": "7",
+	"display": {
+		"title": "vlm-dcl",
+		"description": "Virtual Land Manager for Decentraland SDK7",
+		"navmapThumbnail": "images/scene-thumbnail.png",
+		"favicon": "favicon_asset"
+	},
+	"main": "bin/index.js",
+	"tags": [],
+	"scene": {
+		"parcels": [ "0,0" ],
+		"base": "0,0"
+	}
+}

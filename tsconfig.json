@@ -1,43 +1,20 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "stripInternal": true,
-    "skipLibCheck": true,
-    "outDir": "dist",
-    "target": "es2020",
-    "module": "esnext",
-    "moduleResolution": "node",
-    "pretty": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "downlevelIteration": true,
-    "suppressExcessPropertyErrors": false,
-    "exactOptionalPropertyTypes": false,
-    "inlineSourceMap": true,
-    "sourceMap": false,
-    "removeComments": true,
-    "inlineSources": true,
-    "useDefineForClassFields": false,
-    "preserveConstEnums": true,
     "allowJs": true,
-    "jsx": "react",
-    "jsxFactory": "ReactEcs.createElement",
-    "alwaysStrict": true,
     "strict": true,
-    "strictNullChecks": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": true,
-    "lib": [
-      "ES2020"
-    ],
-    "types": [
-      "@dcl/js-runtime",
-    ]
-  },
-  "include": ["src"],
-  "exclude": ["dist"]
+    "skipLibCheck": true,
+    "lib": ["ESNext", "dom"],
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "declaration": true,
+    "declarationMap": true, 
+    "emitDeclarationOnly": false,
+    "outDir": "dist", 
+    "rootDir": "src",
+    "module": "esnext",
+    "target": "esnext"
+    },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"],
+  "extends": "@dcl/sdk/types/tsconfig.ecs7.json"
 }
