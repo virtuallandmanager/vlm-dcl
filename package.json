@@ -1,6 +1,6 @@
 {
   "name": "vlm-dcl",
-  "version": "1.0.0-alpha.70",
+  "version": "1.0.0-alpha.75",
   "description": "Virtual Land Manager for Decentraland SDK7",
   "scripts": {
     "start": "sdk-commands start",
@@ -9,8 +9,17 @@
     "upgrade-sdk": "npm install --save-dev @dcl/sdk@latest",
     "upgrade-sdk:next": "npm install --save-dev @dcl/sdk@next"
   },
+  "files": [
+    "dist/**/*"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "devDependencies": {
     "@dcl/asset-packs": "latest",
     "@dcl/js-runtime": "7.6.3",
