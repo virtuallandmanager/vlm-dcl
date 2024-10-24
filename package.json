@@ -1,6 +1,6 @@
 {
   "name": "vlm-dcl",
-  "version": "1.0.0-alpha.69",
+  "version": "1.0.0-alpha.70",
   "description": "Virtual Land Manager for Decentraland SDK7",
   "scripts": {
     "start": "sdk-commands start",
